@@ -8,18 +8,18 @@ const createWindow = () => {
 		webPreferences: {
 			preload: path.join(__dirname, 'preload.js')
 		}
-	})
+	});
 
-	win.loadFile('index.html')
+	win.loadFile(path.join(__dirname, 'pages/index.html'));
 }
 
 app.on('window-all-closed', () => {
-	if (process.platform !== 'darwin') app.quit()
-})  
+	app.quit()
+});
 
 app.whenReady().then(() => {
 	createWindow()
 	app.on('activate', () => {
-		if (BrowserWindow.getAllWindows().length === 0) createWindow()
+		if (BrowserWindow.getAllWindows().length === 0) createWindow();
 	})
-})  
+})

@@ -1,16 +1,108 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <title>Hello World!</title>
-  </head>
-  <body>
-    <h1>Hello World!</h1>
-    We are using Node.js <span id="node-version"></span>,
-    Chromium <span id="chrome-version"></span>,
-    and Electron <span id="electron-version"></span>.
+
+<link>
+	<meta charset="UTF-8">
+	<!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+	<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+	<title>Hello World!</title>
+	<link rel="stylesheet" href="./style.css"></link>
+</head>
+<body>
+	<div class="page">
+		<!--Sidebar-->
+		<div class="sidebar">
+			<div class="panel">
+				<div class="panel-header ">Project</div>
+				<!--Tree-->
+				<div class="panel-body">
+					<ul class="tree-group">
+						<li class="tree-item tree-item--chevron-down">
+							<span class="tree-item-label tree-item-label--repo">vintage-shop</span>
+							<ul class="tree-group">
+								<li class="tree-item tree-item--chevron-right">
+									<span class="tree-item-label tree-item-label--file-directory">git</span>
+								</li>
+								<li class="tree-item tree-item--chevron-right">
+									<span class="tree-item-label tree-item-label--file-directory">dist</span>
+								</li>
+								<li class="tree-item tree-item--chevron-right">
+									<span class="tree-item-label tree-item-label--file-directory">node_modules</span>
+								</li>
+								<li class="tree-item tree-item--chevron-right">
+									<span class="tree-item-label tree-item-label--file-directory">src</span>
+								</li>
+								<li class="tree-item">
+									<span class="tree-item-label tree-item-label--file-text">.editconfig</span>
+								</li>
+								<li class="tree-item">
+									<span class="tree-item-label tree-item-label--file-text">build.js</span>
+								</li>
+								<li class="tree-item">
+									<span class="tree-item-label tree-item-label--file-text">development.html</span>
+								</li>
+								<li class="tree-item">
+									<span class="tree-item-label tree-item-label--file-text">LICENSE</span>
+								</li>
+								<li class="tree-item">
+									<span class="tree-item-label tree-item-label--file-text">package-lock.json</span>
+								</li>
+								<li class="tree-item">
+									<span class="tree-item-label tree-item-label--file-text">production.html</span>
+								</li>
+								<li class="tree-item">
+									<span class="tree-item-label tree-item-label--file-book">README.md</span>
+								</li>
+								<li class="tree-item">
+									<span class="tree-item-label tree-item-label--file-text">test.html</span>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div><!--Sidebar ends-->
+		<!-- Editor -->
+		<div class="editor">
+			<div class="panel">
+				<div class="panel-header">
+					<div class="tabs">
+						<div class="tab-item">scafolding.less</div>
+						<div class="tab-item tab-item--selected">styles.less</div>
+						<div class="tab-item">cart-item.stash</div>
+					</div>
+				</div>
+				<div class="panel-body">
+					<ol class="editor-container">
+						<li class="editor-line"></li>
+						<li class="editor-line"><span class="editor-content">Hey there!</span></li>
+						<li class="editor-line"></li>
+					</ol>
+				</div>
+			</div>
+		</div><!--Editor ends-->
+		<!--Footer-->
+		<div class="footer">
+			<div class="footer-file-info">
+				<span class="file-info-source">src/styles.less</span>
+				<span class="file-info-location">2:5</span>
+			</div>
+			<div class="footer-controls">
+				<a href="">LF</a>
+				<a href="">UTF-8</a>
+				<a href="">Less</a>
+				<a href=""><span class="icon-git-branch"></span>master</a>
+				<a href="">⬇︎ 5 ⬆︎</a>
+				<a href=""><span class="icon-diff"></span>1 file</a>
+				<a href=""><span class="icon-squirrel"></span></a>
+			</div>
+		</div> 
+	</div>
+	<div class="control-bar">
+		<button id="window-1">Close Tabs to the Right</button>
+		<button id="window-2">Split Right</button>
+	</div>
 	<script src="./renderer.js"></script>
-  </body>
+</body>
+
 </html>

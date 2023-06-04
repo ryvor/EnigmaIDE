@@ -1,0 +1,224 @@
+/** Read the guide at: http://bit.ly/2xIdHu0 **/
+/** Variables & Mixins **/
+.ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+/** Scafolding --------------------**/
+body {
+	margin: 0;
+}
+.page {
+	display: grid;
+	grid-template-rows: auto 30px;
+	grid-template-columns: 300px 1fr;
+	height: 100vh;
+}
+/** Panel Module **/
+.panel {
+	display: grid;
+	grid-template-rows: 30px auto;
+	height: calc(100vh - 30px);
+}
+.panel-body {
+	overflow: auto;
+}
+/** Tabs Module **/
+.tabs {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	height: 100%;
+}
+.tab-item {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	text-align: center;
+	padding: 6px;
+}
+/** Editor **/
+.editor {
+	display: grid;
+}
+.editor .window-2 {
+	display: none;
+}
+.editor.editor--2-windows-layout {
+	grid-template-columns: 1fr 1fr;
+}
+.editor.editor--2-windows-layout .window-2 {
+	display: grid;
+}
+/** Footer **/
+.footer {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	grid-column-start: 1;
+	grid-column-end: 3;
+}
+.footer-file-info {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.footer-controls {
+	display: flex;
+	height: 100%;
+	justify-content: flex-end;
+}
+.footer-controls a {
+	height: 100%;
+	display: flex;
+	align-items: center;
+}
+/** Theme --------------------- **/
+/** Icons 
+	* From https://octicons.github.com/
+**/
+@font-face {
+	font-family: 'octicons';
+	src: url("./fonts/octicons-regular-webfont.ttf") format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+[class^="icon-"],
+[class*=" icon-"] {
+	font-family: 'octicons' !important;
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+.icon-squirrel:before {
+	content: "";
+}
+.icon-repo:before {
+	content: "\e901";
+}
+.icon-git-branch:before {
+	content: "";
+}
+.icon-diff:before {
+	content: "";
+}
+/** Variables **/
+/** Styles **/
+body {
+	background-color: #d7dae0;
+	font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	font-size: 0.8rem;
+	color: #2c313a;
+}
+.sidebar {
+	border-right: 1px solid #c5cad3;
+}
+.sidebar .tree-group {
+	padding: 0;
+	margin: 0;
+}
+.sidebar .tree-item {
+	padding: 5px 0 5px 25px;
+	list-style: none;
+	position: relative;
+}
+.sidebar .tree-item:before {
+	font-family: 'octicons' !important;
+	position: absolute;
+	left: 10px;
+}
+.sidebar .tree-item.tree-item--chevron-down:before {
+	content: "";
+}
+.sidebar .tree-item.tree-item--chevron-right:before {
+	content: "";
+}
+.sidebar .tree-item-label {
+	display: flex;
+}
+.sidebar .tree-item-label:before {
+	font-family: 'octicons' !important;
+	font-size: 17px;
+	margin-right: 10px;
+}
+.sidebar .tree-item-label.tree-item-label--repo:before {
+	content: "";
+}
+.sidebar .tree-item-label.tree-item-label--file-directory:before {
+	content: "";
+}
+.sidebar .tree-item-label.tree-item-label--file-text:before {
+	content: "";
+}
+.sidebar .tree-item-label.tree-item-label--file-book:before {
+	content: "";
+}
+.sidebar .panel-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.editor .tab-item {
+	border-right: 1px solid #c5cad3;
+	border-bottom: 1px solid #c5cad3;
+	color: #5c6370;
+}
+.editor .tab-item.tab-item--selected {
+	background-color: #2c313a;
+	color: #dcdfe4;
+	border-color: #2c313a;
+}
+.editor .panel-body {
+	background-color: #2c313a;
+	color: #dcdfe4;
+	font-family: "Courier New";
+	font-size: 1rem;
+}
+.editor .panel-body .editor-container {
+	padding-left: 45px;
+	margin-top: 0;
+}
+.editor .panel-body .editor-line {
+	color: #5c6370;
+}
+.editor .panel-body .editor-content {
+	color: #c5cad3;
+}
+.editor .window-2 {
+	border-left: 1px solid #c5cad3;
+}
+.footer {
+	align-items: center;
+	border-top: 1px solid #c5cad3;
+}
+.footer-file-info .file-info-source {
+	padding: 0 10px;
+}
+.footer-controls a {
+	padding: 0 10px;
+	color: initial;
+	text-decoration: none;
+}
+.footer-controls a [class*="icon-"] {
+	font-size: 15px;
+	margin-right: 5px;
+}
+.footer-controls a:hover {
+	background-color: #c5cad3;
+}
+.footer-controls a .icon-squirrel {
+	color: #1f96ff;
+}
+/** Control Bar for demo purposes **/
+.control-bar {
+	position: fixed;
+	bottom: 50px;
+	right: 20px;
+}
+#window-1 {
+	display: none;
+}
