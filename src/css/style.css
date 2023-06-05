@@ -1,0 +1,192 @@
+/**
+ * Enigma IDE
+ * style.css v1.0
+ * author: ryvor (@ryvor)
+ */
+@font-face {
+	font-family: 'Octicons';
+	src: url(../fonts/octicons-regular-webfont.ttf) format('truetype'),
+		 url(../fonts/octicons-regular-webfont.woff) format('woff'),
+		 url(../fonts/octicons-regular-webfont.woff2) format('woff2');
+}
+:root {
+	/* * colour * */
+	--primary: #5470d8;
+	/* * border * */
+	--border-color: #1e2424;
+	--border-width: 1px;
+	--border-style: solid;
+
+	/* * Backgrounds * */
+	--background-primary: #0c1010;
+	--background-secondary: #141818;
+
+	/* * Foreground * */
+	--foreground-primary: #f8f8f8;
+	--foreground-secondary: #4d5050;
+
+	/* * Tabs * */
+	--editor-tabs-background: var(--background-primary);
+	--editor-tabs-foreground: var(--foreground-primary);
+	--editor-tabs-background-active: var(--background-secondary);
+	--editor-tabs-foreground-active: var(--foreground-primary);
+	--editor-tabs-background-hover: #1a2020;
+	--editor-tabs-foreground-hover: var(--foreground-primary);
+	--editor-tabs-padding-left: 1rem;
+	--editor-tabs-padding-right: 1rem;
+	--editor-tabs-padding-top: 1rem;
+	--editor-tabs-padding-bottom: 0.5rem;
+	--editor-tabs-height: var(--sidebar-title-height); /* Usually the same as the sidebar height */
+	--editor-colour: var(--foreground-primary);
+
+	/* * Sidebar * */
+	--sidebar-background: var(--background-primary);
+	--sidebar-colour: var(--foreground-primary);
+	--sidebar-title-height: 40px;
+	/* * Footer * */
+	--footer-height: 1;
+	--footer-width: 100%;
+	--footer-background: var(--primary);
+	--footer-colour: var(--foreground-secondary);
+	/* * Misc * */
+	--footer-height-actual: calc(20px * var(--footer-height));
+}
+* {
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+container {
+	position: fixed;
+	display: grid;
+	width: 100%;
+	height: 100%;
+	top: 0px;
+	left: 0px;
+}
+@media (max-width: 576px) {
+	container {
+		grid-template-areas: 'sidebar editor editor editor'
+							 'sidebar editor editor editor'
+							 'sidebar editor editor editor'
+							 'footer  footer footer footer';
+	}
+	
+}
+@media (min-width: 576px) {
+	container {
+		grid-template-areas: 'sidebar editor editor editor'
+							 'sidebar editor editor editor'
+							 'sidebar editor editor editor'
+							 'footer  footer footer footer';
+	}
+	
+}
+@media (min-width: 768px) {
+	container {
+		grid-template-areas: 'sidebar editor editor editor'
+							 'sidebar editor editor editor'
+							 'sidebar editor editor editor'
+							 'footer  footer footer footer';
+	}
+	
+}
+@media (min-width: 992px) {
+	container {
+		grid-template-areas: 'sidebar editor editor editor editor'
+							 'sidebar editor editor editor editor'
+							 'sidebar editor editor editor editor'
+							 'sidebar editor editor editor editor'
+							 'footer  footer footer footer footer';
+	}
+	
+}
+@media (min-width: 1200px) {
+	container {
+		grid-template-areas: 'sidebar editor editor editor editor editor editor editor'
+							 'sidebar editor editor editor editor editor editor editor'
+							 'sidebar editor editor editor editor editor editor editor'
+							 'sidebar editor editor editor editor editor editor editor'
+							 'footer  footer footer footer footer footer footer footer';
+	}
+	
+}
+sidebar {
+	height: calc(100vh - var(--footer-height-actual));
+	background: var(--sidebar-background);
+	color: var(--sidebar-colour);
+	grid-area: sidebar;
+}
+sidebar * {
+	width: 100%;
+}
+sidebar > project-title {
+	display: flex;
+	height: var(--sidebar-title-height);
+	border-bottom: var(--border-width) var(--border-style) var(--border-color);
+	align-items: center;
+}
+sidebar > project-title > p {
+	margin: unset;
+	text-align: center;
+}
+sidebar > project-tree {
+	height: calc(100% - var(--sidebar-title-height));
+}
+
+editor {
+	background: var(--background-secondary);
+	color: var(--editor-colour);
+	grid-area: editor;
+}
+editor > tabs {
+	display: block;
+	height: var(--editor-tabs-height);
+	background: var(--editor-tabs-background);
+	width: 100%;
+	border-bottom: var(--border-width) var(--border-style) var(--border-color);
+}
+editor > tabs > tab {
+	cursor: pointer;
+	padding: var(--editor-tabs-padding-top) var(--editor-tabs-padding-right) var(--editor-tabs-padding-bottom) var(--editor-tabs-padding-left);
+	display: inline-block;
+	background: var(--editor-tabs-background);
+	color: var(--editor-tabs-foreground);
+	border-left: var(--border-width) var(--border-style) var(--border-color);
+	border-top: var(--border-width) var(--border-style) var(--border-color);
+	height: calc(var(--editor-tabs-height) - var(--editor-tabs-padding-top) - var(--editor-tabs-padding-bottom) - 1px);
+}
+editor > tabs > tab:last-child {
+	border-right: var(--border-width) var(--border-style) var(--border-color);
+}
+editor > tabs > tab.active {
+	background: var(--background-secondary);
+	color: var(--editor-tabs-foreground-active);
+}
+editor > tabs > tab > close-tab {
+	margin-left: 0.5rem;
+}
+editor > tabs > tab > close-tab::before {
+	font-family: 'Octicons';
+	content: "\f281";
+}
+editor > tabs > tab:not(.active):hover {
+	background: var(--editor-tabs-background-hover);
+	color: var(--editor-tabs-foreground-hover);
+}
+editor > tabs > tab.active::after {
+	content: "";
+    width: calc(100% + calc(var(--editor-tabs-padding-left) + var(--editor-tabs-padding-right)));
+    background: var(--background-secondary);
+    height: 2px;
+    display: block;
+	position: relative;
+	top: calc(1.2rem - var(--editor-tabs-padding-left));
+	left: calc(0px - var(--editor-tabs-padding-left));
+}
+
+footer {
+	height: var(--footer-height-actual);
+	width: var(--footer-width);
+	background: var(--footer-background);
+	color: var(--footer-colour);
+	grid-area: footer;
+}
