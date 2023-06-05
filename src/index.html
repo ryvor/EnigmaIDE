@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+		<title>Hello World!</title>
+		<link rel="stylesheet" href="./style.css"/>
+		<link rel="stylesheet" href="./vendor/bootstrap/5.3.0/css/bootstrap.min.css"/>
+	</head>
+	<body>
+		<div class="page">
+			<!--Sidebar-->
+			<div class="sidebar">
+				<div class="panel">
+					<div class="panel-header ">Project</div>
+					<!--Tree-->
+					<div class="panel-body">
+						<ul class="tree-group">
+							<li class="tree-item tree-item--chevron-down">
+								<span class="tree-item-label tree-item-label--repo">vintage-shop</span>
+								<ul class="tree-group">
+									<li class="tree-item tree-item--chevron-right">
+										<span class="tree-item-label tree-item-label--file-directory">git</span>
+									</li>
+									<li class="tree-item tree-item--chevron-right">
+										<span class="tree-item-label tree-item-label--file-directory">dist</span>
+									</li>
+									<li class="tree-item tree-item--chevron-right">
+										<span class="tree-item-label tree-item-label--file-directory">node_modules</span>
+									</li>
+									<li class="tree-item tree-item--chevron-right">
+										<span class="tree-item-label tree-item-label--file-directory">src</span>
+									</li>
+									<li class="tree-item">
+										<span class="tree-item-label tree-item-label--file-text">.editconfig</span>
+									</li>
+									<li class="tree-item">
+										<span class="tree-item-label tree-item-label--file-text">build.js</span>
+									</li>
+									<li class="tree-item">
+										<span class="tree-item-label tree-item-label--file-text">development.html</span>
+									</li>
+									<li class="tree-item">
+										<span class="tree-item-label tree-item-label--file-text">LICENSE</span>
+									</li>
+									<li class="tree-item">
+										<span class="tree-item-label tree-item-label--file-text">package-lock.json</span>
+									</li>
+									<li class="tree-item">
+										<span class="tree-item-label tree-item-label--file-text">production.html</span>
+									</li>
+									<li class="tree-item">
+										<span class="tree-item-label tree-item-label--file-book">README.md</span>
+									</li>
+									<li class="tree-item">
+										<span class="tree-item-label tree-item-label--file-text">test.html</span>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div><!--Sidebar ends-->
+			<!-- Editor -->
+			<div class="editor">
+				<div class="panel">
+					<ul class="panel-header nav nav-tabs">
+						<li class="nav-item h-100"><a class="nav-link h-100 active" href="#1b" data-toggle="tab">Overview</a></li>
+						<li class="nav-item h-100"><a class="nav-link h-100" href="#2b" data-toggle="tab">Using nav-pills</a></li>
+						<li class="nav-item h-100"><a class="nav-link h-100" href="#3b" data-toggle="tab">Applying clearfix</a></li>
+						<li class="nav-item h-100"><a class="nav-link h-100" href="#4a" data-toggle="tab">Background color</a></li>
+					</ul>
+					<!-- File content -->
+					<div class="panel-body tab-content clearfix">
+						<ol class="tab-pane editor-container active" id="1b">
+							<li class="editor-line"><span class="editor-content">Same as example 1 but we have now styled the tab's corner</span></li>
+						</ol>
+						<ol class="tab-pane editor-container" id="2b">
+							<li class="editor-line"><span class="editor-content">We use the class nav-pills instead of nav-tabs which automatically creates a background color for the tab</span></li>
+						</ol>
+						<ol class="tab-pane editor-container" id="3b">
+							<li class="editor-line"><span class="editor-content">We applied clearfix to the tab-content to rid of the gap between the tab and the content</span></li>
+						</ol>
+						<ol class="tab-pane editor-container" id="4b">
+							<li class="editor-line"><span class="editor-content">We use css to change the background color of the content to be equal to the tab</span></li>
+						</ol>
+					</div>
+					<!-- File content ends -->
+				</div>
+			</div><!--Editor ends-->
+			<!--Footer-->
+			<div class="footer">
+				<div class="footer-file-info">
+					<span class="file-info-source">src/styles.less</span>
+					<span class="file-info-location">2:5</span>
+				</div>
+				<div class="footer-controls">
+					<a href="">LF</a>
+					<a href="">UTF-8</a>
+					<a href="">Less</a>
+					<a href=""><span class="icon-git-branch"></span>master</a>
+					<a href="">⬇︎ 5 ⬆︎</a>
+					<a href=""><span class="icon-diff"></span>1 file</a>
+					<a href=""><span class="icon-squirrel"></span></a>
+				</div>
+			</div> 
+		</div>
+		<script src="vendor/jquery/3.7.0/jquery.min.js"></script>
+		<script src="vendor/bootstrap/5.3.0/js/bootstrap.min.js"></script>
+	</body>
+</html>
