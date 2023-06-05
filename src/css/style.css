@@ -180,6 +180,15 @@ editor > tabs > tab.active {
 	color: var(--editor-tabs-foreground-active);
 	border-bottom: 1px solid var(--primary);
 }
+
+editor > tabs > tab > close-tab {
+	opacity: 0;
+}
+editor > tabs > tab.active > close-tab,
+editor > tabs > tab:hover > close-tab {
+	opacity: 1;
+}
+
 editor > tabs > tab > close-tab {
 	padding: 2px 6px 2px 6px;
 	margin-left: 0.3rem;
