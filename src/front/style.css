@@ -3,11 +3,11 @@
  * style.css v1.0
  * author: ryvor (@ryvor)
  */
-@font-face {
+ @font-face {
 	font-family: 'Octicons';
-	src: url(../fonts/octicons-regular-webfont.ttf) format('truetype'),
-		 url(../fonts/octicons-regular-webfont.woff) format('woff'),
-		 url(../fonts/octicons-regular-webfont.woff2) format('woff2');
+	src: url(vendor/octicons/octicons-regular-webfont.ttf) format('truetype'),
+		 url(vendor/octicons/octicons-regular-webfont.woff) format('woff'),
+		 url(vendor/octicons/octicons-regular-webfont.woff2) format('woff2');
 }
 :root {
 	/* * colour * */
@@ -43,6 +43,9 @@
 	--editor-tabs-padding-bottom: calc(calc(calc(var(--editor-tabs-height) - var(--editor-tabs-content-height)) / 3) * 1);
 	--editor-tabs-height: 40px;
 
+	/* * Titlebar * */
+	--titlebar-height: 2rem;
+
 	/* * Sidebar * */
 	--sidebar-background: var(--background-primary);
 	--sidebar-colour: var(--foreground-primary);
@@ -69,7 +72,7 @@ container {
 }
 @media (max-width: 576px) {
 	container {
-		grid-template-areas: 'sidebar editor editor editor'
+		grid-template-areas: 'titlebar titlebar titlebar titlebar'
 							 'sidebar editor editor editor'
 							 'sidebar editor editor editor'
 							 'footer  footer footer footer';
@@ -78,7 +81,7 @@ container {
 }
 @media (min-width: 576px) {
 	container {
-		grid-template-areas: 'sidebar editor editor editor'
+		grid-template-areas: 'titlebar titlebar titlebar titlebar'
 							 'sidebar editor editor editor'
 							 'sidebar editor editor editor'
 							 'footer  footer footer footer';
@@ -87,7 +90,7 @@ container {
 }
 @media (min-width: 768px) {
 	container {
-		grid-template-areas: 'sidebar editor editor editor'
+		grid-template-areas: 'titlebar titlebar titlebar titlebar'
 							 'sidebar editor editor editor'
 							 'sidebar editor editor editor'
 							 'footer  footer footer footer';
@@ -96,7 +99,7 @@ container {
 }
 @media (min-width: 992px) {
 	container {
-		grid-template-areas: 'sidebar editor editor editor editor'
+		grid-template-areas: 'titlebar titlebar titlebar titlebar titlebar'
 							 'sidebar editor editor editor editor'
 							 'sidebar editor editor editor editor'
 							 'sidebar editor editor editor editor'
@@ -106,7 +109,7 @@ container {
 }
 @media (min-width: 1200px) {
 	container {
-		grid-template-areas: 'sidebar editor editor editor editor editor editor editor'
+		grid-template-areas: 'titlebar titlebar titlebar titlebar titlebar titlebar titlebar titlebar'
 							 'sidebar editor editor editor editor editor editor editor'
 							 'sidebar editor editor editor editor editor editor editor'
 							 'sidebar editor editor editor editor editor editor editor'
@@ -114,8 +117,17 @@ container {
 	}
 	
 }
+titlebar {
+	background: var(--sidebar-background);
+	border-bottom: var(--border-width) var(--border-style) var(--border-color);
+	color: var(--sidebar-colour);
+	-webkit-app-region: drag;
+	-webkit-user-select: none;
+	grid-area: titlebar;
+	height: var(--titlebar-height);
+}
 sidebar {
-	height: calc(100vh - var(--footer-height-actual));
+	height: calc(100vh - calc(var(--titlebar-height) + var(--footer-height-actual)));
 	background: var(--sidebar-background);
 	color: var(--sidebar-colour);
 	grid-area: sidebar;
@@ -144,7 +156,6 @@ sidebar > project-title > p {
 	margin: unset;
 	text-align: center;
 }
-
 sidebar > project-tree {
 	height: calc(100% - var(--sidebar-title-height));
 }

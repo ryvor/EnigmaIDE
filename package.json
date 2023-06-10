@@ -1,36 +1,31 @@
 {
   "name": "enigma-ide",
+  "productName": "Enigma IDE",
   "version": "1.0.0",
   "description": "",
-  "main": "src/app.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "echo \"No linting configured\"",
+    "make": "electron-forge make",
+    "start": "electron-forge start -- --forge",
+    "package": "electron-forge package",
+    "publish": "electron-forge publish"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ryvor/EnigmaIDE.git"
+  "keywords": [],
+  "author": {
+    "name": "Robert Smith",
+    "email": "master_schmadoodle@outlook.com"
   },
-  "keywords": [
-    "Enigma",
-    "IDE",
-    "code",
-    "enigamide",
-    "electron",
-    "node",
-    "npm"
-  ],
-  "author": "ryvor",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/ryvor/EnigmaIDE/issues"
+  "license": "MIT",
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.0"
   },
-  "homepage": "https://github.com/ryvor/EnigmaIDE#readme",
   "devDependencies": {
     "@electron-forge/cli": "^6.1.1",
-    "electron": "^25.0.1"
-  },
-  "dependencies": {
-    "css.gg": "^2.0.0"
+    "@electron-forge/maker-deb": "^6.1.1",
+    "@electron-forge/maker-rpm": "^6.1.1",
+    "@electron-forge/maker-squirrel": "^6.1.1",
+    "@electron-forge/maker-zip": "^6.1.1",
+    "electron": "25.1.0"
   }
 }
