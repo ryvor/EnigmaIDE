@@ -1,13 +1,20 @@
-const { app, BrowserWindow, globalShortcut, dialog, ipcMain } = require('electron')
+const { app, BrowserWindow, globalShortcut, dialog, ipcMain, ipcRenderer } = require('electron')
 const path = require('path')
+var win;
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', terminate);
+app.on('ready', initialize);
+app.on('activate', activate)
+
+function activate() {
+	if(BrowserWindow.getAllWindows().length === 0) createWindow();
+}
+function terminate() {
 	globalShortcut.unregisterAll();
 	app.quit()
-});
-app.on('ready', () => {
-	
-	const win = new BrowserWindow({
+}
+function initialize() {
+	win = new BrowserWindow({
 		width: 800,
 		height: 600,
 		autoHideMenuBar: true,
@@ -16,50 +23,37 @@ app.on('ready', () => {
 			nodeIntegration: true,
 			preload: path.join(__dirname, 'js/preload.js'),
 		}
-	});
-	
-	win.loadFile(path.join(__dirname, 'index.html'));
-
-	app.on('activate', () => {
-		if (BrowserWindow.getAllWindows().length === 0) createWindow();
-	})
+	}).loadFile(path.join(__dirname, 'index.html'));
 	/* KEYBINDS */
-	const hk1 = globalShortcut.register('CommandOrControl+O', () => { openFileDialog() });
+	const hk1 = globalShortcut.register('CommandOrControl+O', () => { openDialog(1) });
 		if (!hk1) console.log('Failed to register global shortcut 0');
-	const hk2 = globalShortcut.register('CommandOrControl+Shift+O', () => { openFolderDialog() });
+	const hk2 = globalShortcut.register('CommandOrControl+Shift+O', () => { openDialog(2) });
 		if (!hk2) console.log('Failed to register global shortcut 1');
-})
-
-function openFileDialog() {
+}
+function openDialog(type) {
+	switch(type) {
+		case 1:
+			type = 'File';
+			break;
+		case 2:
+			type = 'Folder';
+			break;
+		default:
+			type = 'File';
+	}
 	dialog.showOpenDialog({
-		properties: ['openFile'],
+		properties: ['open'+type],
 		filters: [
-			{ name: 'All Files', extensions: ['*'] }
+			{ name: 'All '+type+'s', extensions: ['*'] }
 		]
 	}).then(result => {
 		if (!result.canceled && result.filePaths.length > 0) {
 			const filePath = result.filePaths[0];
 			// Handle the opened file here
-			console.log('Selected file:', filePath);
+			console.log('Selected '+type+':', filePath);
+			win.webContents.send('file-path', filePath);
 		}
 	}).catch(err => {
-		console.log('Error opening file:', err);
+		console.log('Error opening '+type+':', err);
 	});
 }
-function openFolderDialog() {
-	dialog.showOpenDialog({
-		properties: ['openDirectory']
-	}).then(result => {
-		if (!result.canceled && result.filePaths.length > 0) {
-			const folderPath = result.filePaths[0];
-			// Handle the opened folder here
-			console.log('Selected folder:', folderPath);
-		}
-	}).catch(err => {
-		console.log('Error opening folder:', err);
-	});
-}
-ipcMain.on('request-file-path', (event) => {
-	const filePath = path.join(__dirname, 'path/to/file.txt');
-	event.sender.send('file-path-response', filePath);
-});
