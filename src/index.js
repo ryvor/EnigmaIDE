@@ -2,6 +2,7 @@ const { app, Menu, BrowserWindow, globalShortcut, dialog} = require('electron');
 const path = require('path');
 const fs = require('fs');
 const InDev = process.argv.includes('--forge');
+var keybinds_status = false;
 
 if(require('electron-squirrel-startup')) terminate(true);
 app.on('ready', createWindow);
@@ -31,10 +32,13 @@ function createWindow() {
 			preload: path.join(__dirname, 'preload.js'),
 		},
 	});
-	mainWindow.loadFile(path.join(__dirname, 'front/index.html'));
 	registerApplicationMenu();
 	registerKeybinds();
-	// If the program is started with electron, it then shows the debug console
+	mainWindow.on('blur', ()=>{unregisterKeybinds()});
+	mainWindow.on('focus', () =>{registerKeybinds()});
+	mainWindow.loadFile(path.join(__dirname, 'front/index.html'));
+
+	// If the program is started with electron-forge, it then shows the debug console
 	if(InDev) {
 		mainWindow.webContents.openDevTools();
 	}
@@ -144,26 +148,35 @@ function activate() {
  * Registers the keybinds once
  */
 function registerKeybinds() {
-	if(!globalShortcut.register('Alt+A', ()=>{conaole.log('TODO')})) console.log('Failed to register global shortcut');
-	if(!globalShortcut.register('CommandOrControl+H', ()=>{console.log('TODO')})) console.log('Failed to register global shortcut');
-	if(!globalShortcut.register('CommandOrControl+Shift+H', ()=>{console.log('TODO')})) console.log('Failed to register global shortcut');
-	if(process.platform==='darwin') {
-		if(!globalShortcut.register('Command+Q', ()=>terminate(true))) console.log('Failed to register global shortcut');
-	} else {
-		if(!globalShortcut.register('Alt+F4', ()=>terminate(true))) console.log('Failed to register global shortcut');
+	if(!keybinds_status) {
+		if(!globalShortcut.register('Alt+A', ()=>{console.log('TODO')})) console.log('Failed to register global shortcut 1');
+		if(!globalShortcut.register('CommandOrControl+H', ()=>{console.log('TODO')})) console.log('Failed to register global shortcut 2');
+		if(!globalShortcut.register('CommandOrControl+Shift+H', ()=>{console.log('TODO')})) console.log('Failed to register global shortcut 3');
+		if(process.platform==='darwin') {
+			if(!globalShortcut.register('Command+Q', ()=>terminate(true))) console.log('Failed to register global shortcut 4.1');
+		}
+		//---//
+		if(!globalShortcut.register('CommandOrControl+N', ()=>{console.log('TODO')})) console.log('Failed to register global shortcut 5');
+		if(!globalShortcut.register('CommandOrControl+Shift+N', ()=>{console.log('TODO')})) console.log('Failed to register global shortcut 6');
+		if(!globalShortcut.register('CommandOrControl+O', ()=>openDialogue(1))) console.log('Failed to register global shortcut 7');
+		if(!globalShortcut.register('CommandOrControl+Shift+O', ()=>openDialogue(2))) console.log('Failed to register global shortcut 8');
+		//---//
+		if(!globalShortcut.register('CommandOrControl+Z', ()=>{console.log('TODO')})) console.log('Failed to register global shortcut 9');
+		if(!globalShortcut.register('CommandOrControl+Shift+Z', ()=>{console.log('TODO')})) console.log('Failed to register global shortcut 10');
+		if(!globalShortcut.register('CommandOrControl+S', ()=>{console.log('TODO')})) console.log('Failed to register global shortcut 11');
+		if(!globalShortcut.register('CommandOrControl+Shift+S', ()=>{console.log('TODO')})) console.log('Failed to register global shortcut 12');
 	}
-	//---//
-	if(!globalShortcut.register('CommandOrControl+N', ()=>{conaole.log('TODO')})) console.log('Failed to register global shortcut');
-	if(!globalShortcut.register('CommandOrControl+Shift+N', ()=>{conaole.log('TODO')})) console.log('Failed to register global shortcut');
-	if(!globalShortcut.register('CommandOrControl+O', ()=>openDialogue(1))) console.log('Failed to register global shortcut');
-	if(!globalShortcut.register('CommandOrControl+Shift+O', ()=>openDialogue(2))) console.log('Failed to register global shortcut');
-	//---//
-	if(!globalShortcut.register('CommandOrControl+Z', ()=>{conaole.log('TODO')})) console.log('Failed to register global shortcut');
-	if(!globalShortcut.register('CommandOrControl+Shift+Z', ()=>{conaole.log('TODO')})) console.log('Failed to register global shortcut');
-	if(!globalShortcut.register('CommandOrControl+S', ()=>{conaole.log('TODO')})) console.log('Failed to register global shortcut');
-	if(!globalShortcut.register('CommandOrControl+Shift+S', ()=>{conaole.log('TODO')})) console.log('Failed to register global shortcut');
+	keybinds_status = true;
 }
-
+/**
+ * 
+ */
+function unregisterKeybinds() {
+	if(keybinds_status) {
+		globalShortcut.unregisterAll();
+	}
+}
+  
 /**
  * 
  */
