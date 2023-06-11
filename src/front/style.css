@@ -3,6 +3,7 @@
  * style.css v1.0
  * author: ryvor (@ryvor)
  */
+
 :root {
 	/** Colours
 	* #D7DAE0
@@ -12,6 +13,18 @@
 	* #DCDFE4
 	* #1F96FF
 	*/
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		/** Colours
+		* #
+		* #
+		* #
+		* #
+		* #
+		* #
+		*/
+	}
 }
 :root { /* Theme */
 
