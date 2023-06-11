@@ -4,32 +4,98 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
 		<title>Enigma IDE</title>
-		<link rel="stylesheet" href="style.css"/>
+		<link rel="stylesheet" href="style.css" />
 		<script src="vendor/jquery/3.7.0/jquery.min.js"></script>
 		<script defer src="render.js"></script>
 	</head>
+
 	<body>
-		<container>
-			<titlebar>
-
-			</titlebar>
-			<sidebar>
-				<project-title>
-					<p>Project</p>
-				</project-title>
-				<project-tree>
-
-				</project-tree>
-			</sidebar>
-			<editor>
-				<tabs>
-				</tabs>
-			</editor>
-			<footer>
-				
-			</footer>
-		</container>
-		<script defer src="script.js"></script>
+		<sidebar>
+			<project-title>Project</project-title>
+			<project-tree>
+				<ul class="tree-group">
+					<li class="tree-item tree-item--chevron-down">
+						<span class="tree-item-label tree-item-label--repo">vintage-shop</span>
+						<ul class="tree-group">
+							<li class="tree-item tree-item--chevron-right">
+								<span class="tree-item-label tree-item-label--file-directory">git</span>
+							</li>
+							<li class="tree-item tree-item--chevron-right">
+								<span class="tree-item-label tree-item-label--file-directory">dist</span>
+							</li>
+							<li class="tree-item tree-item--chevron-right">
+								<span class="tree-item-label tree-item-label--file-directory">node_modules</span>
+							</li>
+							<li class="tree-item tree-item--chevron-right">
+								<span class="tree-item-label tree-item-label--file-directory">src</span>
+							</li>
+							<li class="tree-item">
+								<span class="tree-item-label tree-item-label--file-text">.editconfig</span>
+							</li>
+							<li class="tree-item">
+								<span class="tree-item-label tree-item-label--file-text">build.js</span>
+							</li>
+							<li class="tree-item">
+								<span class="tree-item-label tree-item-label--file-text">development.html</span>
+							</li>
+							<li class="tree-item">
+								<span class="tree-item-label tree-item-label--file-text">LICENSE</span>
+							</li>
+							<li class="tree-item">
+								<span class="tree-item-label tree-item-label--file-text">package-lock.json</span>
+							</li>
+							<li class="tree-item">
+								<span class="tree-item-label tree-item-label--file-text">production.html</span>
+							</li>
+							<li class="tree-item">
+								<span class="tree-item-label tree-item-label--file-book">README.md</span>
+							</li>
+							<li class="tree-item">
+								<span class="tree-item-label tree-item-label--file-text">test.html</span>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</project-tree>
+		</sidebar>
+		<content>
+			<tabs>
+				<tab>
+					scafolding.less
+				</tab>
+				<tab class="selected">
+					styles.less
+				</tab>
+				<tab>
+					cart-item.stash
+				</tab>
+			</tabs>
+			<editors>
+				<editor>
+					<editor-line></editor-line>
+					<editor-line>
+						<editor-line-content>Hey there!</editor-line-content>
+					</editor-line>
+					<editor-line></editor-line>
+				</editor>
+			</editors>
+		</content>
+		<footer>
+			<footer-file-info>
+				<span class="file-info-source">src/styles.less</span>
+				<span class="file-info-location">2:5</span>
+			</footer-file-info>
+			<footer-controls>
+				<a href="">LF</a>
+				<a href="">UTF-8</a>
+				<a href="">Less</a>
+				<a href=""><span class="icon-git-branch"></span>master</a>
+				<a href="">⬇︎ 5 ⬆︎</a>
+				<a href=""><span class="icon-diff"></span>1 file</a>
+				<a href=""><span class="icon-squirrel"></span></a>
+			</footer-controls>
+		</footer>
 	</body>
 </html>

@@ -1,27 +1,31 @@
-<!-- popup.html -->
+<!-- about.html -->
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<title>Popup Window</title>
-		<script src="vendor/jquery/3.7.0/jquery.min.js"></script>
-		<script defer>
-			/*
-				Version: 1.78.2 (Universal)
-				Commit: b3e4e68a0bc097f0ae7907b217c1119af9e03435
-				Date: 2023-05-10T14:44:45.204Z
-				Electron: 22.5.2
-				Chromium: 108.0.5359.215
-				Node.js: 16.17.1
-				V8: 10.8.168.25-electron.0
-				OS: Darwin x64 22.5.0
-				Sandboxed: Yes
-			*/
-		</script>
-	</head>
-	<body>
-		<h1>Popup Window</h1>
-		<p>This is a popup window content.</p>
-		<button onClick="close()">Close</button>
-	</body>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+  </head>
+  <body>
+	Version: <span id="product-version">TODO</span>
+	Commit: <span id="commit-version">TODO</span>
+	Date: <span id="commit-date">TODO</span>
+    Electron: <span id="electron-version">TODO</span>
+    Chromium: <span id="chrome-version">TODO</span>
+    Node.js: <span id="node-version">TODO</span>
+	V8: <span id="-version">TODO</span>
+    OS: <span id="-version">TODO</span>
+
+	<script>
+		window.addEventListener('DOMContentLoaded', () => {
+			const replaceText = (selector, text) => {
+				const element = document.getElementById(selector)
+				if (element) element.innerText = text
+			}
+		
+			for (const dependency of ['chrome', 'node', 'electron']) {
+				replaceText(`${dependency}-version`, process.versions[dependency])
+			}
+		})
+	</script>
+  </body>
 </html>
