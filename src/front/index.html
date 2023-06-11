@@ -6,54 +6,56 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
 		<title>Enigma IDE</title>
+		<link rel="stylesheet" href="vendor/octicons/octicons-all.css" />
 		<link rel="stylesheet" href="style.css" />
 		<script src="vendor/jquery/3.7.0/jquery.min.js"></script>
 		<script defer src="render.js"></script>
 	</head>
 
 	<body>
+		<titlebar></titlebar>
 		<sidebar>
 			<project-title>Project</project-title>
 			<project-tree>
 				<ul class="tree-group">
-					<li class="tree-item tree-item--chevron-down">
-						<span class="tree-item-label tree-item-label--repo">vintage-shop</span>
+					<li class="tree-item oct-chevron-down">
+						<span class="tree-item-label oct-repo">vintage-shop</span>
 						<ul class="tree-group">
-							<li class="tree-item tree-item--chevron-right">
-								<span class="tree-item-label tree-item-label--file-directory">git</span>
+							<li class="tree-item oct-chevron-right">
+								<span class="tree-item-label oct-file-directory">git</span>
 							</li>
-							<li class="tree-item tree-item--chevron-right">
-								<span class="tree-item-label tree-item-label--file-directory">dist</span>
+							<li class="tree-item oct-chevron-right">
+								<span class="tree-item-label oct-file-directory">dist</span>
 							</li>
-							<li class="tree-item tree-item--chevron-right">
-								<span class="tree-item-label tree-item-label--file-directory">node_modules</span>
+							<li class="tree-item oct-chevron-right">
+								<span class="tree-item-label oct-file-directory">node_modules</span>
 							</li>
-							<li class="tree-item tree-item--chevron-right">
-								<span class="tree-item-label tree-item-label--file-directory">src</span>
-							</li>
-							<li class="tree-item">
-								<span class="tree-item-label tree-item-label--file-text">.editconfig</span>
+							<li class="tree-item oct-chevron-right">
+								<span class="tree-item-label oct-file-directory">src</span>
 							</li>
 							<li class="tree-item">
-								<span class="tree-item-label tree-item-label--file-text">build.js</span>
+								<span class="tree-item-label oct-file-text">.editconfig</span>
 							</li>
 							<li class="tree-item">
-								<span class="tree-item-label tree-item-label--file-text">development.html</span>
+								<span class="tree-item-label oct-file-text">build.js</span>
 							</li>
 							<li class="tree-item">
-								<span class="tree-item-label tree-item-label--file-text">LICENSE</span>
+								<span class="tree-item-label oct-file-text">development.html</span>
 							</li>
 							<li class="tree-item">
-								<span class="tree-item-label tree-item-label--file-text">package-lock.json</span>
+								<span class="tree-item-label oct-file-text">LICENSE</span>
 							</li>
 							<li class="tree-item">
-								<span class="tree-item-label tree-item-label--file-text">production.html</span>
+								<span class="tree-item-label oct-file-text">package-lock.json</span>
 							</li>
 							<li class="tree-item">
-								<span class="tree-item-label tree-item-label--file-book">README.md</span>
+								<span class="tree-item-label oct-file-text">production.html</span>
 							</li>
 							<li class="tree-item">
-								<span class="tree-item-label tree-item-label--file-text">test.html</span>
+								<span class="tree-item-label oct-file-book">README.md</span>
+							</li>
+							<li class="tree-item">
+								<span class="tree-item-label oct-file-text selected">test.html</span>
 							</li>
 						</ul>
 					</li>
@@ -66,7 +68,7 @@
 					scafolding.less
 				</tab>
 				<tab class="selected">
-					styles.less
+					test.html
 				</tab>
 				<tab>
 					cart-item.stash
@@ -75,26 +77,68 @@
 			<editors>
 				<editor>
 					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
 					<editor-line>
 						<editor-line-content>Hey there!</editor-line-content>
 					</editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
+					<editor-line></editor-line>
 					<editor-line></editor-line>
 				</editor>
 			</editors>
 		</content>
 		<footer>
-			<footer-file-info>
+			<footer-info>
 				<span class="file-info-source">src/styles.less</span>
 				<span class="file-info-location">2:5</span>
-			</footer-file-info>
+			</footer-info>
 			<footer-controls>
 				<a href="">LF</a>
 				<a href="">UTF-8</a>
 				<a href="">Less</a>
-				<a href=""><span class="icon-git-branch"></span>master</a>
+				<a href=""><span class="oct-git-branch"></span>master</a>
 				<a href="">⬇︎ 5 ⬆︎</a>
-				<a href=""><span class="icon-diff"></span>1 file</a>
-				<a href=""><span class="icon-squirrel"></span></a>
+				<a href=""><span class="oct-diff"></span>1 file</a>
+				<a href=""><span class="oct-squirrel"></span></a>
 			</footer-controls>
 		</footer>
 	</body>

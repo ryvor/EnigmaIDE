@@ -47,7 +47,7 @@ function createWindow() {
 			preload: path.join(__dirname, 'preload.js'),
 		},
 	});
-	registerKeybinds();
+	//registerKeybinds();
 	mainWindow.loadFile(path.join(__dirname, 'front/index.html'));
 	registerApplicationMenu();
 
