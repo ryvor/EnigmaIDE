@@ -2,7 +2,7 @@
 /*               VARIABLES               */
 //#region ********************************/
 
-const { app, Menu, BrowserWindow, globalShortcut, dialog, ipcMain } = require('electron');
+const { app, Menu, BrowserWindow, globalShortcut, dialog, systemPreferences } = require('electron');
 const path = require('path');
 const InDev = process.argv.includes('--forge');
 
@@ -33,11 +33,12 @@ function createWindow() {
 	mainWindow = new BrowserWindow({
 		width: 800,
 		height: 600,
+		show: false,
 		autoHideMenuBar: true,
 		title: process.env.productName,
 		titleBarStyle: 'hidden',
 		titleBarOverlay: {
-			color: '#00000000',
+			color: '#000000',
 			symbolColor: '#74b1be',
 			height: 20
 		},
@@ -47,14 +48,16 @@ function createWindow() {
 			preload: path.join(__dirname, 'preload.js'),
 		},
 	});
-	//registerKeybinds();
 	mainWindow.loadFile(path.join(__dirname, 'front/index.html'));
-	registerApplicationMenu();
-
-	// If the program is started with electron-forge, it then shows the debug console
-	if(InDev) {
-		mainWindow.webContents.openDevTools();
-	}
+	mainWindow.once('ready-to-show', ()=>{
+		mainWindow.on('accent-color-changed', handleAccentColorChange());
+		//registerKeybinds();
+		registerApplicationMenu();
+		if(InDev) {	// If the program is started with electron-forge, it then shows the debug console
+			mainWindow.webContents.openDevTools();
+		}
+		mainWindow.show();
+	})
 };
 /** Terminate
  * Closes the program in windows and linux, but waits for all of the  CMD+Q command on MAC
@@ -249,6 +252,11 @@ function openDialog(type) {
  */
 function log() {
 
+}
+function handleAccentColorChange() {
+	const updatedColorScheme = systemPreferences.isDarkMode() ? 'dark' : 'light';
+	const { backgroundColor } = mainWindow.webContents.executeJavaScript(`getHTMLTitleBarColor('${updatedColorScheme}')`);
+	mainWindow.updateTitleBarStyle({ titleBarOverlay: { color: backgroundColor } });
 }
 
 //#endregion *****************************/
