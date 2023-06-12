@@ -39,3 +39,10 @@ ipcRenderer.on('newFile', (event) => {
 	untitledCount++
 	// Create new notepad
 });
+function getTitleBarColor() {
+	const titleBar = document.querySelector('titlebar');
+	// Get the computed background color of the title bar
+	const backgroundColor = getComputedStyle(titleBar).backgroundColor;
+	// Return the background color
+	return backgroundColor;
+}

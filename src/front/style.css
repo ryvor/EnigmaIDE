@@ -12,15 +12,16 @@
 	--col-3: #2c313a;
 	--col-4: #5c6370;
 	--col-5: #dcdfe4;
+	
 }
 @media (prefers-color-scheme: dark) {
 	:root {
 		/** Colours **/
-	--col-1: #c5cad3;
-	--col-2: #d7dae0;
-	--col-3: #2c313a;
-	--col-4: #5c6370;
-	--col-5: #dcdfe4;
+		--col-1: #c5cad3;
+		--col-2: #d7dae0;
+		--col-3: #2c313a;
+		--col-4: #5c6370;
+		--col-5: #dcdfe4;
 	}
 }
 :root { /* Theme */
@@ -60,6 +61,17 @@
 	--footer-background-hover: var(--col-1);
 	--footer-color-hover: ;
 }
+*::-webkit-scrollbar {
+  width: 5px;
+  background-color: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #a7a6a67c;
+}
+*::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
 body {
 	margin: 0;
 	display: grid;
@@ -126,7 +138,7 @@ sidebar project-tree {
 sidebar, content {
 	display: grid;
 	grid-template-rows: 30px auto;
-	height: calc(100vh - calc(2rem + 30px));
+	height: calc(100vh - calc(2rem + 31px));
 	border-top: var(--border-thickness) var(--border-style) var(--border-col);
 }
 content tabs {
@@ -160,7 +172,7 @@ content editors {
 	font-family: var(--editor-font-size);
 	font-size: var(--editor-font-size);
 	max-height: 100%;
-	overflow: scroll;
+	overflow: auto;
 	padding-bottom: 1rem;
 }
 content editors editor {
@@ -175,6 +187,7 @@ content editors editor editor-line {
 	height: 1rem;
 }
 content editors editor editor-line::before {
+	border-right: var(--border-thickness) var(--border-style) var(--border-col);
 	content: counter(line-counter);
 	display: inline-block;
 	width: 2.5em;
@@ -182,8 +195,13 @@ content editors editor editor-line::before {
 	margin-right: 0.5em;
 	font-family: monospace;
 	font-size: 0.8rem;
+	padding-right: 5px;
+	height: 1rem;
+	bottom: 0.1rem;
+    position: relative;
 }  
 content editors editor editor-line editor-line-content {
+	outline: unset;
 	color: var(--editor-color);
 }
 content .window-2 {
@@ -230,4 +248,9 @@ footer footer-controls a {
 footer footer-controls a:hover {
 	background-color: var(--footer-background-hover);
 	color: var(--footer-color-hover);
+}
+
+
+.editor-syntax-highlighting--function {
+	color: blue;
 }

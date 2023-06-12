@@ -2,7 +2,7 @@
 /*               VARIABLES               */
 //#region ********************************/
 
-const { app, Menu, BrowserWindow, globalShortcut, dialog, systemPreferences } = require('electron');
+const { app, Menu, BrowserWindow, globalShortcut, dialog } = require('electron');
 const path = require('path');
 const InDev = process.argv.includes('--forge');
 
@@ -38,7 +38,6 @@ function createWindow() {
 		title: process.env.productName,
 		titleBarStyle: 'hidden',
 		titleBarOverlay: {
-			color: '#000000',
 			symbolColor: '#74b1be',
 			height: 20
 		},
@@ -50,7 +49,8 @@ function createWindow() {
 	});
 	mainWindow.loadFile(path.join(__dirname, 'front/index.html'));
 	mainWindow.once('ready-to-show', ()=>{
-		mainWindow.on('accent-color-changed', handleAccentColorChange());
+		handleAccentColorChange();
+		mainWindow.on('accent-color-changed', handleAccentColorChange);
 		//registerKeybinds();
 		registerApplicationMenu();
 		if(InDev) {	// If the program is started with electron-forge, it then shows the debug console
@@ -58,6 +58,14 @@ function createWindow() {
 		}
 		mainWindow.show();
 	})
+	app.setUserTasks([		{
+		program: process.execPath,
+		arguments: '--new-window',
+		iconPath: process.execPath,
+		iconIndex: 0,
+		title: 'New Window',
+		description: 'Create a new window'
+	}]);
 };
 /** Terminate
  * Closes the program in windows and linux, but waits for all of the  CMD+Q command on MAC
@@ -253,10 +261,13 @@ function openDialog(type) {
 function log() {
 
 }
-function handleAccentColorChange() {
-	const updatedColorScheme = systemPreferences.isDarkMode() ? 'dark' : 'light';
-	const { backgroundColor } = mainWindow.webContents.executeJavaScript(`getHTMLTitleBarColor('${updatedColorScheme}')`);
-	mainWindow.updateTitleBarStyle({ titleBarOverlay: { color: backgroundColor } });
+handleAccentColorChange = async () => {
+	try {
+		const backgroundColor = await mainWindow.webContents.executeJavaScript(`getTitleBarColor()`);
+		mainWindow.setOverlayIcon(null, backgroundColor);
+	} catch (error) {
+		console.error('Error getting title bar color:', error);
+	}
 }
 
 //#endregion *****************************/
