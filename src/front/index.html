@@ -5,11 +5,12 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+
 		<title>Enigma IDE</title>
-		<link rel="stylesheet" href="vendor/octicons/octicons-all.css" />
+
+		<link rel="stylesheet" href="vendor/Octicons/octicons-all.min.css" />
+		<link rel="stylesheet" href="vendor/Enigma/style.css" />
 		<link rel="stylesheet" href="style.css" />
-		<script src="vendor/jquery/3.7.0/jquery.min.js"></script>
-		<script defer src="render.js"></script>
 	</head>
 
 	<body>
@@ -21,42 +22,18 @@
 					<li class="tree-item oct-chevron-down">
 						<span class="tree-item-label oct-repo">vintage-shop</span>
 						<ul class="tree-group">
-							<li class="tree-item oct-chevron-right">
-								<span class="tree-item-label oct-file-directory">git</span>
-							</li>
-							<li class="tree-item oct-chevron-right">
-								<span class="tree-item-label oct-file-directory">dist</span>
-							</li>
-							<li class="tree-item oct-chevron-right">
-								<span class="tree-item-label oct-file-directory">node_modules</span>
-							</li>
-							<li class="tree-item oct-chevron-right">
-								<span class="tree-item-label oct-file-directory">src</span>
-							</li>
-							<li class="tree-item">
-								<span class="tree-item-label oct-file-text">.editconfig</span>
-							</li>
-							<li class="tree-item">
-								<span class="tree-item-label oct-file-text">build.js</span>
-							</li>
-							<li class="tree-item">
-								<span class="tree-item-label oct-file-text">development.html</span>
-							</li>
-							<li class="tree-item">
-								<span class="tree-item-label oct-file-text">LICENSE</span>
-							</li>
-							<li class="tree-item">
-								<span class="tree-item-label oct-file-text">package-lock.json</span>
-							</li>
-							<li class="tree-item">
-								<span class="tree-item-label oct-file-text">production.html</span>
-							</li>
-							<li class="tree-item">
-								<span class="tree-item-label oct-file-book">README.md</span>
-							</li>
-							<li class="tree-item">
-								<span class="tree-item-label oct-file-text selected">test.html</span>
-							</li>
+							<li class="tree-item oct-chevron-right"><span class="tree-item-label oct-file-directory">git</span></li>
+							<li class="tree-item oct-chevron-right"><span class="tree-item-label oct-file-directory">dist</span></li>
+							<li class="tree-item oct-chevron-right"><span class="tree-item-label oct-file-directory">node_modules</span></li>
+							<li class="tree-item oct-chevron-right"><span class="tree-item-label oct-file-directory">src</span></li>
+							<li class="tree-item"><span class="tree-item-label oct-file-text">.editconfig</span></li>
+							<li class="tree-item"><span class="tree-item-label oct-file-text">build.js</span></li>
+							<li class="tree-item"><span class="tree-item-label oct-file-text">development.html</span></li>
+							<li class="tree-item"><span class="tree-item-label oct-file-text">LICENSE</span></li>
+							<li class="tree-item"><span class="tree-item-label oct-file-text">package-lock.json</span></li>
+							<li class="tree-item"><span class="tree-item-label oct-file-text">production.html</span></li>
+							<li class="tree-item"><span class="tree-item-label oct-file-book">README.md</span></li>
+							<li class="tree-item"><span class="tree-item-label oct-file-text selected">test.js</span></li>
 						</ul>
 					</li>
 				</ul>
@@ -64,69 +41,19 @@
 		</sidebar>
 		<content>
 			<tabs>
-				<tab>
-					scafolding.less
-				</tab>
-				<tab class="selected">
-					test.html
-				</tab>
-				<tab>
-					cart-item.stash
-				</tab>
+				<tab id="1" class="selected">test.js</tab>
+				<tab id="2" class="">production.html</tab>
+				<tab id="3" class="">.editconfig</tab>
 			</tabs>
 			<editors>
-				<editor>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-					<editor-line><editor-line-content contenteditable="true"></editor-line-content></editor-line>
-				</editor>
+				<editor id="1" class="selected"></editor>
+				<editor id="2" class=""></editor>
+				<editor id="3" class=""></editor>
 			</editors>
 		</content>
 		<footer>
 			<footer-info>
-				<span class="file-info-source">src/styles.less</span>
+				<span class="file-info-source">test.js</span>
 				<span class="file-info-location">2:5</span>
 			</footer-info>
 			<footer-controls>
@@ -139,6 +66,8 @@
 				<a href=""><span class="oct-squirrel"></span></a>
 			</footer-controls>
 		</footer>
-		<script src="script.js"></script>
+		<script defer src="vendor/Enigma/editor.js"></script>
+		<script defer src="script.js"></script>
+		<script defer src="render.js"></script>
 	</body>
 </html>

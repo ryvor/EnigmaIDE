@@ -1,80 +1,62 @@
 /**
- * Enigma IDE
- * author: ryvor (@ryvor)
+ * 
+ * 
  */
+document.querySelector('tabs').addEventListener('click', createEditor);
+var editors = Array();
+loadEditors();
 
-let caretPosition;
-
-document.querySelectorAll('editor-line-content').forEach((editor)=>{
-	editor.addEventListener('input',	inputSyntaxing);
-});
-
-function inputSyntaxing(event) {
-	const editor = event.target
-	const text = editor.innerText;
-	const words = text.split(' ');
-	const formattedWords = words.map(word => {
-		// Apply custom styling to each word
-		const styledWord = `<span class="editor-syntax-highlighting--">${word}</span>`;
-		return styledWord;
+function loadEditors() {
+	// Event listeners
+	document.querySelectorAll('tab:not(.selected)').forEach((tab) => {
+		tab.addEventListener('click', changeEditor)
+	})
+	document.querySelectorAll('tab tab-close').forEach((tab_close_btn) => {
+		tab_close_btn.addEventListener('click', removeEditor)
 	});
-	saveCaretPosition(editor);
-	editor.innerHTML = formattedWords.join(' ');
-	setCaretPosition(editor);
-	saveCaretPosition(editor);
-};
-function getCaretPosition(editor) {
-	const selection = window.getSelection();
-	if (selection.rangeCount > 0) {
-	  const range = selection.getRangeAt(0);
-	  const preCaretRange = range.cloneRange();
-	  preCaretRange.selectNodeContents(editor);
-	  preCaretRange.setEnd(range.endContainer, range.endOffset);
-	  return preCaretRange.toString().length;
-	}
+	//
+	document.querySelectorAll('editor').forEach((editor) => {
+		if(!editors[editor.id]) {
+			content = editor.innerText;
+			editor.innerHTML = '';
+			editors[editor.id] = Array();
+			editors[editor.id]['id'] = editor.id;
+			editors[editor.id]['file path'] = '';
+			mode = 'javascript'
+			editors[editor.id]['IDE'] = Enigma(document.querySelector(`editor[id="${editor.id}"]`), {
+				value: content,
+				mode: mode,
+				lineNumbers: true,
+			});
+
+			Enigma.autoLoadMode(editors[editor.id]['IDE'], 'javascript')
+		}
+	});
+	console.log(editors);
 }
-function saveCaretPosition(editor) {
-	caretPosition = getCaretPosition(editor);
-};
-function setCaretPosition(editor) {
-	const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null, false);
 
-	let currentPosition = 0;
-	let targetNode = null;
-	let targetOffset = 0;
-
-	while (walker.nextNode()) {
-		const node = walker.currentNode;
-		const nodeText = node.textContent;
-		
-		const words = nodeText.trim().split(' ');
-		for (const word of words) {
-		const wordLength = word.length;
-
-		if (currentPosition + wordLength >= caretPosition) {
-			targetNode = node;
-			targetOffset = caretPosition - currentPosition;
-			break;
-		}
-
-		currentPosition += wordLength + 1; // Account for the space between words
-		}
-
-		if (targetNode) {
-		break;
-		}
-		
-		currentPosition += nodeText.length;
+function changeEditor(event) {
+	const element = event.target;
+	const element_id = element.id;
+	if(element.tagName.toLowerCase() == 'tab') {
+		if(x = document.querySelector(`editor.selected`)) x.classList.remove('selected');
+		if(x = document.querySelector(`tab.selected`)) x.classList.remove('selected');
+		if(x = document.querySelector(`editor[id="${element_id}"]`)) x.classList.add('selected');
+		if(x = document.querySelector(`tab[id="${element_id}"]`)) x.classList.add('selected');
 	}
-
-	if (targetNode) {
-		const range = document.createRange();
-		range.setStart(targetNode, targetOffset);
-		range.collapse(true);
-
-		const selection = window.getSelection();
-		selection.removeAllRanges();
-		selection.addRange(range);
+	loadEditors();
+}
+function createEditor(event) {
+	const element = event.target;
+	if(element.tagName.toLowerCase() == 'tabs') {
+		console.log(element);
 	}
-
+	loadEditors();
+}
+function removeEditor() {
+	const element = event.target;
+	if(element.tagName.toLowerCase() == 'tab-close') {
+		console.log(element);
+	}
+	loadEditors();
 }
