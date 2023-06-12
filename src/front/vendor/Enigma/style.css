@@ -1,0 +1,396 @@
+:root {
+	--enigma-background: #2c313a;
+	--enigma-color: #f8f8f2;
+	--enigma-cursor-color: #f8f8f2;
+	--enigma-selefted-background: #49483E;
+	--enigma-linenumber-color: #d0d0d0;
+	--enigma-guttermarker-color: #ffffff;
+	--enigma-guttermarker-subtle-color: #d0d0d0;
+	--enigma-error-background: #f92672;
+	--enigma-error-color: #f8f8f2;
+	--enigma-activeLine-background: #373831;
+	--enigma-matchingBracket: #ffffff;
+
+	--enigma-type-comment: #75715e;
+	--enigma-type-comment-attribute: #97b757;
+	--enigma-type-comment-def: #bc9262;
+	--enigma-type-comment-tag: #bc6283;
+	--enigma-type-comment-type: #5998a6;
+	--enigma-type-property: #a6e22e;
+	--enigma-type-attribute: #a6e22e;
+	--enigma-type-def: #fd971f;
+	--enigma-type-tag: #f92672;
+	--enigma-type-type: #66d9ef;
+	--enigma-type-atom: #ae81ff;
+	--enigma-type-number: #ae81ff;
+	--enigma-type-keyword: #f92672;
+	--enigma-type-builtin: #66d9ef;
+	--enigma-type-string: #e6db74;
+	--enigma-type-variable: #f8f8f2;
+	--enigma-type-variable-2: #9effff;
+	--enigma-type-variable-3: #f8f8f2;
+	--enigma-type-bracket: #f8f8f2;
+	--enigma-type-header: #ae81ff;
+	--enigma-type-link: #ae81ff;
+}
+.Enigma {
+    font-family: monospace;
+    height: 300px;
+    color: var(--enigma-color);
+    direction: ltr;
+}
+.Enigma-lines {
+    padding: 4px 0;
+}
+.Enigma pre.Enigma-line,
+.Enigma pre.Enigma-line-like {
+    padding: 0 4px;
+}
+.Enigma-gutter-filler,
+.Enigma-scrollbar-filler {
+    background-color: #fff;
+}
+.Enigma-gutters {
+    border-right: 1px solid #ddd;
+    white-space: nowrap;
+}
+.Enigma-linenumber {
+    padding: 0 3px 0 5px;
+    min-width: 20px;
+    text-align: right;
+    white-space: nowrap;
+}
+.Enigma-cursor {
+    border-right: none;
+    width: 0;
+}
+.Enigma div.Enigma-secondarycursor {
+    border-left: 1px solid #c0c0c0;
+}
+.en-fat-cursor .Enigma-cursor {
+    width: auto;
+    border: 0 !important;
+    background-color: #7e7;
+}
+.en-fat-cursor div.Enigma-cursors {
+    z-index: 1;
+}
+.en-fat-cursor .Enigma-line::selection,
+.en-fat-cursor .Enigma-line > span::selection,
+.en-fat-cursor .Enigma-line > span > span::selection {
+    background: 0 0;
+}
+.en-fat-cursor .Enigma-line::-moz-selection,
+.en-fat-cursor .Enigma-line > span::-moz-selection,
+.en-fat-cursor .Enigma-line > span > span::-moz-selection {
+    background: 0 0;
+}
+.en-fat-cursor {
+    caret-color: transparent;
+}
+@-moz-keyframes blink {
+    50% {
+        background-color: transparent;
+    }
+}
+@-webkit-keyframes blink {
+    50% {
+        background-color: transparent;
+    }
+}
+@keyframes blink {
+    50% {
+        background-color: transparent;
+    }
+}
+.en-tab {
+    display: inline-block;
+    text-decoration: inherit;
+}
+.Enigma-rulers {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -50px;
+    bottom: 0;
+    overflow: hidden;
+}
+.Enigma-ruler {
+    border-left: 1px solid #ccc;
+    top: 0;
+    bottom: 0;
+    position: absolute;
+}
+.en-negative {
+    color: #d44;
+}
+.en-positive {
+    color: #292;
+}
+.en-header,
+.en-ttrong {
+    font-weight: 700;
+}
+.en-em {
+    font-style: italic;
+}
+.en-link {
+    text-decoration: underline;
+}
+.en-ttrikethrough {
+    text-decoration: line-through;
+}
+.en-invalidchar {
+    color: #f00;
+}
+.Enigma-composing {
+    border-bottom: 2px solid;
+}
+div.Enigma span.Enigma-matchingbracket {
+    color: #0b0;
+}
+div.Enigma span.Enigma-nonmatchingbracket {
+    color: #a22;
+}
+.Enigma-matchingtag {
+    background-color: rgba(255, 150, 0, 0.3);
+}
+.Enigma-activeline-background {
+    background-color: #e8f2ff;
+}
+.Enigma {
+    position: relative;
+    overflow: hidden;
+    height: auto;
+}
+.Enigma-scroll {
+    overflow: scroll !important;
+    margin-bottom: -50px;
+    margin-right: -50px;
+    padding-bottom: 50px;
+    height: 100%;
+    outline: 0;
+    position: relative;
+    z-index: 0;
+}
+.Enigma-sizer {
+    position: relative;
+    border-right: 50px solid transparent;
+}
+.Enigma-gutter-filler,
+.Enigma-hscrollbar,
+.Enigma-scrollbar-filler,
+.Enigma-vscrollbar {
+    position: absolute;
+    z-index: 6;
+    display: none;
+    outline: 0;
+}
+.Enigma-vscrollbar {
+    right: 0;
+    top: 0;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+.Enigma-hscrollbar {
+    bottom: 0;
+    left: 0;
+    overflow-y: hidden;
+    overflow-x: scroll;
+}
+.Enigma-scrollbar-filler {
+    right: 0;
+    bottom: 0;
+}
+.Enigma-gutter-filler {
+    left: 0;
+    bottom: 0;
+}
+.Enigma-gutters {
+    position: absolute;
+    left: 0;
+    top: 0;
+    min-height: 100%;
+    z-index: 3;
+}
+.Enigma-gutter {
+    white-space: normal;
+    height: 100%;
+    display: inline-block;
+    vertical-align: top;
+    margin-bottom: -50px;
+}
+.Enigma-gutter-wrapper {
+    position: absolute;
+    z-index: 4;
+    background: 0 0 !important;
+    border: none !important;
+}
+.Enigma-gutter-background {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 4;
+}
+.Enigma-gutter-elt {
+    position: absolute;
+    cursor: default;
+    z-index: 4;
+}
+.Enigma-gutter-wrapper ::selection {
+    background-color: transparent;
+}
+.Enigma-gutter-wrapper ::-moz-selection {
+    background-color: transparent;
+}
+.Enigma-lines {
+    cursor: text;
+    min-height: 1px;
+}
+.Enigma pre.Enigma-line,
+.Enigma pre.Enigma-line-like {
+    -moz-border-radius: 0;
+    -webkit-border-radius: 0;
+    border-radius: 0;
+    border-width: 0;
+    background: 0 0;
+    font-family: inherit;
+    font-size: inherit;
+    margin: 0;
+    white-space: pre;
+    word-wrap: normal;
+    line-height: inherit;
+    color: inherit;
+    z-index: 2;
+    position: relative;
+    overflow: visible;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-variant-ligatures: contextual;
+    font-variant-ligatures: contextual;
+}
+.Enigma-wrap pre.Enigma-line,
+.Enigma-wrap pre.Enigma-line-like {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    word-break: normal;
+}
+.Enigma-linebackground {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 0;
+}
+.Enigma-linewidget {
+    position: relative;
+    z-index: 2;
+    padding: 0.1px;
+}
+.Enigma-rtl pre {
+    direction: rtl;
+}
+.Enigma-code {
+    outline: 0;
+}
+.Enigma-gutter,
+.Enigma-gutters,
+.Enigma-linenumber,
+.Enigma-scroll,
+.Enigma-sizer {
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+}
+.Enigma-measure {
+    position: absolute;
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+.Enigma-cursor {
+    position: absolute;
+    pointer-events: none;
+}
+.Enigma-measure pre {
+    position: static;
+}
+div.Enigma-cursors {
+    visibility: hidden;
+    position: relative;
+    z-index: 3;
+}
+div.Enigma-dragcursors {
+    visibility: visible;
+}
+.Enigma-focused div.Enigma-cursors {
+    visibility: visible;
+}
+.Enigma-selected {
+    background-color: #d9d9d9;
+}
+.Enigma-focused .Enigma-selected {
+    background-color: #d7d4f0;
+}
+.Enigma-crosshair {
+    cursor: crosshair;
+}
+.Enigma-line::selection,
+.Enigma-line > span::selection,
+.Enigma-line > span > span::selection {
+    background-color: #d7d4f0;
+}
+.Enigma-line::-moz-selection,
+.Enigma-line > span::-moz-selection,
+.Enigma-line > span > span::-moz-selection {
+    background-color: #d7d4f0;
+}
+.en-tearching {
+    background-color: #ffa;
+    background-color: rgba(255, 255, 0, 0.4);
+}
+.en-force-border {
+    padding-right: 0.1px;
+}
+.en-tab-wrap-hack:after {
+    content: "";
+}
+span.Enigma-selectedtext {
+    background: 0 0;
+}
+
+.enigma-t-default.Enigma {background-color: var(--enigma-background); color: var(--enigma-color);}
+.enigma-t-default div.Enigma-selected { background-color: var(--enigma-selefted-background); }
+.enigma-t-default .Enigma-line::selection, .enigma-t-default .Enigma-line > span::selection,
+.enigma-t-default .Enigma-line > span > span::selection { background-color: rgba(73, 72, 62, .99); }
+.enigma-t-default .Enigma-line::-moz-selection, .enigma-t-default .Enigma-line > span::-moz-selection,
+.enigma-t-default .Enigma-line > span > span::-moz-selection { background-color: rgba(73, 72, 62, .99); }
+.enigma-t-default .Enigma-gutters { background-color: var(--enigma-background); border-right: 0px; }
+.enigma-t-default .Enigma-guttermarker { color:var(--enigma-guttermarker-color); }
+.enigma-t-default .Enigma-guttermarker-subtle { color: var(--enigma-guttermarker-subtle-color); }
+.enigma-t-default .Enigma-linenumber { color: var(--enigma-linenumber-color); }
+.enigma-t-default .Enigma-cursor { border-left: 1px solid var(--enigma-cursor-color); }
+.enigma-t-default span.en-comment { color: var(--enigma-type-comment); }
+.enigma-t-default span.en-atom { color: var(--enigma-type-atom); }
+.enigma-t-default span.en-number { color: var(--enigma-type-number); }
+.enigma-t-default span.en-comment.en-attribute { color: var(--enigma-type-comment-attribute); }
+.enigma-t-default span.en-comment.en-def { color: var(--enigma-type-comment-def); }
+.enigma-t-default span.en-comment.en-tag { color: var(--enigma-type-comment-tag); }
+.enigma-t-default span.en-comment.en-type { color: var(--enigma-type-comment-type); }
+.enigma-t-default span.en-property { color: var(--enigma-type-property); }
+.enigma-t-default span.en-attribute { color: var(--enigma-type-attribute); }
+.enigma-t-default span.en-def { color: var(--enigma-type-def); }
+.enigma-t-default span.en-tag { color: var(--enigma-type-tag); }
+.enigma-t-default span.en-type { color: var(--enigma-type-type); }
+.enigma-t-default span.en-keyword { color: var(--enigma-type-keyword); }
+.enigma-t-default span.en-builtin { color: var(--enigma-type-builtin); }
+.enigma-t-default span.en-string { color: var(--enigma-type-string); }
+.enigma-t-default span.en-variable { color: var(--enigma-type-variable); }
+.enigma-t-default span.en-variable-2 { color: var(--enigma-type-variable-2); }
+.enigma-t-default span.en-variable-3 { color: var(--enigma-type-variable-3); }
+.enigma-t-default span.en-bracket { color: var(--enigma-type-bracket); }
+.enigma-t-default span.en-header { color: var(--enigma-type-header); }
+.enigma-t-default span.en-link { color: var(--enigma-type-link); }
+.enigma-t-default span.en-error { background-color: var(--enigma-error-background); color: var(--enigma-error-color); }
+.enigma-t-default .Enigma-activeline-background { background-color: var(--enigma-activeLine-background); }
+.enigma-t-default .Enigma-matchingbracket { text-decoration: underline; color: var(--enigma-matchingBracket) !important; }
