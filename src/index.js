@@ -58,14 +58,6 @@ function createWindow() {
 		}
 		mainWindow.show();
 	})
-	app.setUserTasks([		{
-		program: process.execPath,
-		arguments: '--new-window',
-		iconPath: process.execPath,
-		iconIndex: 0,
-		title: 'New Window',
-		description: 'Create a new window'
-	}]);
 };
 /** Terminate
  * Closes the program in windows and linux, but waits for all of the  CMD+Q command on MAC

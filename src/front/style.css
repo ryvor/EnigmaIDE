@@ -55,6 +55,10 @@
 	--tabs-color-hover: ;
 	--tabs-background-active: var(--col-3);
 	--tabs-color-active: var(--col-5);
+	--tabs-close-background: ;
+	--tabs-close-color: ;
+	--tabs-close-background-hover: var(--col-4);
+	--tabs-close-color-hover: ;
 
 	--footer-background: var(--col-2);
 	--footer-color: ;
@@ -160,9 +164,22 @@ content tabs tab {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	text-align: center;
-	padding: 6px;
+	padding: 8px;
 	border-right: var(--border-thickness) var(--border-style) var(--border-col);
 	border-bottom: var(--border-thickness) var(--border-style) var(--border-col);
+	display: flex;
+}
+content tabs tab tab-close {
+    width: 1rem;
+    height: 1rem;
+    background-color: var(--tabs-close-background);
+    color: var(--tabs-close-color);
+    margin-left: 8px;
+    border-radius: 2px;
+}
+content tabs tab tab-close:hover {
+	background-color: var(--tabs-close-background-hover);
+	color: var(--tabs-close-color-hover);
 }
 content tabs tab:not(.selected):hover {
 	background-color: var(--tabs-background-hover);
