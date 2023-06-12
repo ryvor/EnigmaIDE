@@ -9787,7 +9787,7 @@
 })(function (Enigma, env) {
 	'use strict';
 
-	if(!Enigma.modeURL) Enigma.modeURL = "vendor/Enigma/modes/%N.js";
+	if (!Enigma.modeURL) Enigma.modeURL = "vendor/Enigma/modes/%N.js";
 	var loading = {};
 	function splitCallback(cont, n) {
 		var countDown = n;
@@ -9804,7 +9804,7 @@
 		if (!missing.length) return cont();
 		var split = splitCallback(cont, missing.length);
 		for (var i = 0; i < missing.length; ++i)
-		Enigma.requireMode(missing[i], split, options);
+			Enigma.requireMode(missing[i], split, options);
 	}
 
 	Enigma.requireMode = function (mode, cont, options) {
@@ -9837,7 +9837,7 @@
 
 	Enigma.autoLoadMode = function (instance, mode, options) {
 		if (!Enigma.modes.hasOwnProperty(mode))
-		Enigma.requireMode(mode, function () {
+			Enigma.requireMode(mode, function () {
 				instance.setOption("mode", instance.getOption("mode"));
 			}, options);
 	};
@@ -10070,4 +10070,798 @@
 	Enigma.defineExtension("scanForBracket", function (pos, dir, style, config) {
 		return scanForBracket(this, pos, dir, style, config);
 	});
+});
+
+/**
+ * Brace fold
+ */
+(function (mod) {
+	if (typeof exports == "object" && typeof module == "object") // CommonJS
+		mod(require("../../lib/Enigma"));
+	else if (typeof define == "function" && define.amd) // AMD
+		define(["../../lib/Enigma"], mod);
+	else // Plain browser env
+		mod(Enigma);
+})(function (Enigma) {
+	"use strict";
+
+	function bracketFolding(pairs) {
+		return function (en, start) {
+			var line = start.line, lineText = en.getLine(line);
+
+			function findOpening(pair) {
+				var tokenType;
+				for (var at = start.ch, pass = 0; ;) {
+					var found = at <= 0 ? -1 : lineText.lastIndexOf(pair[0], at - 1);
+					if (found == -1) {
+						if (pass == 1) break;
+						pass = 1;
+						at = lineText.length;
+						continue;
+					}
+					if (pass == 1 && found < start.ch) break;
+					tokenType = en.getTokenTypeAt(Enigma.Pos(line, found + 1));
+					if (!/^(comment|string)/.test(tokenType)) return { ch: found + 1, tokenType: tokenType, pair: pair };
+					at = found - 1;
+				}
+			}
+
+			function findRange(found) {
+				var count = 1, lastLine = en.lastLine(), end, startCh = found.ch, endCh
+				outer: for (var i = line; i <= lastLine; ++i) {
+					var text = en.getLine(i), pos = i == line ? startCh : 0;
+					for (; ;) {
+						var nextOpen = text.indexOf(found.pair[0], pos), nextClose = text.indexOf(found.pair[1], pos);
+						if (nextOpen < 0) nextOpen = text.length;
+						if (nextClose < 0) nextClose = text.length;
+						pos = Math.min(nextOpen, nextClose);
+						if (pos == text.length) break;
+						if (en.getTokenTypeAt(Enigma.Pos(i, pos + 1)) == found.tokenType) {
+							if (pos == nextOpen) ++count;
+							else if (!--count) { end = i; endCh = pos; break outer; }
+						}
+						++pos;
+					}
+				}
+
+				if (end == null || line == end) return null
+				return {
+					from: Enigma.Pos(line, startCh),
+					to: Enigma.Pos(end, endCh)
+				};
+			}
+
+			var found = []
+			for (var i = 0; i < pairs.length; i++) {
+				var open = findOpening(pairs[i])
+				if (open) found.push(open)
+			}
+			found.sort(function (a, b) { return a.ch - b.ch })
+			for (var i = 0; i < found.length; i++) {
+				var range = findRange(found[i])
+				if (range) return range
+			}
+			return null
+		}
+	}
+
+	Enigma.registerHelper("fold", "brace", bracketFolding([["{", "}"], ["[", "]"]]));
+
+	Enigma.registerHelper("fold", "brace-paren", bracketFolding([["{", "}"], ["[", "]"], ["(", ")"]]));
+
+	Enigma.registerHelper("fold", "import", function (en, start) {
+		function hasImport(line) {
+			if (line < en.firstLine() || line > en.lastLine()) return null;
+			var start = en.getTokenAt(Enigma.Pos(line, 1));
+			if (!/\S/.test(start.string)) start = en.getTokenAt(Enigma.Pos(line, start.end + 1));
+			if (start.type != "keyword" || start.string != "import") return null;
+			// Now find closing semicolon, return its position
+			for (var i = line, e = Math.min(en.lastLine(), line + 10); i <= e; ++i) {
+				var text = en.getLine(i), semi = text.indexOf(";");
+				if (semi != -1) return { startCh: start.end, end: Enigma.Pos(i, semi) };
+			}
+		}
+
+		var startLine = start.line, has = hasImport(startLine), prev;
+		if (!has || hasImport(startLine - 1) || ((prev = hasImport(startLine - 2)) && prev.end.line == startLine - 1))
+			return null;
+		for (var end = has.end; ;) {
+			var next = hasImport(end.line + 1);
+			if (next == null) break;
+			end = next.end;
+		}
+		return { from: en.clipPos(Enigma.Pos(startLine, has.startCh + 1)), to: end };
+	});
+
+	Enigma.registerHelper("fold", "include", function (en, start) {
+		function hasInclude(line) {
+			if (line < en.firstLine() || line > en.lastLine()) return null;
+			var start = en.getTokenAt(Enigma.Pos(line, 1));
+			if (!/\S/.test(start.string)) start = en.getTokenAt(Enigma.Pos(line, start.end + 1));
+			if (start.type == "meta" && start.string.slice(0, 8) == "#include") return start.start + 8;
+		}
+
+		var startLine = start.line, has = hasInclude(startLine);
+		if (has == null || hasInclude(startLine - 1) != null) return null;
+		for (var end = startLine; ;) {
+			var next = hasInclude(end + 1);
+			if (next == null) break;
+			++end;
+		}
+		return {
+			from: Enigma.Pos(startLine, has + 1),
+			to: en.clipPos(Enigma.Pos(end))
+		};
+	});
+
+});
+
+/**
+ * Comment fold
+ */
+(function (mod) {
+	if (typeof exports == "object" && typeof module == "object") // CommonJS
+		mod(require("../../lib/Enigma"));
+	else if (typeof define == "function" && define.amd) // AMD
+		define(["../../lib/Enigma"], mod);
+	else // Plain browser env
+		mod(Enigma);
+})(function (Enigma) {
+	"use strict";
+
+	Enigma.registerGlobalHelper("fold", "comment", function (mode) {
+		return mode.blockCommentStart && mode.blockCommentEnd;
+	}, function (en, start) {
+		var mode = en.getModeAt(start), startToken = mode.blockCommentStart, endToken = mode.blockCommentEnd;
+		if (!startToken || !endToken) return;
+		var line = start.line, lineText = en.getLine(line);
+
+		var startCh;
+		for (var at = start.ch, pass = 0; ;) {
+			var found = at <= 0 ? -1 : lineText.lastIndexOf(startToken, at - 1);
+			if (found == -1) {
+				if (pass == 1) return;
+				pass = 1;
+				at = lineText.length;
+				continue;
+			}
+			if (pass == 1 && found < start.ch) return;
+			if (/comment/.test(en.getTokenTypeAt(Enigma.Pos(line, found + 1))) &&
+				(found == 0 || lineText.slice(found - endToken.length, found) == endToken ||
+					!/comment/.test(en.getTokenTypeAt(Enigma.Pos(line, found))))) {
+				startCh = found + startToken.length;
+				break;
+			}
+			at = found - 1;
+		}
+
+		var depth = 1, lastLine = en.lastLine(), end, endCh;
+		outer: for (var i = line; i <= lastLine; ++i) {
+			var text = en.getLine(i), pos = i == line ? startCh : 0;
+			for (; ;) {
+				var nextOpen = text.indexOf(startToken, pos), nextClose = text.indexOf(endToken, pos);
+				if (nextOpen < 0) nextOpen = text.length;
+				if (nextClose < 0) nextClose = text.length;
+				pos = Math.min(nextOpen, nextClose);
+				if (pos == text.length) break;
+				if (pos == nextOpen) ++depth;
+				else if (!--depth) { end = i; endCh = pos; break outer; }
+				++pos;
+			}
+		}
+		if (end == null || line == end && endCh == startCh) return;
+		return {
+			from: Enigma.Pos(line, startCh),
+			to: Enigma.Pos(end, endCh)
+		};
+	});
+
+});
+
+/**
+ * Fold code
+ */
+(function (mod) {
+	if (typeof exports == "object" && typeof module == "object") // CommonJS
+		mod(require("../../lib/Enigma"));
+	else if (typeof define == "function" && define.amd) // AMD
+		define(["../../lib/Enigma"], mod);
+	else // Plain browser env
+		mod(Enigma);
+})(function (Enigma) {
+	"use strict";
+
+	function doFold(en, pos, options, force) {
+		if (options && options.call) {
+			var finder = options;
+			options = null;
+		} else {
+			var finder = getOption(en, options, "rangeFinder");
+		}
+		if (typeof pos == "number") pos = Enigma.Pos(pos, 0);
+		var minSize = getOption(en, options, "minFoldSize");
+
+		function getRange(allowFolded) {
+			var range = finder(en, pos);
+			if (!range || range.to.line - range.from.line < minSize) return null;
+			if (force === "fold") return range;
+
+			var marks = en.findMarksAt(range.from);
+			for (var i = 0; i < marks.length; ++i) {
+				if (marks[i].__isFold) {
+					if (!allowFolded) return null;
+					range.cleared = true;
+					marks[i].clear();
+				}
+			}
+			return range;
+		}
+
+		var range = getRange(true);
+		if (getOption(en, options, "scanUp")) while (!range && pos.line > en.firstLine()) {
+			pos = Enigma.Pos(pos.line - 1, 0);
+			range = getRange(false);
+		}
+		if (!range || range.cleared || force === "unfold") return;
+
+		var myWidget = makeWidget(en, options, range);
+		Enigma.on(myWidget, "mousedown", function (e) {
+			myRange.clear();
+			Enigma.e_preventDefault(e);
+		});
+		var myRange = en.markText(range.from, range.to, {
+			replacedWith: myWidget,
+			clearOnEnter: getOption(en, options, "clearOnEnter"),
+			__isFold: true
+		});
+		myRange.on("clear", function (from, to) {
+			Enigma.signal(en, "unfold", en, from, to);
+		});
+		Enigma.signal(en, "fold", en, range.from, range.to);
+	}
+
+	function makeWidget(en, options, range) {
+		var widget = getOption(en, options, "widget");
+
+		if (typeof widget == "function") {
+			widget = widget(range.from, range.to);
+		}
+
+		if (typeof widget == "string") {
+			var text = document.createTextNode(widget);
+			widget = document.createElement("span");
+			widget.appendChild(text);
+			widget.className = "Enigma-foldmarker";
+		} else if (widget) {
+			widget = widget.cloneNode(true)
+		}
+		return widget;
+	}
+
+	// Clumsy backwards-compatible interface
+	Enigma.newFoldFunction = function (rangeFinder, widget) {
+		return function (en, pos) { doFold(en, pos, { rangeFinder: rangeFinder, widget: widget }); };
+	};
+
+	// New-style interface
+	Enigma.defineExtension("foldCode", function (pos, options, force) {
+		doFold(this, pos, options, force);
+	});
+
+	Enigma.defineExtension("isFolded", function (pos) {
+		var marks = this.findMarksAt(pos);
+		for (var i = 0; i < marks.length; ++i)
+			if (marks[i].__isFold) return true;
+	});
+
+	Enigma.commands.toggleFold = function (en) {
+		en.foldCode(en.getCursor());
+	};
+	Enigma.commands.fold = function (en) {
+		en.foldCode(en.getCursor(), null, "fold");
+	};
+	Enigma.commands.unfold = function (en) {
+		en.foldCode(en.getCursor(), { scanUp: false }, "unfold");
+	};
+	Enigma.commands.foldAll = function (en) {
+		en.operation(function () {
+			for (var i = en.firstLine(), e = en.lastLine(); i <= e; i++)
+				en.foldCode(Enigma.Pos(i, 0), { scanUp: false }, "fold");
+		});
+	};
+	Enigma.commands.unfoldAll = function (en) {
+		en.operation(function () {
+			for (var i = en.firstLine(), e = en.lastLine(); i <= e; i++)
+				en.foldCode(Enigma.Pos(i, 0), { scanUp: false }, "unfold");
+		});
+	};
+
+	Enigma.registerHelper("fold", "combine", function () {
+		var funcs = Array.prototype.slice.call(arguments, 0);
+		return function (en, start) {
+			for (var i = 0; i < funcs.length; ++i) {
+				var found = funcs[i](en, start);
+				if (found) return found;
+			}
+		};
+	});
+
+	Enigma.registerHelper("fold", "auto", function (en, start) {
+		var helpers = en.getHelpers(start, "fold");
+		for (var i = 0; i < helpers.length; i++) {
+			var cur = helpers[i](en, start);
+			if (cur) return cur;
+		}
+	});
+
+	var defaultOptions = {
+		rangeFinder: Enigma.fold.auto,
+		widget: "\u2194",
+		minFoldSize: 0,
+		scanUp: false,
+		clearOnEnter: true
+	};
+
+	Enigma.defineOption("foldOptions", null);
+
+	function getOption(en, options, name) {
+		if (options && options[name] !== undefined)
+			return options[name];
+		var editorOptions = en.options.foldOptions;
+		if (editorOptions && editorOptions[name] !== undefined)
+			return editorOptions[name];
+		return defaultOptions[name];
+	}
+
+	Enigma.defineExtension("foldOption", function (options, name) {
+		return getOption(this, options, name);
+	});
+});
+
+/**
+ * Fold gutter
+ */
+(function (mod) {
+	if (typeof exports == "object" && typeof module == "object") // CommonJS
+		mod(require("../../lib/Enigma"), require("./foldcode"));
+	else if (typeof define == "function" && define.amd) // AMD
+		define(["../../lib/Enigma", "./foldcode"], mod);
+	else // Plain browser env
+		mod(Enigma);
+})(function (Enigma) {
+	"use strict";
+
+	Enigma.defineOption("foldGutter", false, function (en, val, old) {
+		if (old && old != Enigma.Init) {
+			en.clearGutter(en.state.foldGutter.options.gutter);
+			en.state.foldGutter = null;
+			en.off("gutterClick", onGutterClick);
+			en.off("changes", onChange);
+			en.off("viewportChange", onViewportChange);
+			en.off("fold", onFold);
+			en.off("unfold", onFold);
+			en.off("swapDoc", onChange);
+		}
+		if (val) {
+			en.state.foldGutter = new State(parseOptions(val));
+			updateInViewport(en);
+			en.on("gutterClick", onGutterClick);
+			en.on("changes", onChange);
+			en.on("viewportChange", onViewportChange);
+			en.on("fold", onFold);
+			en.on("unfold", onFold);
+			en.on("swapDoc", onChange);
+		}
+	});
+
+	var Pos = Enigma.Pos;
+
+	function State(options) {
+		this.options = options;
+		this.from = this.to = 0;
+	}
+
+	function parseOptions(opts) {
+		if (opts === true) opts = {};
+		if (opts.gutter == null) opts.gutter = "Enigma-foldgutter";
+		if (opts.indicatorOpen == null) opts.indicatorOpen = "Enigma-foldgutter-open";
+		if (opts.indicatorFolded == null) opts.indicatorFolded = "Enigma-foldgutter-folded";
+		return opts;
+	}
+
+	function isFolded(en, line) {
+		var marks = en.findMarks(Pos(line, 0), Pos(line + 1, 0));
+		for (var i = 0; i < marks.length; ++i) {
+			if (marks[i].__isFold) {
+				var fromPos = marks[i].find(-1);
+				if (fromPos && fromPos.line === line)
+					return marks[i];
+			}
+		}
+	}
+
+	function marker(spec) {
+		if (typeof spec == "string") {
+			var elt = document.createElement("div");
+			elt.className = spec + " Enigma-guttermarker-subtle";
+			return elt;
+		} else {
+			return spec.cloneNode(true);
+		}
+	}
+
+	function updateFoldInfo(en, from, to) {
+		var opts = en.state.foldGutter.options, cur = from - 1;
+		var minSize = en.foldOption(opts, "minFoldSize");
+		var func = en.foldOption(opts, "rangeFinder");
+		// we can reuse the built-in indicator element if its className matches the new state
+		var clsFolded = typeof opts.indicatorFolded == "string" && classTest(opts.indicatorFolded);
+		var clsOpen = typeof opts.indicatorOpen == "string" && classTest(opts.indicatorOpen);
+		en.eachLine(from, to, function (line) {
+			++cur;
+			var mark = null;
+			var old = line.gutterMarkers;
+			if (old) old = old[opts.gutter];
+			if (isFolded(en, cur)) {
+				if (clsFolded && old && clsFolded.test(old.className)) return;
+				mark = marker(opts.indicatorFolded);
+			} else {
+				var pos = Pos(cur, 0);
+				var range = func && func(en, pos);
+				if (range && range.to.line - range.from.line >= minSize) {
+					if (clsOpen && old && clsOpen.test(old.className)) return;
+					mark = marker(opts.indicatorOpen);
+				}
+			}
+			if (!mark && !old) return;
+			en.setGutterMarker(line, opts.gutter, mark);
+		});
+	}
+
+	// copied from Enigma/src/util/dom.js
+	function classTest(cls) { return new RegExp("(^|\\s)" + cls + "(?:$|\\s)\\s*") }
+
+	function updateInViewport(en) {
+		var vp = en.getViewport(), state = en.state.foldGutter;
+		if (!state) return;
+		en.operation(function () {
+			updateFoldInfo(en, vp.from, vp.to);
+		});
+		state.from = vp.from; state.to = vp.to;
+	}
+
+	function onGutterClick(en, line, gutter) {
+		var state = en.state.foldGutter;
+		if (!state) return;
+		var opts = state.options;
+		if (gutter != opts.gutter) return;
+		var folded = isFolded(en, line);
+		if (folded) folded.clear();
+		else en.foldCode(Pos(line, 0), opts);
+	}
+
+	function onChange(en) {
+		var state = en.state.foldGutter;
+		if (!state) return;
+		var opts = state.options;
+		state.from = state.to = 0;
+		clearTimeout(state.changeUpdate);
+		state.changeUpdate = setTimeout(function () { updateInViewport(en); }, opts.foldOnChangeTimeSpan || 600);
+	}
+
+	function onViewportChange(en) {
+		var state = en.state.foldGutter;
+		if (!state) return;
+		var opts = state.options;
+		clearTimeout(state.changeUpdate);
+		state.changeUpdate = setTimeout(function () {
+			var vp = en.getViewport();
+			if (state.from == state.to || vp.from - state.to > 20 || state.from - vp.to > 20) {
+				updateInViewport(en);
+			} else {
+				en.operation(function () {
+					if (vp.from < state.from) {
+						updateFoldInfo(en, vp.from, state.from);
+						state.from = vp.from;
+					}
+					if (vp.to > state.to) {
+						updateFoldInfo(en, state.to, vp.to);
+						state.to = vp.to;
+					}
+				});
+			}
+		}, opts.updateViewportTimeSpan || 400);
+	}
+
+	function onFold(en, from) {
+		var state = en.state.foldGutter;
+		if (!state) return;
+		var line = from.line;
+		if (line >= state.from && line < state.to)
+			updateFoldInfo(en, line, line + 1);
+	}
+});
+
+/**
+ * Indent fold
+ */
+(function (mod) {
+	if (typeof exports == "object" && typeof module == "object") // CommonJS
+		mod(require("../../lib/Enigma"));
+	else if (typeof define == "function" && define.amd) // AMD
+		define(["../../lib/Enigma"], mod);
+	else // Plain browser env
+		mod(Enigma);
+})(function (Enigma) {
+	"use strict";
+
+	function lineIndent(en, lineNo) {
+		var text = en.getLine(lineNo)
+		var spaceTo = text.search(/\S/)
+		if (spaceTo == -1 || /\bcomment\b/.test(en.getTokenTypeAt(Enigma.Pos(lineNo, spaceTo + 1))))
+			return -1
+		return Enigma.countColumn(text, null, en.getOption("tabSize"))
+	}
+
+	Enigma.registerHelper("fold", "indent", function (en, start) {
+		var myIndent = lineIndent(en, start.line)
+		if (myIndent < 0) return
+		var lastLineInFold = null
+
+		// Go through lines until we find a line that definitely doesn't belong in
+		// the block we're folding, or to the end.
+		for (var i = start.line + 1, end = en.lastLine(); i <= end; ++i) {
+			var indent = lineIndent(en, i)
+			if (indent == -1) {
+			} else if (indent > myIndent) {
+				// Lines with a greater indent are considered part of the block.
+				lastLineInFold = i;
+			} else {
+				// If this line has non-space, non-comment content, and is
+				// indented less or equal to the start line, it is the start of
+				// another block.
+				break;
+			}
+		}
+		if (lastLineInFold) return {
+			from: Enigma.Pos(start.line, en.getLine(start.line).length),
+			to: Enigma.Pos(lastLineInFold, en.getLine(lastLineInFold).length)
+		};
+	});
+
+});
+
+/**
+ * markdown fold
+ */
+(function (mod) {
+	if (typeof exports == "object" && typeof module == "object") // CommonJS
+		mod(require("../../lib/Enigma"));
+	else if (typeof define == "function" && define.amd) // AMD
+		define(["../../lib/Enigma"], mod);
+	else // Plain browser env
+		mod(Enigma);
+})(function (Enigma) {
+	"use strict";
+
+	Enigma.registerHelper("fold", "markdown", function (en, start) {
+		var maxDepth = 100;
+
+		function isHeader(lineNo) {
+			var tokentype = en.getTokenTypeAt(Enigma.Pos(lineNo, 0));
+			return tokentype && /\bheader\b/.test(tokentype);
+		}
+
+		function headerLevel(lineNo, line, nextLine) {
+			var match = line && line.match(/^#+/);
+			if (match && isHeader(lineNo)) return match[0].length;
+			match = nextLine && nextLine.match(/^[=\-]+\s*$/);
+			if (match && isHeader(lineNo + 1)) return nextLine[0] == "=" ? 1 : 2;
+			return maxDepth;
+		}
+
+		var firstLine = en.getLine(start.line), nextLine = en.getLine(start.line + 1);
+		var level = headerLevel(start.line, firstLine, nextLine);
+		if (level === maxDepth) return undefined;
+
+		var lastLineNo = en.lastLine();
+		var end = start.line, nextNextLine = en.getLine(end + 2);
+		while (end < lastLineNo) {
+			if (headerLevel(end + 1, nextLine, nextNextLine) <= level) break;
+			++end;
+			nextLine = nextNextLine;
+			nextNextLine = en.getLine(end + 2);
+		}
+
+		return {
+			from: Enigma.Pos(start.line, firstLine.length),
+			to: Enigma.Pos(end, en.getLine(end).length)
+		};
+	});
+
+});
+
+/**
+ * XML fold
+ */
+(function (mod) {
+	if (typeof exports == "object" && typeof module == "object") // CommonJS
+		mod(require("../../lib/Enigma"));
+	else if (typeof define == "function" && define.amd) // AMD
+		define(["../../lib/Enigma"], mod);
+	else // Plain browser env
+		mod(Enigma);
+})(function (Enigma) {
+	"use strict";
+
+	var Pos = Enigma.Pos;
+	function cmp(a, b) { return a.line - b.line || a.ch - b.ch; }
+
+	var nameStartChar = "A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
+	var nameChar = nameStartChar + "\-\:\.0-9\\u00B7\\u0300-\\u036F\\u203F-\\u2040";
+	var xmlTagStart = new RegExp("<(/?)([" + nameStartChar + "][" + nameChar + "]*)", "g");
+
+	function Iter(en, line, ch, range) {
+		this.line = line; this.ch = ch;
+		this.en = en; this.text = en.getLine(line);
+		this.min = range ? Math.max(range.from, en.firstLine()) : en.firstLine();
+		this.max = range ? Math.min(range.to - 1, en.lastLine()) : en.lastLine();
+	}
+
+	function tagAt(iter, ch) {
+		var type = iter.en.getTokenTypeAt(Pos(iter.line, ch));
+		return type && /\btag\b/.test(type);
+	}
+
+	function nextLine(iter) {
+		if (iter.line >= iter.max) return;
+		iter.ch = 0;
+		iter.text = iter.en.getLine(++iter.line);
+		return true;
+	}
+	function prevLine(iter) {
+		if (iter.line <= iter.min) return;
+		iter.text = iter.en.getLine(--iter.line);
+		iter.ch = iter.text.length;
+		return true;
+	}
+
+	function toTagEnd(iter) {
+		for (; ;) {
+			var gt = iter.text.indexOf(">", iter.ch);
+			if (gt == -1) { if (nextLine(iter)) continue; else return; }
+			if (!tagAt(iter, gt + 1)) { iter.ch = gt + 1; continue; }
+			var lastSlash = iter.text.lastIndexOf("/", gt);
+			var selfClose = lastSlash > -1 && !/\S/.test(iter.text.slice(lastSlash + 1, gt));
+			iter.ch = gt + 1;
+			return selfClose ? "selfClose" : "regular";
+		}
+	}
+	function toTagStart(iter) {
+		for (; ;) {
+			var lt = iter.ch ? iter.text.lastIndexOf("<", iter.ch - 1) : -1;
+			if (lt == -1) { if (prevLine(iter)) continue; else return; }
+			if (!tagAt(iter, lt + 1)) { iter.ch = lt; continue; }
+			xmlTagStart.lastIndex = lt;
+			iter.ch = lt;
+			var match = xmlTagStart.exec(iter.text);
+			if (match && match.index == lt) return match;
+		}
+	}
+
+	function toNextTag(iter) {
+		for (; ;) {
+			xmlTagStart.lastIndex = iter.ch;
+			var found = xmlTagStart.exec(iter.text);
+			if (!found) { if (nextLine(iter)) continue; else return; }
+			if (!tagAt(iter, found.index + 1)) { iter.ch = found.index + 1; continue; }
+			iter.ch = found.index + found[0].length;
+			return found;
+		}
+	}
+	function toPrevTag(iter) {
+		for (; ;) {
+			var gt = iter.ch ? iter.text.lastIndexOf(">", iter.ch - 1) : -1;
+			if (gt == -1) { if (prevLine(iter)) continue; else return; }
+			if (!tagAt(iter, gt + 1)) { iter.ch = gt; continue; }
+			var lastSlash = iter.text.lastIndexOf("/", gt);
+			var selfClose = lastSlash > -1 && !/\S/.test(iter.text.slice(lastSlash + 1, gt));
+			iter.ch = gt + 1;
+			return selfClose ? "selfClose" : "regular";
+		}
+	}
+
+	function findMatchingClose(iter, tag) {
+		var stack = [];
+		for (; ;) {
+			var next = toNextTag(iter), end, startLine = iter.line, startCh = iter.ch - (next ? next[0].length : 0);
+			if (!next || !(end = toTagEnd(iter))) return;
+			if (end == "selfClose") continue;
+			if (next[1]) { // closing tag
+				for (var i = stack.length - 1; i >= 0; --i) if (stack[i] == next[2]) {
+					stack.length = i;
+					break;
+				}
+				if (i < 0 && (!tag || tag == next[2])) return {
+					tag: next[2],
+					from: Pos(startLine, startCh),
+					to: Pos(iter.line, iter.ch)
+				};
+			} else { // opening tag
+				stack.push(next[2]);
+			}
+		}
+	}
+	function findMatchingOpen(iter, tag) {
+		var stack = [];
+		for (; ;) {
+			var prev = toPrevTag(iter);
+			if (!prev) return;
+			if (prev == "selfClose") { toTagStart(iter); continue; }
+			var endLine = iter.line, endCh = iter.ch;
+			var start = toTagStart(iter);
+			if (!start) return;
+			if (start[1]) { // closing tag
+				stack.push(start[2]);
+			} else { // opening tag
+				for (var i = stack.length - 1; i >= 0; --i) if (stack[i] == start[2]) {
+					stack.length = i;
+					break;
+				}
+				if (i < 0 && (!tag || tag == start[2])) return {
+					tag: start[2],
+					from: Pos(iter.line, iter.ch),
+					to: Pos(endLine, endCh)
+				};
+			}
+		}
+	}
+
+	Enigma.registerHelper("fold", "xml", function (en, start) {
+		var iter = new Iter(en, start.line, 0);
+		for (; ;) {
+			var openTag = toNextTag(iter)
+			if (!openTag || iter.line != start.line) return
+			var end = toTagEnd(iter)
+			if (!end) return
+			if (!openTag[1] && end != "selfClose") {
+				var startPos = Pos(iter.line, iter.ch);
+				var endPos = findMatchingClose(iter, openTag[2]);
+				return endPos && cmp(endPos.from, startPos) > 0 ? { from: startPos, to: endPos.from } : null
+			}
+		}
+	});
+	Enigma.findMatchingTag = function (en, pos, range) {
+		var iter = new Iter(en, pos.line, pos.ch, range);
+		if (iter.text.indexOf(">") == -1 && iter.text.indexOf("<") == -1) return;
+		var end = toTagEnd(iter), to = end && Pos(iter.line, iter.ch);
+		var start = end && toTagStart(iter);
+		if (!end || !start || cmp(iter, pos) > 0) return;
+		var here = { from: Pos(iter.line, iter.ch), to: to, tag: start[2] };
+		if (end == "selfClose") return { open: here, close: null, at: "open" };
+
+		if (start[1]) { // closing tag
+			return { open: findMatchingOpen(iter, start[2]), close: here, at: "close" };
+		} else { // opening tag
+			iter = new Iter(en, to.line, to.ch, range);
+			return { open: here, close: findMatchingClose(iter, start[2]), at: "open" };
+		}
+	};
+
+	Enigma.findEnclosingTag = function (en, pos, range, tag) {
+		var iter = new Iter(en, pos.line, pos.ch, range);
+		for (; ;) {
+			var open = findMatchingOpen(iter, tag);
+			if (!open) break;
+			var forward = new Iter(en, pos.line, pos.ch, range);
+			var close = findMatchingClose(forward, open.tag);
+			if (close) return { open: open, close: close };
+		}
+	};
+
+	// Used by addon/edit/closetag.js
+	Enigma.scanForClosingTag = function (en, pos, name, end) {
+		var iter = new Iter(en, pos.line, pos.ch, end ? { from: 0, to: end } : null);
+		return findMatchingClose(iter, name);
+	};
 });

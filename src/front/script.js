@@ -27,6 +27,13 @@ function loadEditors() {
 				value: content,
 				mode: mode,
 				lineNumbers: true,
+				matchBrackets: true,
+				matchTags: true,
+				foldGutter: true,
+				foldOptions: {
+					widget: " \uf266 ",
+				},
+				gutters: ["Enigma-linenumbers", "Enigma-foldgutter"],
 			});
 
 			Enigma.autoLoadMode(editors[editor.id]['IDE'], 'javascript')

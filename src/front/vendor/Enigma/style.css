@@ -161,7 +161,7 @@ div.Enigma span.Enigma-nonmatchingbracket {
 .Enigma {
     position: relative;
     overflow: hidden;
-    height: auto;
+    height: 100%;
 }
 .Enigma-scroll {
     overflow: scroll !important;
@@ -176,6 +176,8 @@ div.Enigma span.Enigma-nonmatchingbracket {
 .Enigma-sizer {
     position: relative;
     border-right: 50px solid transparent;
+    height: 100%;
+    cursor: text;
 }
 .Enigma-gutter-filler,
 .Enigma-hscrollbar,
@@ -264,9 +266,9 @@ div.Enigma span.Enigma-nonmatchingbracket {
     z-index: 2;
     position: relative;
     overflow: visible;
-    -webkit-tap-highlight-color: transparent;
+    /* -webkit-tap-highlight-color: transparent; */
     -webkit-font-variant-ligatures: contextual;
-    font-variant-ligatures: contextual;
+    /* font-variant-ligatures: contextual; */
 }
 .Enigma-wrap pre.Enigma-line,
 .Enigma-wrap pre.Enigma-line-like {
@@ -358,8 +360,26 @@ div.Enigma-dragcursors {
 span.Enigma-selectedtext {
     background: 0 0;
 }
+.Enigma-foldmarker {
+	font-family: 'Octicons'!important;
+	line-height: .3;
+	cursor: pointer;
+}
+.Enigma-foldgutter {
+	width: .7em;
+}
+.Enigma-foldgutter-open,
+.Enigma-foldgutter-folded {
+	cursor: pointer;
+}
+.Enigma-foldgutter-open:after {
+	content: "\25BE";
+}
+.Enigma-foldgutter-folded:after {
+	content: "\25B8";
+}
 
-.enigma-t-default.Enigma {background-color: var(--enigma-background); color: var(--enigma-color);}
+.enigma-t-default.Enigma {background-color: var(--enigma-background);color: var(--enigma-color);}
 .enigma-t-default div.Enigma-selected { background-color: var(--enigma-selefted-background); }
 .enigma-t-default .Enigma-line::selection, .enigma-t-default .Enigma-line > span::selection,
 .enigma-t-default .Enigma-line > span > span::selection { background-color: rgba(73, 72, 62, .99); }
