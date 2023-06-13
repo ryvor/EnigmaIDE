@@ -280,6 +280,9 @@ function openAboutModal() {
 			show: false,
 			width: 300,
 			height: 450,
+			resizable: false,
+			autoHideMenuBar: true,
+			titleBarStyle: 'hidden',
 			webPreferences: {
 				nodeIntegration: true,
 				contextIsolation: false,

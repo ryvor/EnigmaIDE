@@ -81,7 +81,7 @@ function reloadEditors() {
 					matchTags: true,
 					foldGutter: true,
 					foldOptions: {
-						widget: " \uf266 ",
+						widget: " ... ",
 					},
 					gutters: ["Enigma-linenumbers", "Enigma-foldgutter"],
 				});
