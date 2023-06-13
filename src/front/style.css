@@ -176,6 +176,7 @@ content tabs tab tab-close {
     color: var(--tabs-close-color);
     margin-left: 8px;
     border-radius: 2px;
+    transition: background-color 0.2s;
 }
 content tabs tab tab-close:hover {
 	background-color: var(--tabs-close-background-hover);
@@ -196,8 +197,12 @@ content editors {
 	font-family: var(--editor-font-size);
 	font-size: var(--editor-font-size);
 	max-height: 100%;
-	overflow: auto;
+	overflow: hidden;
 	display: block;
+	background-image: url('assets/enigma-grey-logo.svg');
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 30%;
 }
 content editors editor {
 	opacity: 0;
@@ -205,10 +210,14 @@ content editors editor {
 	display: block;
 }
 content editors editor.selected {
-	/* display: block; */
 	height: 100%;
 	width: 100%;
 	opacity: 1;
+}
+content editors editor embed {
+	width: 100%;
+	height: 100%;
+	background-color: var(--editor-background);
 }
 
 footer {
