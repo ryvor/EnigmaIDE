@@ -18,7 +18,7 @@ ipcRenderer.on('contents', (event, path) => {
 			type = 2;
 		}
 		if(type === 0) throw new Error('The path does not exist or is neither a file nor folder: '+path);
-		console.log('Path is type: '+type);
+		alert('Path is type: '+type);
 	  } catch (error) {
 		// Handle the error if the path doesn't exist or other file system errors
 		console.error(error);
@@ -26,19 +26,12 @@ ipcRenderer.on('contents', (event, path) => {
 	
 });
 ipcRenderer.on('newFile', (event) => {
-	// Create new tab
-	const tab = document.createElement('tab');
-	const tab_title = document.createElement('span');
-	const tab_close = document.createElement('close-tab');
-	const tab_container = document.querySelector('tabs');
-	tab_title.textContent = 'Untitled-'+untitledCount;
-	tab.setAttribute('document-ID', documentID);
-	tab_container.appendChild(tab);
-	tab.appendChild(tab_title);
-	tab.appendChild(tab_close);
-	untitledCount++
-	// Create new notepad
+	createEditorTab();
 });
+ipcRenderer.on('openWelcomePage', () => {
+	createEditorTab('./pages/welcome.html', true);
+})
+
 function getTitleBarColor() {
 	const titleBar = document.querySelector('titlebar');
 	// Get the computed background color of the title bar

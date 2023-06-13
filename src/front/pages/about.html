@@ -1,0 +1,57 @@
+<!-- about.html -->
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Electron Info</title>
+		<style>
+			body {
+				text-align: center;
+				font-family: arial;
+			}
+			img {
+				width: 50%;
+			}
+			button {
+				background-color: rgba(ccc ccc ccc / 30%);
+				border-radius: 5px;
+				border: unset;
+				padding: 0.5rem;
+				cursor: pointer;
+			}
+		</style>
+	</head>
+	<body>
+		<img src="../assets/enigma-color.svg">
+		<div id="info">
+			<p>Version: <span id="app-version"></span></p>
+			<p>Electron: <span id="electron-version"></span></p>
+			<p>Chromium: <span id="chromium-version"></span></p>
+			<p>Node.js: <span id="node-version"></span></p>
+			<p>v8: <span id="v8-version"></span></p>
+			<p>OS: <span id="os"></span></p>
+		</div>
+
+		<button onclick="closeModal()">Close Modal</button>
+		<script>
+			const os = require('os');
+			// Fetch Node.js version
+			document.getElementById('node-version').textContent = process.versions.node;
+			// Fetch Electron version
+			document.getElementById('electron-version').textContent = process.versions.electron;
+			// Fetch Application version
+			document.getElementById('app-version').textContent = '';
+			// Fetch Electron version
+			document.getElementById('chromium-version').textContent = process.versions.chrome;
+			// Fetch Electron version
+			document.getElementById('v8-version').textContent = process.versions.v8;
+			// Fetch device OS
+			document.getElementById('os').textContent = os.platform()+' '+os.arch()+' '+os.release();
+
+			// Close button
+			function closeModal() {
+				window.close();
+			}
+		</script>
+	</body>
+</html>

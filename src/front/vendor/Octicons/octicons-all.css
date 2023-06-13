@@ -12,9 +12,8 @@
 		 url(fonts/octicons-regular-webfont.woff) format('woff'),
 		 url(fonts/octicons-regular-webfont.woff2) format('woff2');
 }
-
-[class^="oct-"],
-[class*=" oct-"] {
+[class^="oct-"]::before,
+[class*=" oct-"]::before {
 	font-size: 15px;
 	margin-right: 5px;
 	font-family: 'octicons' !important;
@@ -416,7 +415,7 @@
 	content: "\f27b";
 }
 .oct-settings:before {
-	content: "\f7c2";
+	content: "\f27c";
 }
 .oct-dashboard:before {
 	content: "\f27d";
@@ -564,10 +563,10 @@
 .oct-podium:before {
 	content: "\f2ac";
 }
-.oct-file-symlink-file:before {
+.oct-symlink-file:before {
 	content: "\f2ad";
 }
-.oct-file-symlink-directory:before {
+.oct-symlink-directory:before {
 	content: "\f2ae";
 }
 .oct-squirrel:before {

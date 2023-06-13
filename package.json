@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "echo \"No linting configured\"",
     "make": "electron-forge make",
-    "start": "electron-forge start -- --forge",
+    "start": "electron-forge start",
     "package": "electron-forge package",
     "publish": "electron-forge publish"
   },
@@ -18,7 +18,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.0"
+    "electron-squirrel-startup": "^1.0.0",
+    "electron-window-manager": "^1.0.6"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.1.1",

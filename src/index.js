@@ -2,12 +2,12 @@
 /*               VARIABLES               */
 //#region ********************************/
 
-const { app, Menu, BrowserWindow, globalShortcut, dialog } = require('electron');
+const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification } = require('electron');
+const windowManager = require('electron-window-manager');
 const path = require('path');
-const InDev = process.argv.includes('--forge');
+const InDev = process.argv.includes('--debugMode');
 
-var currentWindow, mainWindow, aboutWindow;
-var keybinds_status = false;
+var currentWindow, mainWindow, aboutWindow, aboutWindowActive = false, keybinds_status = false;
 
 //#endregion *****************************/
 /*             SYSTEM EVENTS             */
@@ -17,8 +17,6 @@ if(require('electron-squirrel-startup')) terminate(true);
 app.on('ready', createWindow);
 app.on('window-all-closed', terminate);
 app.on('activate', activate);
-app.on('blur', blur);
-app.on('focus', focus);
 app.on('window-all-closed', allWindowsClosed);
 app.on('browser-window-created', newWindow);
 
@@ -31,9 +29,10 @@ app.on('browser-window-created', newWindow);
  */
 function createWindow() {
 	mainWindow = new BrowserWindow({
-		width: 800,
-		height: 600,
+		width: 1000,
+		height: 770,
 		show: false,
+		icon: path.join(__dirname, '/front/assets/icons/enigma.png'),
 		autoHideMenuBar: true,
 		title: process.env.productName,
 		titleBarStyle: 'hidden',
@@ -51,13 +50,14 @@ function createWindow() {
 	mainWindow.once('ready-to-show', ()=>{
 		handleAccentColorChange();
 		mainWindow.on('accent-color-changed', handleAccentColorChange);
-		//registerKeybinds();
 		registerApplicationMenu();
 		if(InDev) {	// If the program is started with electron-forge, it then shows the debug console
 			mainWindow.webContents.openDevTools();
 		}
 		mainWindow.show();
 	})
+	mainWindow.on('focus', ()=>focus())
+	mainWindow.on('blur', ()=>blur())
 };
 /** Terminate
  * Closes the program in windows and linux, but waits for all of the  CMD+Q command on MAC
@@ -117,60 +117,63 @@ function registerApplicationMenu() {
 			submenu: [
 				{	label: 'About Enigma IDE',
 					accelerator: 'Alt+A',
-					click: () => {},
+					click: () => {openAboutModal()},
 				},{	label: 'Check for updates',
 					accelerator: '',
-					click: () => {},
+					click: () => {console.log('TODO')},
 				},{	label: 'Open settings',
 					accelerator: '',
-					click: () => {},
+					click: () => {console.log('TODO')},
 				},{	type: 'separator'
 				},{	label: 'Hide window',
 					accelerator: 'CmdOrCtrl+H',
-					click: () => {},
+					click: () => {console.log('TODO')},
 				},{	label: 'Hide all other windows',
 					accelerator: 'CmdOrCtrl+Shift+H',
-					click: () => {},
+					click: () => {console.log('TODO')},
 				},{	label: 'Quit',
 					accelerator: 'CmdOrCtrl+Q',
-					click: () => {},
+					click: () => {terminate(true)},
 				},
 			]
 		},{	label: 'File',
 			submenu: [
 				{	label: 'New File',
 					accelerator: 'CmdOrCtrl+N',
-					click: () => {},
+					click: () => {currentWindow.webContents.send('newFile')},
 				},{	label: 'New Project',
 					accelerator: 'CmdOrCtrl+Shift+N',
-					click: () => {},
+					click: () => {createWindow()},
+				},{	label: 'New Window',
+					accelerator: 'CmdOrCtrl+Alt+N',
+					click: () => {console.log('TODO')},
 				},{	type: 'separator'
 				},{	label: 'Open File',
 					accelerator: 'CmdOrCtrl+O',
-					click: () => {},
+					click: () => {openDialog(1)},
 				},{	label: 'Open Folder',
 					accelerator: 'CmdOrCtrl+Shift+O',
-					click: () => {},
+					click: () => {openDialog(2)},
 				},{	label: 'Open Workspace',
-					accelerator: '',
-					click: () => {},
+					accelerator: 'CmdOrCtrl+Altt+O',
+					click: () => {openDialog(3)},
 				},
 			]
 		},{	label: 'Edit',
 			submenu: [
 				{	label: 'Undo',
 					accelerator: 'CmdOrCtrl+Z',
-					click: () => {}
+					click: () => {console.log('TODO')}
 				},{	label: 'Redo',
 					accelerator: 'CmdOrCtrl+Shift+Z',
-					click: () => {}
+					click: () => {console.log('TODO')}
 				},{	type: 'separator'
 				},{	label: 'Save',
 					accelerator: 'CmdOrCtrl+S',
-					click: () => {}
+					click: () => {console.log('TODO')}
 				},{	label: 'Save As...',
 					accelerator: 'CmdOrCtrl+Shift+S',
-					click: () => {}
+					click: () => {console.log('TODO')}
 				},
 			]
 		},{	label: 'Selection',
@@ -186,7 +189,12 @@ function registerApplicationMenu() {
 		},{	label: 'Window',
 			submenu: []
 		},{	label: 'Help',
-			submenu: []
+			submenu: [
+				{	label: 'Welcome',
+					accelerator: '',
+					click: ()=>currentWindow.webContents.send('openWelcomePage')
+				}
+			]
 		}
 	]));
 }
@@ -195,7 +203,7 @@ function registerApplicationMenu() {
  */
 function registerKeybinds() {
 	if(keybinds_status === false) {
-		if(!globalShortcut.register('Alt+A', ()=>{console.log('TODO')})) log('Failed to register global shortcut 1');
+		if(!globalShortcut.register('Alt+A', ()=>{openAboutModal()})) log('Failed to register global shortcut 1');
 		if(!globalShortcut.register('CommandOrControl+H', ()=>{console.log('TODO')})) log('Failed to register global shortcut 2');
 		if(!globalShortcut.register('CommandOrControl+Shift+H', ()=>{console.log('TODO')})) log('Failed to register global shortcut 3');
 		if(process.platform==='darwin')
@@ -206,11 +214,10 @@ function registerKeybinds() {
 		if(!globalShortcut.register('CommandOrControl+Shift+N', ()=>{console.log('TODO')})) log('Failed to register global shortcut 6');
 		if(!globalShortcut.register('CommandOrControl+O', ()=>openDialog(1))) log('Failed to register global shortcut 7');
 		if(!globalShortcut.register('CommandOrControl+Shift+O', ()=>openDialog(2))) log('Failed to register global shortcut 8');
+		if(!globalShortcut.register('CommandOrControl+Alt+O', ()=>openDialog(3))) log('Failed to register global shortcut 9');
 		//---//
-		if(!globalShortcut.register('CommandOrControl+Z', ()=>{console.log('TODO')})) log('Failed to register global shortcut 9');
-		if(!globalShortcut.register('CommandOrControl+Shift+Z', ()=>{console.log('TODO')})) log('Failed to register global shortcut 10');
-		if(!globalShortcut.register('CommandOrControl+S', ()=>{console.log('TODO')})) log('Failed to register global shortcut 11');
-		if(!globalShortcut.register('CommandOrControl+Shift+S', ()=>{console.log('TODO')})) log('Failed to register global shortcut 12');
+		if(!globalShortcut.register('CommandOrControl+S', ()=>{console.log('TODO')})) log('Failed to register global shortcut 12');
+		if(!globalShortcut.register('CommandOrControl+Shift+S', ()=>{console.log('TODO')})) log('Failed to register global shortcut 13');
 		keybinds_status = true;
 	}
 }
@@ -229,22 +236,33 @@ function unregisterKeybinds() {
 function openDialog(type) {
 	switch(type) {
 		case 1:
-			type='File';
+			type_text = 'File';
+			filters = [];
+			properties = ['openFile', 'multiSelections'];
 			break;
 		case 2:
-			type='Directory';
+			type_text = 'Directory';
+			filters = [];
+			properties = ['openDirectory', 'createDirectory'];
+			break;
+		case 3:
+			type_text = 'Enigma Workspace';
+			filters = [
+				{ name: 'Enigma Workspace File', extensions: ['enigma_workspace'] }
+			];
+			properties = ['openFile'];
 			break;
 	}
 	dialog.showOpenDialog({
-		properties: ['open'+type]
+		filters: filters,
+		properties: properties
 	}).then(result => {
 		if (!result.canceled && result.filePaths.length > 0) {
 			const path = result.filePaths[0];
-			log('Open '+type+': '+path);
 			currentWindow.webContents.send('contents', path);
 		}
 	}).catch(err => {
-		console.log('Error opening '+type+':', err);
+		console.log('Error opening '+type_text+':', err);
 	});
 }
 /** log
@@ -253,10 +271,37 @@ function openDialog(type) {
 function log() {
 
 }
+function openAboutModal() {
+	if(!aboutWindowActive) {
+		aboutWindowActive = true;
+		aboutWindow = new BrowserWindow({
+			parent: mainWindow,
+			modal: true,
+			show: false,
+			width: 300,
+			height: 450,
+			webPreferences: {
+				nodeIntegration: true,
+				contextIsolation: false,
+			},
+		});
+		aboutWindow.loadFile(path.join(__dirname, 'front/pages/about.html'));
+		aboutWindow.once('ready-to-show', ()=>{
+			if(InDev) {	// If the program is started with electron-forge, it then shows the debug console
+				aboutWindow.webContents.openDevTools();
+			}
+			aboutWindow.show();
+		})
+		aboutWindow.on('focus', ()=>focus())
+		aboutWindow.on('blur', ()=>blur())
+		aboutWindow.on('close', ()=>{aboutWindowActive=false})
+	}
+}
 handleAccentColorChange = async () => {
 	try {
 		const backgroundColor = await mainWindow.webContents.executeJavaScript(`getTitleBarColor()`);
 		mainWindow.setOverlayIcon(null, backgroundColor);
+		if(aboutWindow) aboutWindow.setOverlayIcon(null, backgroundColor);
 	} catch (error) {
 		console.error('Error getting title bar color:', error);
 	}
