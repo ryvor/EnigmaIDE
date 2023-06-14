@@ -6,12 +6,12 @@
 
 :root {
 	/** Colours **/
-	--col-6: #b7bac2;
 	--col-1: #c5cad3;
 	--col-2: #d7dae0;
 	--col-3: #2c313a;
 	--col-4: #5c6370;
 	--col-5: #dcdfe4;
+	--col-6: #b7bac2;
 	
 }
 @media (prefers-color-scheme: dark) {
@@ -32,38 +32,51 @@
 	--taskbar-background: var(--col-2);
 	--taskbar-color: ;
 
-	--sidebar-background: var(--col-2);
-	--sidebar-color: ;
-	--sidebar-background-hover: var(--col-1);
-	--sidebar-color-hover: ;
-	--sidebar-background-active: var(--col-6);
-	--sidebar-color-active: ;
 	--sidebar-radius: 3px;
+	--sidebar-background: var(--col-2);
+	--sidebar-background-hover: var(--col-1);
+	--sidebar-background-active: var(--col-6);
+	--sidebar-color: ;
+	--sidebar-color-hover: ;
+	--sidebar-color-active: ;
 
 	--editor-background: var(--col-3);
 	--editor-color: var(--col-5);
-	--editor-font: "Courier New";
+	--editor-font:
+	"Courier New";
 	--editor-font-size: 1rem;
 	--editor-gutter-background: var(--col-3);
 	--editor-gutter-color: var(--col-5);
-	--editor-gutter-font: "Courier New";
+	--editor-gutter-font:
+	"Courier New";
 	--editor-gutter-font-size: 1rem;
 
 	--tabs-background: var(--col-2);
-	--tabs-color: ;
 	--tabs-background-hover: var(--col-1);
-	--tabs-color-hover: ;
 	--tabs-background-active: var(--col-3);
+	--tabs-color: ;
+	--tabs-color-hover: ;
 	--tabs-color-active: var(--col-5);
 	--tabs-close-background: ;
-	--tabs-close-color: ;
 	--tabs-close-background-hover: var(--col-4);
+	--tabs-close-background-active: var(--col-4);
+	--tabs-close-color: ;
 	--tabs-close-color-hover: ;
+	--tabs-close-color-active: ;
 
 	--footer-background: var(--col-2);
 	--footer-color: ;
 	--footer-background-hover: var(--col-1);
 	--footer-color-hover: ;
+	--footer-search-background: var(--col-1);
+	--footer-search-background-hover: var(--col-6);
+	--footer-search-background-active: var(--col-6);
+	--footer-search-color: white;
+	--footer-search-color-hover: ;
+	--footer-search-color-active: ;
+	--footer-search-width: 25rem;
+	--footer-search-width-hover: 25rem;
+	--footer-search-width-active: 25rem;
 }
 body {
 	-webkit-user-select: none;
@@ -249,13 +262,27 @@ footer {
 	background-color: var(--footer-background);
 	color: var(--footer-color);
 }
-footer footer-info {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+footer footer-search {
+	display: flex;
+	height: 100%;
+	justify-content: flex-start;
 }
-footer footer-info .file-info-source {
-	padding: 0 10px;
+footer footer-search search {
+	background-color: var(--footer-search-background);
+	color: var(--footer-search-color);
+	width: var(--footer-search-width);
+	margin: 3px;
+	border-radius: 5px;
+}
+footer footer-search search:hover {
+	background-color: var(--footer-search-background-hover);
+	color: var(--footer-search-color-hover);
+	width: var(--footer-search-width-hover);
+}
+footer footer-search search:focus {
+	background-color: var(--footer-search-background-active);
+	color: var(--footer-search-color-active);
+	width: var(--footer-search-width-active);
 }
 footer footer-controls {
 	display: flex;
