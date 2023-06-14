@@ -97,6 +97,16 @@ titlebar {
 	background-color: var(--taskbar-background);
 	color: var(--taskbar-color);
 }
+titlebar icon {
+	display: contents;
+}
+titlebar icon img {
+	position: relative;
+	height: 80%;
+	top: 10%;
+	left: 10px;
+	display: none;
+}
 
 sidebar {
 	background-color: var(--sidebar-background);

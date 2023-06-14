@@ -4,8 +4,7 @@
  */
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
-var untitledCount = 1;
-var documentID = 1;
+const os = require('os');
 
 ipcRenderer.on('contents', (event, path) => {
 	try {
@@ -31,6 +30,9 @@ ipcRenderer.on('newFile', (event) => {
 ipcRenderer.on('openWelcomePage', () => {
 	createEditorTab('./pages/welcome.html', true);
 })
+
+// Hide the taskbar image unless on windows
+if (os.platform() === 'win32') document.querySelector('titlebar > icon > img').style.display = 'block';
 
 function getTitleBarColor() {
 	const titleBar = document.querySelector('titlebar');
