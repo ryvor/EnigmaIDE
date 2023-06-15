@@ -372,11 +372,8 @@ span.Enigma-selectedtext {
 .Enigma-foldgutter-folded {
 	cursor: pointer;
 }
-.Enigma-foldgutter-open:after {
-	content: "\25BE";
-}
-.Enigma-foldgutter-folded:after {
-	content: "\25B8";
+.enigma-t-default .Enigma-guttermarker-subtle::before {
+	font-size: 0.8rem;
 }
 
 .enigma-t-default.Enigma {background-color: var(--enigma-background);color: var(--enigma-color);}
@@ -413,4 +410,4 @@ span.Enigma-selectedtext {
 .enigma-t-default span.en-link { color: var(--enigma-type-link); }
 .enigma-t-default span.en-error { background-color: var(--enigma-error-background); color: var(--enigma-error-color); }
 .enigma-t-default .Enigma-activeline-background { background-color: var(--enigma-activeLine-background); }
-.enigma-t-default .Enigma-matchingbracket { text-decoration: underline; color: var(--enigma-matchingBracket) !important; }
+.enigma-t-default .Enigma-matchingbracket { text-decoration:solid; color: var(--enigma-matchingBracket) !important; }
