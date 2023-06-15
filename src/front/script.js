@@ -77,8 +77,12 @@ function reloadEditors() {
 					value: content,
 					mode: mode,
 					lineNumbers: true,
-					matchBrackets: true,
-					matchTags: true,
+					matchBrackets: {
+						highlightNonMatching: true,
+					},
+					matchTags: {
+						bothTags: true,
+					},
 					foldGutter: true,
 					foldOptions: {
 						widget: " ... ",
