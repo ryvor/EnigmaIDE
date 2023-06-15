@@ -7,10 +7,8 @@
 		display: grid;
 		grid-template-columns: 4fr;
 		grid-template-rows: 1fr 4fr 1fr 4fr 1fr;
-		padding-right: 10%;
-		padding-left: 10%;
-		width: 80%;
 		height: 100%;
+		padding-inline: 10%;
 	}
 	welcome start {
 		grid-row-start: 2;
@@ -59,10 +57,9 @@
 	}
 	@media (min-width: 992px) {
 		welcome {
-			grid-template-columns: 1fr 4fr 1fr 6fr 1fr;
+			grid-template-columns: 1fr 4fr 1fr 4fr 1fr;
 			grid-template-rows: 1fr 4fr 1fr;
-			padding-right: 10%;
-			padding-left: 10%;
+			padding-inline: 0%;
 		}
 		welcome start {
 			grid-row-start: 2;
@@ -83,10 +80,10 @@
 			grid-row-end: 2;
 			grid-column-start: 4;
 			grid-column-end: 4;
-			margin-top: 50%;
 			height: fit-content;
-			transform: translatey(-50%);
+			margin-top: 50%;
 			font-size: 1.2rem;
+			transform: translatey(-50%);
 		}
 	}
 	@media (min-width: 1400px) {

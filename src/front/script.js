@@ -1,4 +1,38 @@
 /**
+ * ELECTRON IPC
+ */
+const { ipcRenderer } = require('electron');
+const fs = require('fs');
+const os = require('os');
+const { isKeyObject } = require('util/types');
+ipcRenderer.on('contents', (event, path) => {
+	try {
+		const stats = fs.statSync(path);
+		let type = 0;
+		if (stats.isFile()) {
+			type = 1;
+		} else if (stats.isDirectory()) {
+			type = 2;
+		} else {
+			throw new Error('The path does not exist or is neither a file nor folder: '+path);
+		}
+		alert('Path is type: '+type);
+	  } catch (error) {
+		// Handle the error if the path doesn't exist or other file system errors
+		console.error(error);
+	  }
+	
+});
+ipcRenderer.on('newFile', (event) =>createEditorTab());
+ipcRenderer.on('closeTab', (event) =>removeEditorTab());
+ipcRenderer.on('openWelcomePage', () =>createEditorTab('./pages/welcome.html', true));
+// Hide the taskbar image unless on windows
+if (os.platform() === 'win32') document.querySelector('titlebar > icon > img').style.display = 'block';
+/**
+ * Keybinds
+ */
+//TODO: Move keybinds to within the window
+/**
  * 
  */
 var editors = Array();
@@ -40,7 +74,7 @@ window.addEventListener('message', function(event) {
 	if(message.closeTab) removeEditorTab(message.frameID);
 });
   
-/**
+/** reloadEditors
  * 
  */
 function reloadEditors() {
@@ -90,11 +124,14 @@ function reloadEditors() {
 					gutters: ["Enigma-linenumbers", "Enigma-foldgutter"],
 				});
 				Enigma.autoLoadMode(editors[editor.id]['IDE'], 'javascript')
+				editors[editor.id]['IDE'].focus();
 			}
 		}
 	});
 }
-
+/** createEditorTab
+ * 
+ */
 function createEditorTab(file=null, preview=false) {
 	const newID = editors.length;
 	// Create the tabs and editor
@@ -135,7 +172,11 @@ function createEditorTab(file=null, preview=false) {
 	}
 	reloadEditors();
 	changeEditorTab(newID);
+
 }
+/** changeEditorTab
+ * 
+ */
 function changeEditorTab(element_id) {
 	if(x = document.querySelector(`editor.selected`)) x.classList.remove('selected');
 	if(x = document.querySelector(`tab.selected`)) x.classList.remove('selected');
@@ -143,7 +184,11 @@ function changeEditorTab(element_id) {
 	if(x = document.querySelector(`tab[id="${element_id}"]`)) x.classList.add('selected');
 	lastEditor.push(element_id);
 }
-function removeEditorTab(tabID) {
+/** removeEditorTab
+ * 
+ */
+function removeEditorTab(tabID = null) {
+	if(!tabID) tabID = document.querySelector(`tab.selected`).id;
 	var elem = document.querySelector(`tab[id="${tabID}"]`);
 	elem.parentNode.removeChild(elem);
 	var elem = document.querySelector(`editor[id="${tabID}"]`);

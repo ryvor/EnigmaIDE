@@ -170,7 +170,7 @@ function registerApplicationMenu() {
 				},{	type: 'separator'
 				},{	label: 'Save',
 					accelerator: 'CmdOrCtrl+S',
-					click: () => {console.log('TODO')}
+					click: () => {openSaveFileDialog()}
 				},{	label: 'Save As...',
 					accelerator: 'CmdOrCtrl+Shift+S',
 					click: () => {console.log('TODO')}
@@ -215,9 +215,10 @@ function registerKeybinds() {
 		if(!globalShortcut.register('CommandOrControl+O', ()=>openDialog(1))) log('Failed to register global shortcut 7');
 		if(!globalShortcut.register('CommandOrControl+Shift+O', ()=>openDialog(2))) log('Failed to register global shortcut 8');
 		if(!globalShortcut.register('CommandOrControl+Alt+O', ()=>openDialog(3))) log('Failed to register global shortcut 9');
+		if(!globalShortcut.register('CommandOrControl+W', ()=>{currentWindow.webContents.send('closeTab')})) log('Failed to register global shortcut 9');
 		//---//
-		if(!globalShortcut.register('CommandOrControl+S', ()=>{console.log('TODO')})) log('Failed to register global shortcut 12');
-		if(!globalShortcut.register('CommandOrControl+Shift+S', ()=>{console.log('TODO')})) log('Failed to register global shortcut 13');
+		if(!globalShortcut.register('CommandOrControl+S', ()=>{saveFile()})) log('Failed to register global shortcut 10');
+		if(!globalShortcut.register('CommandOrControl+Shift+S', ()=>{saveFile()})) log('Failed to register global shortcut 11');
 		keybinds_status = true;
 	}
 }
@@ -264,6 +265,47 @@ function openDialog(type) {
 	}).catch(err => {
 		console.log('Error opening '+type_text+':', err);
 	});
+}
+/**
+ * 
+ */
+function saveFile() {
+	if(true) {
+		openSaveFileDialog()
+	}
+}
+/**
+ * 
+ */
+function openSaveFileDialog() {
+	dialog.showSaveDialog(null, {
+			title: 'Save File', // Dialog title
+			defaultPath: 'myfile.txt', // Default file name/path
+			buttonLabel: 'Save', // Custom button label
+			filters: [
+				// File filters
+				{ name: 'Text Files', extensions: ['txt'] },
+				{ name: 'All Files', extensions: ['*'] }
+			]
+		}, (filePath) => {
+			console.log(filePath);
+			// filePath will be the path chosen by the user or undefined if canceled
+			if (filePath) {
+				console.log('here');
+				// User selected a file path, you can save the file here
+				// Example: write some content to the file using Node.js fs module
+				const fs = require('fs');
+				const content = 'Hello, World!';
+				fs.writeFile(filePath, content, (err) => {
+					if (err) {
+						console.error('Error saving file:', err);
+					} else {
+						console.log('File saved successfully:', filePath);
+					}
+				});
+			}
+		}
+	);
 }
 /** log
  * This function writes a string to the log file with the logging format.

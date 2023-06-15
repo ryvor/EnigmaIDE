@@ -3,83 +3,134 @@
  * style.css v1.0
  * author: ryvor (@ryvor)
  */
-
-:root {
-	/** Colours **/
-	--col-1: #c5cad3;
-	--col-2: #d7dae0;
-	--col-3: #2c313a;
-	--col-4: #5c6370;
-	--col-5: #dcdfe4;
-	--col-6: #b7bac2;
-	
+:root { /* Theme */
+	--color-primary: black;
+	--color-secondary: white;
+	--color-accent: grey;
+	/* Taskbar */
+		--taskbar-background: #d7dae0;
+		--taskbar-color: ;
+	/* Sidebar */
+		--sidebar-radius: 3px;
+		--sidebar-background: #d7dae0;
+		--sidebar-background-hover: #c5cad3;
+		--sidebar-background-active: #b7bac2;
+		--sidebar-border-thickness: 1px;
+		--sidebar-border-style: solid;
+		--sidebar-border-color: #c5cad3;
+	/* Tabs */
+		--tabs-background: #d7dae0;
+		--tabs-background-hover: #c5cad3;
+		--tabs-background-active: #2c313a;
+		--tabs-color: ;
+		--tabs-color-hover: ;
+		--tabs-color-active: #dcdfe4;
+		--tabs-close-background: ;
+		--tabs-close-background-hover: #5c6370;
+		--tabs-close-background-active: #5c6370;
+		--tabs-close-color: ;
+		--tabs-close-color-hover: ;
+		--tabs-close-color-active: ;
+		--tabs-border-thickness: 1px;
+		--tabs-border-style: solid;
+		--tabs-border-color: #c5cad3;
+	/* Editor */
+		--editor-background: #2c313a;
+		--editor-color: #dcdfe4;
+		--editor-font: "Courier New";
+		--editor-font-size: 1rem;
+		--editor-gutter-background: #2c313a;
+		--editor-gutter-color: #dcdfe4;
+		--editor-gutter-font: "Courier New";
+		--editor-gutter-font-size: 1rem;
+	/* Footer */
+		--footer-background: #d7dae0;
+		--footer-color: ;
+		--footer-background-hover: #c5cad3;
+		--footer-color-hover: ;
+		--footer-border-thickness: 1px;
+		--footer-border-style: solid;
+		--footer-border-color: #c5cad3;
+	/* Search */
+		--search-background: #c5cad3;
+		--search-background-hover: #b7bac2;
+		--search-background-active: #b7bac2;
+		--search-color: white;
+		--search-color-hover: ;
+		--search-color-active: ;
+		--search-width: 25rem;
+		--search-width-hover: 25rem;
+		--search-width-active: 25rem;
+		--search-border-thickness: 1px;
+		--search-border-style: solid;
+		--search-border-color: #c5cad3;
 }
 @media (prefers-color-scheme: dark) {
-	:root {
-		/** Colours **/
-		--col-1: #c5cad3;
-		--col-2: #d7dae0;
-		--col-3: #2c313a;
-		--col-4: #5c6370;
-		--col-5: #dcdfe4;
-		--col-6: #b7bac2;
+	:root { /* Theme */
+		--color-primary: white;
+		--color-secondary: black;
+		--color-accent: grey;
+		/* Taskbar */
+			--taskbar-background: #1e2227;
+			--taskbar-color: ;
+		/* Sidebar */
+			--sidebar-radius: 3px;
+			--sidebar-background: #1e2227;
+			--sidebar-background-hover: #393d41;
+			--sidebar-background-active: #474a4e;
+			--sidebar-color: ;
+			--sidebar-color-hover: ;
+			--sidebar-color-active: ;
+			--sidebar-border-thickness: 1px;
+			--sidebar-border-style: solid;
+			--sidebar-border-color: #23272e;
+		/* Tabs */
+			--tabs-background: #1e2227;
+			--tabs-background-hover: #393d41;
+			--tabs-background-active: #2c313a;
+			--tabs-color: ;
+			--tabs-color-hover: ;
+			--tabs-color-active: #dcdfe4;
+			--tabs-close-background: ;
+			--tabs-close-background-hover: #393d41;
+			--tabs-close-background-active: #474a4e;
+			--tabs-close-color: ;
+			--tabs-close-color-hover: ;
+			--tabs-close-color-active: ;
+			--tabs-border-thickness: ;
+			--tabs-border-style: ;
+			--tabs-border-color: #23272e;
+		/* Editor */
+			--editor-background: #2c313a;
+			--editor-color: #dcdfe4;
+			--editor-font: "Courier New";
+			--editor-font-size: 1rem;
+			--editor-gutter-background: #2c313a;
+			--editor-gutter-color: #dcdfe4;
+			--editor-gutter-font: "Courier New";
+			--editor-gutter-font-size: 1rem;
+		/* Footer */
+			--footer-background: #1e2227;
+			--footer-color: ;
+			--footer-background-hover: #393d41;
+			--footer-color-hover: ;
+			--footer-border-thickness: 1px;
+			--footer-border-style: solid;
+			--footer-border-color: #23272e;
+		/* Search */
+			--search-background: #23272e;
+			--search-background-hover: #393d41;
+			--search-background-active: #474a4e;
+			--search-color: white;
+			--search-color-hover: ;
+			--search-color-active: ;
+			--search-width: 25rem;
+			--search-width-hover: 25rem;
+			--search-width-active: 25rem;
+			--search-border-thickness: 1px;
+			--search-border-style: solid;
+			--search-border-color: #23272e;
 	}
-}
-:root { /* Theme */
-	--border-thickness: 1px;
-	--border-style: solid;
-	--border-col: var(--col-1);
-	--border-col-secondary: var(--col-6);
-	--border-col-secondary-hover: var(--col-4);
-
-	--taskbar-background: var(--col-2);
-	--taskbar-color: ;
-
-	--sidebar-radius: 3px;
-	--sidebar-background: var(--col-2);
-	--sidebar-background-hover: var(--col-1);
-	--sidebar-background-active: var(--col-6);
-	--sidebar-color: ;
-	--sidebar-color-hover: ;
-	--sidebar-color-active: ;
-
-	--editor-background: var(--col-3);
-	--editor-color: var(--col-5);
-	--editor-font:
-	"Courier New";
-	--editor-font-size: 1rem;
-	--editor-gutter-background: var(--col-3);
-	--editor-gutter-color: var(--col-5);
-	--editor-gutter-font:
-	"Courier New";
-	--editor-gutter-font-size: 1rem;
-
-	--tabs-background: var(--col-2);
-	--tabs-background-hover: var(--col-1);
-	--tabs-background-active: var(--col-3);
-	--tabs-color: ;
-	--tabs-color-hover: ;
-	--tabs-color-active: var(--col-5);
-	--tabs-close-background: ;
-	--tabs-close-background-hover: var(--col-4);
-	--tabs-close-background-active: var(--col-4);
-	--tabs-close-color: ;
-	--tabs-close-color-hover: ;
-	--tabs-close-color-active: ;
-
-	--footer-background: var(--col-2);
-	--footer-color: ;
-	--footer-background-hover: var(--col-1);
-	--footer-color-hover: ;
-	--footer-search-background: var(--col-1);
-	--footer-search-background-hover: var(--col-6);
-	--footer-search-background-active: var(--col-6);
-	--footer-search-color: white;
-	--footer-search-color-hover: ;
-	--footer-search-color-active: ;
-	--footer-search-width: 25rem;
-	--footer-search-width-hover: 25rem;
-	--footer-search-width-active: 25rem;
 }
 body {
 	-webkit-user-select: none;
@@ -103,6 +154,7 @@ body {
 	height: 100vh;
 	font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 	font-size: 0.8rem;
+	color: var(--color-primary);
 }
 
 titlebar {
@@ -127,7 +179,7 @@ titlebar icon img {
 sidebar {
 	background-color: var(--sidebar-background);
 	color: var(--sidebar-color);
-	border-right: var(--border-thickness) var(--border-style) var(--border-col);
+	border-right: var(--sidebar-border-thickness) var(--sidebar-border-style) var(--sidebar-border-color);
 }
 sidebar project-title {
 	display: flex;
@@ -157,6 +209,7 @@ sidebar project-tree .tree-item-label {
 	padding: 5px 0 5px 5px;
 	border-radius: var(--sidebar-radius);
 	cursor: pointer;
+	width: calc(100% - 1rem);
 }
 sidebar project-tree .tree-item-label:not(.selected):hover {
 	background-color: var(--sidebar-background-hover);
@@ -175,7 +228,7 @@ sidebar,content {
 	display: grid;
 	grid-template-rows: 30px auto;
 	height: calc(100vh - calc(2rem + 31px));
-	border-top: var(--border-thickness) var(--border-style) var(--border-col);
+	border-top: var(--sidebar-border-thickness) var(--sidebar-border-style) var(--sidebar-border-color);
 }
 
 content tabs {
@@ -202,8 +255,8 @@ content tabs tab {
 	white-space: nowrap;
 	text-align: center;
 	padding: 8px;
-	border-right: var(--border-thickness) var(--border-style) var(--border-col);
-	border-bottom: var(--border-thickness) var(--border-style) var(--border-col);
+	border-right: var(--tabs-border-thickness) var(--tabs-border-style) var(--tabs-border-color);
+	border-bottom: var(--tabs-border-thickness) var(--tabs-border-style) var(--tabs-border-color);
 	display: flex;
 	z-index: 1;
 	background-color: var(--tabs-background);
@@ -231,7 +284,7 @@ content tab.selected {
 	color: var(--tabs-color-active);
 }
 content editors {
-	background-color: var(--col-3);
+	background-color: #2c313a;
 	color: var(--editor-color);
 	font-family: var(--editor-font-size);
 	font-size: var(--editor-font-size);
@@ -271,7 +324,7 @@ footer {
 	grid-column-start: 1;
 	grid-column-end: 3;
 	align-items: center;
-	border-top: var(--border-thickness) var(--border-style) var(--border-col);
+	border-top: var(--footer-border-thickness) var(--footer-border-style) var(--footer-border-color);
 	background-color: var(--footer-background);
 	color: var(--footer-color);
 }
@@ -281,26 +334,26 @@ footer footer-search {
 	justify-content: flex-start;
 }
 footer footer-search search {
-	background-color: var(--footer-search-background);
-	color: var(--footer-search-color);
-	width: var(--footer-search-width);
+	background-color: var(--search-background);
+	color: var(--search-color);
+	width: var(--search-width);
 	margin: 3px;
 	border-radius: 5px;
 	outline: none;
 	padding: 3px 5px;
-	border: var(--border-thickness) var(--border-style) var(--border-col-secondary);
+	border: var(--search-border-thickness) var(--search-border-style) var(--search-border-col-secondary);
 }
 footer footer-search search:hover {
-	background-color: var(--footer-search-background-hover);
-	color: var(--footer-search-color-hover);
-	width: var(--footer-search-width-hover);
-	border-color: var(--border-col-secondary-hover);
+	background-color: var(--search-background-hover);
+	color: var(--search-color-hover);
+	width: var(--search-width-hover);
+	border-color: var(--search-border-col-secondary-hover);
 }
 footer footer-search search:focus {
-	background-color: var(--footer-search-background-active);
-	color: var(--footer-search-color-active);
-	width: var(--footer-search-width-active);
-	border-color: var(--border-col-secondary-hover);
+	background-color: var(--search-background-active);
+	color: var(--search-color-active);
+	width: var(--search-width-active);
+	border-color: var(--search-border-col-secondary-hover);
 }
 footer footer-controls {
 	display: flex;
@@ -314,6 +367,7 @@ footer footer-controls a {
 	padding: 0 10px;
 	color: initial;
 	text-decoration: none;
+	color: var(--color-accent);
 }
 footer footer-controls a:hover {
 	background-color: var(--footer-background-hover);
