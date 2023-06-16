@@ -21,27 +21,84 @@
 		<sidebar>
 			<project-title>Enigma IDE</project-title>
 			<project-tree>
-				<!--
-					<ul class="tree-group">
-						<li class="tree-item oct-chevron-down">
-							<span class="tree-item-label oct-repo">vintage-shop</span>
-							<ul class="tree-group">
-								<li class="tree-item oct-chevron-right"><span class="tree-item-label oct-file-directory">git</span></li>
-								<li class="tree-item oct-chevron-right"><span class="tree-item-label oct-file-directory">dist</span></li>
-								<li class="tree-item oct-chevron-right"><span class="tree-item-label oct-file-directory">node_modules</span></li>
-								<li class="tree-item oct-chevron-right"><span class="tree-item-label oct-file-directory">src</span></li>
-								<li class="tree-item"><span class="tree-item-label oct-file-text">.editconfig</span></li>
-								<li class="tree-item"><span class="tree-item-label oct-file-text">build.js</span></li>
-								<li class="tree-item"><span class="tree-item-label oct-file-text">development.html</span></li>
-								<li class="tree-item"><span class="tree-item-label oct-file-text">LICENSE</span></li>
-								<li class="tree-item"><span class="tree-item-label oct-file-text">package-lockpan></li>
-								<li class="tree-item"><span class="tree-item-label oct-file-text">production.html</li>
-								<li class="tree-item"><span class="tree-item-label oct-book">README.md</span></li>
-								<li class="tree-item"><span class="tree-item-label oct-file-text selected">test.js</span></li>
-							</ul>
-						</li>
-					</ul>
-				-->
+				<project-item class="oct-chevron-down">
+					<project-name-icon class="oct-repo"></project-name-icon>
+					<project-name>vintage-shop</project-name>
+				</project-item>
+				<project-folder class="unfolded">
+					<project-item class="oct-chevron-right">
+						<project-label-icon class="oct-file-directory"></project-label-icon>
+						<project-label>git</project-label>
+					</project-item>
+					<project-folder>
+						<project-item class="oct-nodef">
+							<project-label-icon class="oct-file-text"></project-label-icon>
+							<project-label>.editconfig</project-label>
+						</project-item>
+					</project-folder>
+					<project-item class="oct-chevron-right">
+						<project-label-icon class="oct-file-directory"></project-label-icon>
+						<project-label>dist</project-label>
+					</project-item>
+					<project-folder>
+						<project-item class="oct-nodef">
+							<project-label-icon class="oct-file-text"></project-label-icon>
+							<project-label>.editconfig</project-label>
+						</project-item>
+					</project-folder>
+					<project-item class="oct-chevron-right">
+						<project-label-icon class="oct-file-directory"></project-label-icon>
+						<project-label>node_modules</project-label>
+					</project-item>
+					<project-folder>
+						<project-item class="oct-nodef">
+							<project-label-icon class="oct-file-text"></project-label-icon>
+							<project-label>.editconfig</project-label>
+						</project-item>
+					</project-folder>
+					<project-item class="oct-chevron-right">
+						<project-label-icon class="oct-file-directory"></project-label-icon>
+						<project-label>src</project-label>
+					</project-item>
+					<project-folder>
+						<project-item class="oct-nodef">
+							<project-label-icon class="oct-file-text"></project-label-icon>
+							<project-label>.editconfig</project-label>
+						</project-item>
+					</project-folder>
+					<project-item class="oct-nodef">
+						<project-label-icon class="oct-file-text"></project-label-icon>
+						<project-label>.editconfig</project-label>
+					</project-item>
+					<project-item class="oct-nodef">
+						<project-label-icon class="oct-file-text"></project-label-icon>
+						<project-label>build.js</project-label>
+					</project-item>
+					<project-item class="oct-nodef">
+						<project-label-icon class="oct-file-text"></project-label-icon>
+						<project-label>development.html</project-label>
+					</project-item>
+					<project-item class="oct-nodef">
+						<project-label-icon class="oct-file-text"></project-label-icon>
+						<project-label>LICENSE</project-label>
+					</project-item>
+					<project-item class="oct-nodef">
+						<project-label-icon class="oct-file-text"></project-label-icon>
+						<project-label>package-lockpan</project-label>
+					</project-item>
+					<project-item class="oct-nodef">
+						<project-label-icon class="oct-file-text"></project-label-icon>
+						<project-label>production.html</project-label>
+					</project-item>
+					<project-item class="oct-nodef">
+						<project-label-icon class="oct-book"></project-label-icon>
+						<project-label>README.md</project-label>
+					</project-item>
+					<project-item class="oct-nodef">
+						<project-label-icon class="oct-file-text"></project-label-icon>
+						<project-label class="selected">test.js</project-label>
+					</project-item>
+				</project-folder>
 			</project-tree>
 		</sidebar>
 		<content>
@@ -51,6 +108,10 @@
 		<footer>
 			<footer-search>
 				<search contenteditable="true"></search>
+				<search-content>
+					Search for files by name.
+					Append '>' to go to line, '$' to enter a command or '?' to search the docs
+				</search-content>
 			</footer-search>
 			<footer-controls>
 				<a href=""><span class="enigma-editor-row-number">2</span>:<span class="enigma-editor-column-number">5</span></a>
@@ -58,7 +119,7 @@
 				<a href="#"><span class="enigma-editor-encoding">UTF-8</span></a>
 				<a href="#"><span class="enigma-editor-end-of-line-convention">CRLF</span></a>
 				<a href="#"><span class="enigma-editor-lang"></span>Less</a>
-				<a href="#"><span class="oct-settings"></span></a>
+				<a class="openSettingsPage" href="#"><span class="oct-settings"></span></a>
 			</footer-controls>
 		</footer>
 		<script defer src="vendor/Enigma/editor.js"></script>

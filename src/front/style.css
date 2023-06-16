@@ -3,7 +3,7 @@
  * style.css v1.0
  * author: ryvor (@ryvor)
  */
-:root { /* Theme */
+ :root { /* Theme */
 	--color-primary: black;
 	--color-secondary: white;
 	--color-accent: grey;
@@ -37,11 +37,13 @@
 	/* Editor */
 		--editor-background: #2c313a;
 		--editor-color: #dcdfe4;
-		--editor-font: "Courier New";
+		--editor-font:
+	"Courier New";
 		--editor-font-size: 1rem;
 		--editor-gutter-background: #2c313a;
 		--editor-gutter-color: #dcdfe4;
-		--editor-gutter-font: "Courier New";
+		--editor-gutter-font:
+	"Courier New";
 		--editor-gutter-font-size: 1rem;
 	/* Footer */
 		--footer-background: #d7dae0;
@@ -51,6 +53,7 @@
 		--footer-border-thickness: 1px;
 		--footer-border-style: solid;
 		--footer-border-color: #c5cad3;
+		--footer-height: 30px;
 	/* Search */
 		--search-background: #c5cad3;
 		--search-background-hover: #b7bac2;
@@ -64,6 +67,21 @@
 		--search-border-thickness: 1px;
 		--search-border-style: solid;
 		--search-border-color: #c5cad3;
+		--search-padding-top: 3px;
+		--search-padding-right: 5px;
+		--search-padding-bottom: 3px;
+		--search-padding-left: 5px;
+		--search-margin-top: 3px;
+		--search-margin-right: 3px;
+		--search-margin-bottom: 3px;
+		--search-margin-left: 3px;
+		--search-content-min-height: calc(var(--search-height) + calc(calc(var(--search-margin-top) + var(--search-margin-bottom)) + calc(var(--search-padding-top) + var(--search-padding-bottom))));
+		--search-content-width: calc(var(--search-width) + calc(calc(var(--search-margin-left) + var(--search-margin-right)) + calc(var(--search-padding-left) + var(--search-padding-right))));
+		--search-height: 16px;
+		--search-content-border-width: 1px;
+		--search-content-border-style: solid;
+		--search-content-border-color: #b7bac2;
+		--search-content-background: #d0d0d0;
 }
 @media (prefers-color-scheme: dark) {
 	:root { /* Theme */
@@ -155,6 +173,7 @@ body {
 	font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 	font-size: 0.8rem;
 	color: var(--color-primary);
+	overflow: hidden;
 }
 
 titlebar {
@@ -188,42 +207,63 @@ sidebar project-title {
 }
 sidebar project-tree {
 	overflow: auto;
-}
-sidebar project-tree .tree-group {
+	height: 100%;
 	padding: 0;
-	margin: 0;
+	margin-left: 10px;
+	display: block;
 }
-sidebar project-tree .tree-item {
-	padding: 0 0 0 20px;
-	list-style: none;
+sidebar project-tree project-item {
+	padding: 0;
 	position: relative;
+	display: flex;
 }
-sidebar project-tree .tree-item:before {
-	font-family: 'octicons' !important;
+sidebar project-tree project-item:before {
+	content: "";
 	position: absolute;
 	left: 10px;
 	top: 5px;
+	max-width: 0.5rem;
+	width: 0.6rem;
 }
-sidebar project-tree .tree-item-label {
+sidebar project-tree project-item project-name-icon,
+sidebar project-tree project-item project-label-icon {
+	width: 1.3rem;
+	overflow: hidden;
+}
+sidebar project-tree project-item project-name,
+sidebar project-tree project-item project-label {
 	display: flex;
-	padding: 5px 0 5px 5px;
 	border-radius: var(--sidebar-radius);
 	cursor: pointer;
-	width: calc(100% - 1rem);
+	width: calc(100% - 1.5rem);
+	margin-left: 5px;
 }
-sidebar project-tree .tree-item-label:not(.selected):hover {
+sidebar project-tree project-item project-label:not(.selected):hover {
 	background-color: var(--sidebar-background-hover);
 	color: var(--sidebar-color-hover);
 }
-sidebar project-tree .tree-item-label.selected {
+sidebar project-tree project-item project-label.selected {
 	background-color: var(--sidebar-background-active);
 	color: var(--sidebar-color-active);
 }
-sidebar project-tree .tree-item-label:before {
+sidebar project-tree project-item project-label:before {
 	font-size: 17px;
 	margin-right: 10px;
 }
-
+sidebar project-tree project-folder {
+	transition: height 1s ease;
+	padding-left: 1rem;
+	width: calc(100% - 1rem);
+	display: block;
+	overflow: hidden;
+	height: 0px;
+}
+sidebar project-tree project-folder.unfolded {
+	height: auto;
+}
+sidebar project-tree project-folder > * {
+	width: calc(100% - 1rem);
+}
 sidebar,content {
 	display: grid;
 	grid-template-rows: 30px auto;
@@ -332,16 +372,19 @@ footer footer-search {
 	display: flex;
 	height: 100%;
 	justify-content: flex-start;
+	height: var(--footer-height);
 }
 footer footer-search search {
 	background-color: var(--search-background);
 	color: var(--search-color);
 	width: var(--search-width);
-	margin: 3px;
+	margin: var(--search-margin-top) var(--search-margin-right) var(--search-margin-bottom) var(--search-margin-left);
 	border-radius: 5px;
 	outline: none;
-	padding: 3px 5px;
+	padding: var(--search-padding-top) var(--search-padding-right) var(--search-padding-bottom) var(--search-padding-left);
 	border: var(--search-border-thickness) var(--search-border-style) var(--search-border-col-secondary);
+	z-index: 10;
+	height: var(--search-height);
 }
 footer footer-search search:hover {
 	background-color: var(--search-background-hover);
@@ -354,6 +397,20 @@ footer footer-search search:focus {
 	color: var(--search-color-active);
 	width: var(--search-width-active);
 	border-color: var(--search-border-col-secondary-hover);
+}
+footer footer-search search-content {
+	width: var(--search-content-width);
+	border-radius: 5px;
+	position: absolute;
+	bottom: 0;
+	display: none;
+	z-index: 5;
+	background-color: var(--search-content-background);
+	border: var(--search-content-border-width) var(--search-content-border-style) var(--search-content-border-color);
+	padding-bottom: var(--search-content-min-height);
+}
+footer footer-search search:focus ~ search-content {
+	display: block;
 }
 footer footer-controls {
 	display: flex;

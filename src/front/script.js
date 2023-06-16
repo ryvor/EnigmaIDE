@@ -1,33 +1,36 @@
 /**
  * ELECTRON IPC
  */
-const { ipcRenderer } = require('electron');
-const fs = require('fs');
-const os = require('os');
-const { isKeyObject } = require('util/types');
-ipcRenderer.on('contents', (event, path) => {
-	try {
-		const stats = fs.statSync(path);
-		let type = 0;
-		if (stats.isFile()) {
-			type = 1;
-		} else if (stats.isDirectory()) {
-			type = 2;
-		} else {
-			throw new Error('The path does not exist or is neither a file nor folder: '+path);
+if(typeof require === 'function') {
+	const { ipcRenderer } = require('electron');
+	const fs = require('fs');
+	const os = require('os');
+	const { isKeyObject } = require('util/types');
+	ipcRenderer.on('contents', (event, path) => {
+		try {
+			const stats = fs.statSync(path);
+			let type = 0;
+			if (stats.isFile()) {
+				type = 1;
+			} else if (stats.isDirectory()) {
+				type = 2;
+			} else {
+				throw new Error('The path does not exist or is neither a file nor folder: '+path);
+			}
+			alert('Path is type: '+type);
+		} catch (error) {
+			console.error(error);
 		}
-		alert('Path is type: '+type);
-	  } catch (error) {
-		// Handle the error if the path doesn't exist or other file system errors
-		console.error(error);
-	  }
-	
-});
-ipcRenderer.on('newFile', (event) =>createEditorTab());
-ipcRenderer.on('closeTab', (event) =>removeEditorTab());
-ipcRenderer.on('openWelcomePage', () =>createEditorTab('./pages/welcome.html', true));
-// Hide the taskbar image unless on windows
-if (os.platform() === 'win32') document.querySelector('titlebar > icon > img').style.display = 'block';
+		
+	});
+	ipcRenderer.on('newFile', (event) =>createEditorTab());
+	ipcRenderer.on('closeTab', (event) =>removeEditorTab());
+	ipcRenderer.on('openWelcomePage', () =>createEditorTab('./pages/welcome.html', true));
+	ipcRenderer.on('openSettingsPage', () =>createEditorTab('./pages/welcome.html', true));
+	// Hide the taskbar image unless on windows
+	if (os.platform() === 'win32') document.querySelector('titlebar > icon > img').style.display = 'block';
+}
+ 
 /**
  * Keybinds
  */
@@ -73,6 +76,27 @@ window.addEventListener('message', function(event) {
 	// clsoe tab is requested
 	if(message.closeTab) removeEditorTab(message.frameID);
 });
+document.querySelectorAll('.openSettingsPage').forEach((btn)=>{
+	btn.addEventListener('click', ()=>openSettingsPage())
+})
+document.querySelectorAll('.openWelcomePage').forEach((btn)=>{
+	btn.addEventListener('click', ()=>openWelcomePage())
+})
+document.querySelectorAll('project-item').forEach((item)=>{
+	item.addEventListener('click', ()=>{
+		if(item.nextElementSibling && item.nextElementSibling.tagName == 'PROJECT-FOLDER') {
+			item.classList.toggle('oct-chevron-right');
+			item.classList.toggle('oct-chevron-down');
+			item.nextElementSibling.classList.toggle('unfolded');
+		} else {
+			console.log('openFile');
+		}
+	})
+})	
+/**
+ * 
+ */
+
   
 /** reloadEditors
  * 
@@ -128,6 +152,7 @@ function reloadEditors() {
 			}
 		}
 	});
+	(Object.keys(editors).length == 0)? document.querySelector('tabs').classList.add('oct-plus') : document.querySelector('tabs').classList.remove('oct-plus');
 }
 /** createEditorTab
  * 
@@ -152,7 +177,7 @@ function createEditorTab(file=null, preview=false) {
 	//*				 | IMAGE FILES			  	  |	AUDIO FILES | VIDEO FILES  | DOCUMENTS						| ARCHIVES		 | XML/HTML		| TEXT BASED  | FONTS			   | DATA	 | DATABASE		 | 3D MODELS  |				 *//
 	if(preview && /\.[ong|jpeg|jpg|gif|svg|eps|ai | mp3|wav|ogg | mp4|webm|ogg | pdf|doc|docx|xls|xlsx|ppt|pptx | zip|tar|gz|rar | html|htm|xml | css|js|json | ttf|woff|woff2|otf | csv|tsv | sqlite|db|sql | obj|stl|fbx]+/.exec(file)[0] !== '.html') {
 		preview = false;
-		console.log(`Unable to preview file: The file requested (${file})  is not a html file. Cannot be previewed`);
+		console.log(`Unable to preview file: The file requested (${file}) is not a previewable file. Cannot be previewed`);
 	}
 	// Update the tab
 	if(preview) {
@@ -198,13 +223,26 @@ function removeEditorTab(tabID = null) {
 		return value != tabID;
 	});
 	// change the tabs and reload the editors array
+	delete editors[tabID]
 	changeEditorTab(parseInt(lastEditor[lastEditor.length - 1]));
 	reloadEditors();
+}
+/** openWelcomePage
+ * 
+ */
+function openWelcomePage() {
+	createEditorTab('./pages/welcome.html', true);
+}
+/** openSettingsPage
+ * 
+ */
+function openSettingsPage() {
+	createEditorTab('./pages/settings.html', true);
 }
 
 /****************/
 /** INITIALIZE **/
 /****************/
 if(editors.length == 0) {
-	createEditorTab('./pages/welcome.html', true);
+	openWelcomePage();
 }

@@ -1,0 +1,30 @@
+<link rel="stylesheet" href="../vendor/Octicons/octicons-all.min.css">
+<link rel="stylesheet" href="../style.css">
+<style>
+	:root{
+		--padding: 5px;
+	}
+	body {
+		display: grid;
+		grid-template-columns: 20% 80%;
+		grid-template-rows: 100%;
+	}
+	body > * {
+		width: calc(100% - calc(var(--padding) * 2));
+		height: 100%;
+		padding: var(--padding);
+	}
+	body categories {
+		/* border-right: 1px solid; */
+	}
+	body settings {
+	}
+</style>
+<categories>
+	<category class="oct-person selected">Account</category>
+	<category class="oct-paintcan">Appearance</category>
+	<category class="oct-lock">Security</category>
+</categories>
+<settings>
+
+</settings>

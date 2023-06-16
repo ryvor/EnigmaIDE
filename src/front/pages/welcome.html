@@ -1,96 +1,99 @@
-<link rel="stylesheet" href="../vendor/Octicons/octicons-all.min.css">
-<style>
-	* { user-select: none; }
-	welcome {
-		color: white;
-		font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-		display: grid;
-		grid-template-columns: 4fr;
-		grid-template-rows: 1fr 4fr 1fr 4fr 1fr;
-		height: 100%;
-		padding-inline: 10%;
-	}
-	welcome start {
-		grid-row-start: 2;
-		grid-row-end: 2;
-		grid-column-start: 1;
-		grid-column-end: 1;
-		width: 100%;
-	}
-	welcome start img {
-		width: 65%;
-	}
-	welcome start heading {
-		display: block;
-		font-size: 2rem;
-		margin-bottom: 1.5rem;
-	}
-	welcome start subheading {
-		display: block;
-		font-size: 1.5rem;
-		margin-bottom: 1rem;
-	}
-	welcome start same-width hyperlink {
-		display: block;
-		padding: 10px;
-	}
-	welcome start same-width hyperlink i {
-		margin-right: 0.5rem;
-	}
-	welcome start same-width {
-		width: fit-content;
-		display: block;
-	}
-	welcome start same-width > * {
-		width: 100%!important;
-		cursor: pointer;
-	}
-	welcome start hyperlink:hover {
-		background: rgb(249 89 89 / 50%);
-	}
-	welcome recent {
-		grid-row-start: 4;
-		grid-row-end: 4;
-		grid-column-start: 1;
-		grid-column-end: 1;
-		margin-top: unset;
-	}
-	@media (min-width: 992px) {
-		welcome {
-			grid-template-columns: 1fr 4fr 1fr 4fr 1fr;
-			grid-template-rows: 1fr 4fr 1fr;
-			padding-inline: 0%;
+<head>
+	<link rel="stylesheet" href="../vendor/Octicons/octicons-all.min.css">
+	<link rel="stylesheet" href="../style.css">
+	<style>
+
+		body {
+			color: white;
+			font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+			display: grid;
+			grid-template-columns: 4fr;
+			grid-template-rows: 1fr 4fr 1fr 4fr 1fr;
+			height: 100%;
+			padding-inline: 10%;
 		}
-		welcome start {
+		body start {
 			grid-row-start: 2;
 			grid-row-end: 2;
-			grid-column-start: 2;
-			grid-column-end: 2;
+			grid-column-start: 1;
+			grid-column-end: 1;
 			width: 100%;
-			margin-top: 50%;
-			height: fit-content;
-			transform: translatey(-50%);
-			font-size: 1.2rem;
 		}
-		welcome start img {
-			width: 75%;
+		body start img {
+			width: 65%;
 		}
-		welcome recent {
-			grid-row-start: 2;
-			grid-row-end: 2;
-			grid-column-start: 4;
-			grid-column-end: 4;
-			height: fit-content;
-			margin-top: 50%;
-			font-size: 1.2rem;
-			transform: translatey(-50%);
+		body start heading {
+			display: block;
+			font-size: 2rem;
+			margin-bottom: 1.5rem;
 		}
-	}
-	@media (min-width: 1400px) {
-		
-	}
-</style>
-<welcome>
+		body start subheading {
+			display: block;
+			font-size: 1.5rem;
+			margin-bottom: 1rem;
+		}
+		body start same-width hyperlink {
+			display: block;
+			padding: 10px;
+		}
+		body start same-width hyperlink i {
+			margin-right: 0.5rem;
+		}
+		body start same-width {
+			width: fit-content;
+			display: block;
+		}
+		body start same-width > * {
+			width: 100%!important;
+			cursor: pointer;
+		}
+		body start hyperlink:hover {
+			background: rgb(249 89 89 / 50%);
+		}
+		body recent {
+			grid-row-start: 4;
+			grid-row-end: 4;
+			grid-column-start: 1;
+			grid-column-end: 1;
+			margin-top: unset;
+		}
+		@media (min-width: 992px) {
+			body {
+				grid-template-columns: 1fr 4fr 1fr 4fr 1fr;
+				grid-template-rows: 1fr 4fr 1fr;
+				padding-inline: 0%;
+			}
+			body start {
+				grid-row-start: 2;
+				grid-row-end: 2;
+				grid-column-start: 2;
+				grid-column-end: 2;
+				width: 100%;
+				margin-top: 50%;
+				height: fit-content;
+				transform: translatey(-50%);
+				font-size: 1.2rem;
+			}
+			body start img {
+				width: 75%;
+			}
+			body recent {
+				grid-row-start: 2;
+				grid-row-end: 2;
+				grid-column-start: 4;
+				grid-column-end: 4;
+				height: fit-content;
+				margin-top: 50%;
+				font-size: 1.2rem;
+				transform: translatey(-50%);
+			}
+		}
+		@media (min-width: 1400px) {
+			
+		}
+	</style>
+</head>
+<body>
 	<start>
 		<img src="../assets/enigma-color-text.svg"></img>
 		<subheading>Your code, secured.</subheading>
@@ -105,49 +108,49 @@
 		<h2>Welcome to Enigma IDE!</h2>
 		Unleash your coding potential with Enigma, the ultimate IDE for developers. Dive into a world of seamless coding, powerful features, and intuitive design. From syntax highlighting to intelligent suggestions, Enigma simplifies your coding experience. Join our vibrant community and embark on a journey of creativity and innovation. Welcome to Enigma, where coding becomes an art. Happy coding!
 	</recent>
-</welcome>
-<script>
-	var messageRequest = null
-	window.addEventListener('message', function(event) {
-		data = event.data;
-		if(data.type == 'initialize') {
-			messageRequest = data.templateRequest;
+	<script>
+		var messageRequest = null
+		window.addEventListener('message', function(event) {
+			data = event.data;
+			if(data.type == 'initialize') {
+				messageRequest = data.templateRequest;
+			}
+		});
+		
+		function newTab() {
+			var request = messageRequest;
+			request.functions = [{
+					name: 'createEditorTab',
+					args: [],
+				}];
+			sendRequest(request);
 		}
-	});
-	
-	function newTab() {
-		var request = messageRequest;
-		request.functions = [{
-				name: 'createEditorTab',
-				args: [],
-			}];
-		sendRequest(request);
-	}
-	function newProject() {
-		var request = messageRequest;
-		request.functions = [{
-				name: 'createProject',
-				args: [],
-			}];
-		sendRequest(request);
-	}
-	function openFile() {
-		var request = messageRequest;
-		request.functions = [{
-				name: 'openFile',
-				args: [],
-			}];
-		sendRequest(request);
-	}
-	function openDirectory() {
-		var request = messageRequest;
-		request.functions = [{
-				name: 'openDirectory',
-				args: [],
-			}];
-		sendRequest(request);
-	}
-	function sendRequest(msg) {
-		window.parent.postMessage(msg, '*')
-	}
-</script>
+		function newProject() {
+			var request = messageRequest;
+			request.functions = [{
+					name: 'createProject',
+					args: [],
+				}];
+			sendRequest(request);
+		}
+		function openFile() {
+			var request = messageRequest;
+			request.functions = [{
+					name: 'openFile',
+					args: [],
+				}];
+			sendRequest(request);
+		}
+		function openDirectory() {
+			var request = messageRequest;
+			request.functions = [{
+					name: 'openDirectory',
+					args: [],
+				}];
+			sendRequest(request);
+		}
+		function sendRequest(msg) {
+			window.parent.postMessage(msg, '*')
+		}
+	</script>
+</body>
