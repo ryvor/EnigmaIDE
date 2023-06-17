@@ -13,11 +13,11 @@
 # you will see them accessed via {{ site.title }}, {{ site.github_repo }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: Just the Docs
-description: A Jekyll theme for documentation
-baseurl: "/MultiDomainX" # the subpath of your site, e.g. /blog
-url: "https://ashwell-design.github.io/" # the base hostname & protocol for your site, e.g. http://example.com
-repository: Ashwell-Design/MultiDomainX # for github-metadata
+title: 'Enigma ide : Docs'
+description: 'Documentation for the Enigma IDE code editor'
+baseurl: "/EnigmaIDE" # the subpath of your site, e.g. /blog
+url: "https://ryvor.github.io/" # the base hostname & protocol for your site, e.g. http://example.com
+repository: ryvor/EnigmaIDE # for github-metadata
 
 permalink: pretty
 
