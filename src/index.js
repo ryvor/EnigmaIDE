@@ -2,13 +2,16 @@
 /*               VARIABLES               */
 //#region ********************************/
 
-const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification } = require('electron');
+const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain } = require('electron');
 const windowManager = require('electron-window-manager');
+const fs = require('fs');
 const path = require('path');
 const InDev = process.argv.includes('--debugMode');
-
-var currentWindow, mainWindow, aboutWindow, aboutWindowActive = false, keybinds_status = false;
-
+var currentWindow=null,
+	mainWindow=null,
+	aboutWindow=null,
+	aboutWindowActive=false,
+	keybinds_status=false;
 //#endregion *****************************/
 /*             SYSTEM EVENTS             */
 //#region ********************************/
@@ -19,7 +22,6 @@ app.on('window-all-closed', terminate);
 app.on('activate', activate);
 app.on('window-all-closed', allWindowsClosed);
 app.on('browser-window-created', newWindow);
-
 //#endregion *****************************/
 /*            SYSTEM FUNCTIONS           */
 //#region ********************************/
@@ -48,8 +50,6 @@ function createWindow() {
 	});
 	mainWindow.loadFile(path.join(__dirname, 'front/index.html'));
 	mainWindow.once('ready-to-show', ()=>{
-		handleAccentColorChange();
-		mainWindow.on('accent-color-changed', handleAccentColorChange);
 		registerApplicationMenu();
 		if(InDev) {	// If the program is started with electron-forge, it then shows the debug console
 			mainWindow.webContents.openDevTools();
@@ -103,7 +103,6 @@ function newWindow(event, window) {
 		currentWindow = null;
 	});
 }
-
 //#endregion *****************************/
 /*               FUNCTIONS               */
 //#region ********************************/
@@ -143,10 +142,10 @@ function registerApplicationMenu() {
 					click: () => {currentWindow.webContents.send('newFile')},
 				},{	label: 'New Project',
 					accelerator: 'CmdOrCtrl+Shift+N',
-					click: () => {createWindow()},
+					click: () => {console.log('TODO')},
 				},{	label: 'New Window',
 					accelerator: 'CmdOrCtrl+Alt+N',
-					click: () => {console.log('TODO')},
+					click: ()=>createNewWindow(),
 				},{	type: 'separator'
 				},{	label: 'Open File',
 					accelerator: 'CmdOrCtrl+O',
@@ -170,10 +169,10 @@ function registerApplicationMenu() {
 				},{	type: 'separator'
 				},{	label: 'Save',
 					accelerator: 'CmdOrCtrl+S',
-					click: () => {openSaveFileDialog()}
+					click: ()=>saveFile()
 				},{	label: 'Save As...',
 					accelerator: 'CmdOrCtrl+Shift+S',
-					click: () => {console.log('TODO')}
+					click: ()=>saveFile(true)
 				},
 			]
 		},{	label: 'Selection',
@@ -192,7 +191,10 @@ function registerApplicationMenu() {
 			submenu: [
 				{	label: 'Welcome',
 					accelerator: '',
-					click: ()=>currentWindow.webContents.send('openWelcomePage')
+					click: ()=>currentWindow.webContents.send('openWelcomePage'),
+				},{	label: 'Open Developer Tools',
+					accelerator: '',
+					click: ()=>mainWindow.webContents.openDevTools(),
 				}
 			]
 		}
@@ -210,15 +212,15 @@ function registerKeybinds() {
 			if(!globalShortcut.register('Command+Q', ()=>terminate(true)))
 				log('Failed to register global shortcut 4');
 		//---//
-		if(!globalShortcut.register('CommandOrControl+N', ()=>{currentWindow.webContents.send('newFile')})) log('Failed to register global shortcut 5');
-		if(!globalShortcut.register('CommandOrControl+Shift+N', ()=>{console.log('TODO')})) log('Failed to register global shortcut 6');
+		if(!globalShortcut.register('CommandOrControl+N', ()=>currentWindow.webContents.send('newFile'))) log('Failed to register global shortcut 5');
+		if(!globalShortcut.register('CommandOrControl+Shift+N', ()=>createNewWindow())) log('Failed to register global shortcut 6');
 		if(!globalShortcut.register('CommandOrControl+O', ()=>openDialog(1))) log('Failed to register global shortcut 7');
 		if(!globalShortcut.register('CommandOrControl+Shift+O', ()=>openDialog(2))) log('Failed to register global shortcut 8');
 		if(!globalShortcut.register('CommandOrControl+Alt+O', ()=>openDialog(3))) log('Failed to register global shortcut 9');
-		if(!globalShortcut.register('CommandOrControl+W', ()=>{currentWindow.webContents.send('closeTab')})) log('Failed to register global shortcut 9');
+		if(!globalShortcut.register('CommandOrControl+W', ()=>currentWindow.webContents.send('closeTab'))) log('Failed to register global shortcut 9');
 		//---//
 		if(!globalShortcut.register('CommandOrControl+S', ()=>{saveFile()})) log('Failed to register global shortcut 10');
-		if(!globalShortcut.register('CommandOrControl+Shift+S', ()=>{saveFile()})) log('Failed to register global shortcut 11');
+		if(!globalShortcut.register('CommandOrControl+Shift+S', ()=>{saveFile(true)})) log('Failed to register global shortcut 11');
 		keybinds_status = true;
 	}
 }
@@ -266,53 +268,64 @@ function openDialog(type) {
 		console.log('Error opening '+type_text+':', err);
 	});
 }
-/**
+/** saveFile
  * 
  */
-function saveFile() {
-	if(true) {
-		openSaveFileDialog()
+async function saveFile(force=false) {
+	if((file = await getCurrentFile()).savable) {
+		if(file.filePath == null || force) { // Check if the file already exists
+			log('File to be saved path is not already set')
+			dialog.showSaveDialog(mainWindow, {
+					title: 'Save File', // Dialog title
+					defaultPath: 'untitled.txt', // Default file name/path
+					buttonLabel: 'Save', // Custom button label
+					filters: [ // file filters
+						{ name: 'All Files', extensions: ['*'] }
+					],
+			}).then(res => {
+				if(res.canceled) { // Check if the save dialog was cancelled
+					log('cancelled save dialog');
+				} else {
+					if(writeFileToDisk(res.filePath, file.content)) {
+						currentWindow.webContents.send('filePath', res.filePath);
+						currentWindow.webContents.send('fileName', path.basename(res.filePath));
+					}
+				}
+			}).catch(err => {
+				log(err);
+			});
+		} else {
+			log('File to be saved path already set')
+			writeFileToDisk(file.filePath, file.content)
+		}
 	}
 }
-/**
+/** openSaveFileDialog
  * 
  */
-function openSaveFileDialog() {
-	dialog.showSaveDialog(null, {
-			title: 'Save File', // Dialog title
-			defaultPath: 'myfile.txt', // Default file name/path
-			buttonLabel: 'Save', // Custom button label
-			filters: [
-				// File filters
-				{ name: 'Text Files', extensions: ['txt'] },
-				{ name: 'All Files', extensions: ['*'] }
-			]
-		}, (filePath) => {
-			console.log(filePath);
-			// filePath will be the path chosen by the user or undefined if canceled
-			if (filePath) {
-				console.log('here');
-				// User selected a file path, you can save the file here
-				// Example: write some content to the file using Node.js fs module
-				const fs = require('fs');
-				const content = 'Hello, World!';
-				fs.writeFile(filePath, content, (err) => {
-					if (err) {
-						console.error('Error saving file:', err);
-					} else {
-						console.log('File saved successfully:', filePath);
-					}
-				});
-			}
-		}
-	);
-}
 /** log
  * This function writes a string to the log file with the logging format.
  */
-function log() {
-
+function log(str) {
+	console.log(str);
 }
+/** writeFileToDisk
+ * 
+ */
+function writeFileToDisk(location, content) {
+	log('Attempting to save file', location, content);
+	try {
+		fs.writeFileSync(location, content, 'utf-8');
+		log('File saved successfully ', location);
+		return true;
+	} catch(e) {
+		log('Failed to save the file!', location, e);
+		return false;
+	}
+}
+/** openAboutModal
+ * 
+ */
 function openAboutModal() {
 	if(!aboutWindowActive) {
 		aboutWindowActive = true;
@@ -342,16 +355,14 @@ function openAboutModal() {
 		aboutWindow.on('close', ()=>{aboutWindowActive=false})
 	}
 }
-handleAccentColorChange = async () => {
+async function getCurrentFile() {
 	try {
-		const backgroundColor = await mainWindow.webContents.executeJavaScript(`getTitleBarColor()`);
-		mainWindow.setOverlayIcon(null, backgroundColor);
-		if(aboutWindow) aboutWindow.setOverlayIcon(null, backgroundColor);
+		return await mainWindow.webContents.executeJavaScript(`getCurrentFile()`);
 	} catch (error) {
-		console.error('Error getting title bar color:', error);
+		console.error('Error getting info for the open file:', error);
+		return false;
 	}
 }
-
 //#endregion *****************************/
 /*                  EOF                  */
 /*****************************************/

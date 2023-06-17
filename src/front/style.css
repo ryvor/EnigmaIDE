@@ -213,17 +213,16 @@ sidebar project-tree {
 	display: block;
 }
 sidebar project-tree project-item {
-	padding: 0;
+	padding: 2px;
 	position: relative;
 	display: flex;
 }
 sidebar project-tree project-item:before {
 	content: "";
-	position: absolute;
-	left: 10px;
-	top: 5px;
 	max-width: 0.5rem;
 	width: 0.6rem;
+	top: -1px;
+	position: inherit;
 }
 sidebar project-tree project-item project-name-icon,
 sidebar project-tree project-item project-label-icon {
@@ -238,11 +237,11 @@ sidebar project-tree project-item project-label {
 	width: calc(100% - 1.5rem);
 	margin-left: 5px;
 }
-sidebar project-tree project-item project-label:not(.selected):hover {
+sidebar project-tree project-item:not(.selected):hover {
 	background-color: var(--sidebar-background-hover);
 	color: var(--sidebar-color-hover);
 }
-sidebar project-tree project-item project-label.selected {
+sidebar project-tree project-item.selected {
 	background-color: var(--sidebar-background-active);
 	color: var(--sidebar-color-active);
 }
