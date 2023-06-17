@@ -16,10 +16,14 @@
 		border-right: var(--settings-border-thickness) var(--settings-border-style) var(--settings-border-color);
 	}
 	body categories category {
+		cursor: pointer;
 		width: calc(100% - calc(var(--settings-padding-left) + var(--settings-padding-right)));
 		display: block;
 		padding: var(--settings-padding-top) var(--settings-padding-right) var(--settings-padding-bottom) var(--settings-padding-left);
 		color: var(--settings-color);
+	}
+	body categories category * {
+		pointer-events: none;
 	}
 	body categories category.selected {
 		background: green;
@@ -109,6 +113,7 @@
 		return res.json();
 	})
 	.then((arr)=>{
+		var id=0;
 		arr.forEach(cat => {
 			//CATEGORIES
 			// Created new elements
@@ -116,6 +121,7 @@
 			const categoryIcon = document.createElement("category-icon");
 			const categoryTitle = document.createElement("category-title");
 			// Add the classes and text
+			category.id = id;
 			categoryIcon.classList.add(cat.icon);
 			categoryTitle.innerText = cat.title;
 			// Append icon and title
@@ -125,6 +131,7 @@
 			// SETTINGS
 			const setting = document.createElement("setting");
 			document.querySelector('settings').append(setting);
+			setting.id = id;
 
 			cat.configuration.forEach((config)=>{
 				const settingOption = document.createElement("setting-option");
@@ -162,20 +169,22 @@
 				settingOption.append(settingValue);
 				settingValue.append(settingInput);
 			});
+			id++;
 		});
 	})
 	.then(()=>{
 		document.querySelectorAll('category')[0].classList.add('selected');
 		document.querySelectorAll('setting')[0].classList.add('selected');
 
-		document.querySelectorAll('categories').forEach((category)=>{
+		document.querySelectorAll('category').forEach((category)=>{
 			category.addEventListener('click', (event)=>{
+				var id = event.target.id;
 				// Class
 				document.querySelector('category.selected').classList.remove('selected');
 				event.target.classList.add('selected');
 				// Setting			
-				document.querySelector('category.selected').classList.remove('selected');
-				event.target.classList.add('selected');
+				document.querySelector('setting.selected').classList.remove('selected');
+				document.querySelector(`setting[id="${id}"]`).classList.add('selected');
 			});
 		})
 	})
