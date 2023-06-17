@@ -192,6 +192,9 @@ function registerApplicationMenu() {
 				{	label: 'Welcome',
 					accelerator: '',
 					click: ()=>currentWindow.webContents.send('openWelcomePage'),
+				},{	label: 'Docs',
+					accelerator: '',
+					click: ()=>require("shell").openExternal("http://ryvor.github.io/EnigmaIDE/")
 				},{	label: 'Open Developer Tools',
 					accelerator: '',
 					click: ()=>mainWindow.webContents.openDevTools(),
