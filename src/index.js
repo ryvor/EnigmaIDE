@@ -6,7 +6,6 @@ const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain 
 const windowManager = require('electron-window-manager');
 const fs = require('fs');
 const path = require('path');
-const InDev = process.argv.includes('--debugMode');
 var currentWindow=null,
 	mainWindow=null,
 	aboutWindow=null,
@@ -52,9 +51,6 @@ function createWindow() {
 	mainWindow.loadFile(path.join(__dirname, 'front/index.html'));
 	mainWindow.once('ready-to-show', ()=>{
 		registerApplicationMenu();
-		if(InDev) {	// If the program is started with electron-forge, it then shows the debug console
-			mainWindow.webContents.openDevTools();
-		}
 		mainWindow.show();
 	})
 	mainWindow.on('focus', ()=>focus())
@@ -274,44 +270,37 @@ function openDialog(type) {
 		properties: properties
 	}).then(result => {
 		if (!result.canceled && result.filePaths.length > 0) {
-			const path = result.filePaths[0];
-			currentWindow.webContents.send('contents', path);
+			var fileInfo={};
+			fileInfo.path = result.filePaths[0];
+			if(fs.statSync(fileInfo.path).isFile()) {
+				const buffer = fs.readFileSync(fileInfo.path);
+				fileInfo.encoding = detectEncoding(buffer);
+				fileInfo.content = buffer.toString(fileInfo.encoding);
+
+				currentWindow.webContents.send('openFile', fileInfo);
+			}
 		}
 	}).catch(err => {
 		console.log('Error opening '+type_text+':', err);
 	});
 }
-/** saveFile
- * @param Boolean force
- * @returns Void
+/** detectEncoding
+ * @param Object buffer
+ * @return String
  */
-async function saveFile(force=false) {
-	if((file = await getCurrentFile()).savable) {
-		if(file.filePath == null || force) { // Check if the file already exists
-			log('File to be saved path is not already set')
-			dialog.showSaveDialog(mainWindow, {
-					title: 'Save File', // Dialog title
-					defaultPath: 'untitled.txt', // Default file name/path
-					buttonLabel: 'Save', // Custom button label
-					filters: [ // file filters
-						{ name: 'All Files', extensions: ['*'] }
-					],
-			}).then(res => {
-				if(res.canceled) { // Check if the save dialog was cancelled
-					log('cancelled save dialog');
-				} else {
-					if(writeFileToDisk(res.filePath, file.content)) {
-						currentWindow.webContents.send('filePath', res.filePath);
-						currentWindow.webContents.send('fileName', path.basename(res.filePath));
-					}
-				}
-			}).catch(err => {
-				log(err);
-			});
-		} else {
-			log('File to be saved path already set')
-			writeFileToDisk(file.filePath, file.content)
-		}
+function detectEncoding(buffer) {
+	if (buffer.length >= 3 && buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
+		return 'utf-8'; // UTF-8 with BOM
+	} else if (buffer.length >= 2 && buffer[0] === 0xFF && buffer[1] === 0xFE) {
+		return 'utf-16le'; // UTF-16LE with BOM
+	} else if (buffer.length >= 2 && buffer[0] === 0xFE && buffer[1] === 0xFF) {
+		return 'utf-16be'; // UTF-16BE with BOM
+	} else if (buffer.length >= 4 && buffer[0] === 0x00 && buffer[1] === 0x00 && buffer[2] === 0xFE && buffer[3] === 0xFF) {
+		return 'utf-32be'; // UTF-32BE with BOM
+	} else if (buffer.length >= 4 && buffer[0] === 0xFF && buffer[1] === 0xFE && buffer[2] === 0x00 && buffer[3] === 0x00) {
+		return 'utf-32le'; // UTF-32LE with BOM
+	} else {
+		return 'utf-8'; // Default to UTF-8 if no BOM is detected
 	}
 }
 /** log
@@ -380,6 +369,39 @@ async function getCurrentFile() {
 	} catch (error) {
 		console.error('Error getting info for the open file:', error);
 		return false;
+	}
+}
+/** saveFile
+ * @param Boolean force
+ * @returns Void
+ */
+async function saveFile(force=false) {
+	if((file = await getCurrentFile()).savable) {
+		if(file.filePath == null || force) { // Check if the file already exists
+			log('File to be saved path is not already set')
+			dialog.showSaveDialog(mainWindow, {
+					title: 'Save File', // Dialog title
+					defaultPath: 'untitled.txt', // Default file name/path
+					buttonLabel: 'Save', // Custom button label
+					filters: [ // file filters
+						{ name: 'All Files', extensions: ['*'] }
+					],
+			}).then(res => {
+				if(res.canceled) { // Check if the save dialog was cancelled
+					log('cancelled save dialog');
+				} else {
+					if(writeFileToDisk(res.filePath, file.content)) {
+						currentWindow.webContents.send('filePath', res.filePath);
+						currentWindow.webContents.send('fileName', path.basename(res.filePath));
+					}
+				}
+			}).catch(err => {
+				log(err);
+			});
+		} else {
+			log('File to be saved path already set')
+			writeFileToDisk(file.filePath, file.content)
+		}
 	}
 }
 //#endregion *****************************/

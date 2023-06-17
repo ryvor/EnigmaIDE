@@ -11,34 +11,20 @@
 				"title": "Tab size",
 				"description": "The number of spaces a tab is equivalent to",
 				"value": 4
+			},{
+				"title": "Word Wrap",
+				"description": "Controls whether the lines should wrap when they hit the end of the browser",
+				"value": false
 			}
 		]
 	},{
-		"title": "Editor",
-		"icon": "oct-file-code",
+		"title": "Window",
+		"icon": "oct-browser",
 		"configuration": [
 			{
-				"title": "Indent with spaces",
-				"description": "Indent using spaces instead of tab",
-				"value": false
-			},{
-				"title": "Tab size",
-				"description": "The number of spaces a tab is equivalent to",
-				"value": 4
-			}
-		]
-	},{
-		"title": "Editor",
-		"icon": "oct-file-code",
-		"configuration": [
-			{
-				"title": "Indent with spaces",
-				"description": "Indent using spaces instead of tab",
-				"value": false
-			},{
-				"title": "Tab size",
-				"description": "The number of spaces a tab is equivalent to",
-				"value": 4
+				"title": "Auto colour scheme",
+				"description": "Defines whether the colour scheme should change automatically with the system scheme",
+				"value": true
 			}
 		]
 	}

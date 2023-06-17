@@ -92,6 +92,9 @@
 		--settings-border-style: solid;
 		--settings-border-color: #5c6370;
 		
+		--setting-category-background-hover: #444A55;
+		--setting-category-background-active: #5c6370;
+
 		--setting-input-checkbox-background: #d7dae0;
 		--setting-input-checkbox-border-thickness: 1px;
 		--setting-input-checkbox-border-style: solid;
@@ -125,7 +128,7 @@
 		/* Sidebar */
 			--sidebar-radius: 3px;
 			--sidebar-background: #1e2227;
-			--sidebar-background-hover: #393d41;
+			--sidebar-background-hover: #444A55;
 			--sidebar-background-active: #474a4e;
 			--sidebar-color: ;
 			--sidebar-color-hover: ;
@@ -135,13 +138,13 @@
 			--sidebar-border-color: #23272e;
 		/* Tabs */
 			--tabs-background: #1e2227;
-			--tabs-background-hover: #393d41;
+			--tabs-background-hover: #444A55;
 			--tabs-background-active: #2c313a;
 			--tabs-color: ;
 			--tabs-color-hover: ;
 			--tabs-color-active: #dcdfe4;
 			--tabs-close-background: ;
-			--tabs-close-background-hover: #393d41;
+			--tabs-close-background-hover: #444A55;
 			--tabs-close-background-active: #474a4e;
 			--tabs-close-color: ;
 			--tabs-close-color-hover: ;
@@ -161,14 +164,14 @@
 		/* Footer */
 			--footer-background: #1e2227;
 			--footer-color: ;
-			--footer-background-hover: #393d41;
+			--footer-background-hover: #444A55;
 			--footer-color-hover: ;
 			--footer-border-thickness: 1px;
 			--footer-border-style: solid;
 			--footer-border-color: #23272e;
 		/* Search */
 			--search-background: #23272e;
-			--search-background-hover: #393d41;
+			--search-background-hover: #444A55;
 			--search-background-active: #474a4e;
 			--search-color: white;
 			--search-color-hover: ;

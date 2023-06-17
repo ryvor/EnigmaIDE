@@ -21,15 +21,16 @@
 		display: block;
 		padding: var(--settings-padding-top) var(--settings-padding-right) var(--settings-padding-bottom) var(--settings-padding-left);
 		color: var(--settings-color);
+		border-radius: 3px;
 	}
 	body categories category * {
 		pointer-events: none;
 	}
 	body categories category.selected {
-		background: green;
+		background: var(--setting-category-background-active);
 	}
-	body categories category:hover {
-		background: grey;
+	body categories category:not(.selected):hover:hover {
+		background: var(--setting-category-background-hover);
 	}
 	body settings {
 
@@ -147,16 +148,16 @@
 				// Set the value type for the input
 				switch(typeof config.value) {
 					case 'string':
-						settingInput.setAttribute('type', 'text')
+						settingInput.setAttribute('type', 'text');
+						settingInput.setAttribute('value', config.value);
 						break;
 					case 'number':
-						settingInput.setAttribute('type', 'number')
+						settingInput.setAttribute('type', 'number');
+						settingInput.setAttribute('value', config.value);
 						break;
 					case 'boolean':
-						settingInput.setAttribute('type', 'checkbox')
-						if(config.value) {
-							settingInput.setAttribute('checked')
-						}
+						settingInput.setAttribute('type', 'checkbox');
+						if(config.value) settingInput.setAttribute('checked', config.value);
 						break;
 					default:
 						settingInput = '';

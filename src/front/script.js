@@ -5,30 +5,13 @@ if(typeof require === 'function') {
 	const { ipcRenderer } = require('electron');
 	const fs = require('fs');
 	const os = require('os');
-	const { isKeyObject } = require('util/types');
-	ipcRenderer.on('contents', (event, path) => {
-		try {
-			const stats = fs.statSync(path);
-			let type = 0;
-			if (stats.isFile()) {
-				type = 1;
-			} else if (stats.isDirectory()) {
-				type = 2;
-			} else {
-				throw new Error('The path does not exist or is neither a file nor folder: '+path);
-			}
-			alert('Path is type: '+type);
-		} catch (error) {
-			console.error(error);
-		}
-		
-	});
-	ipcRenderer.on('newFile', (event) =>createEditorTab());
-	ipcRenderer.on('closeTab', (event) =>removeEditorTab());
-	ipcRenderer.on('openWelcomePage', (event) =>createEditorTab('./pages/welcome.html', true));
-	ipcRenderer.on('openSettingsPage', (event) =>createEditorTab('./pages/welcome.html', true));
-	ipcRenderer.on('filePath', (event, filePath) =>updateFilePath(filePath));
-	ipcRenderer.on('fileName', (event, fileName) =>updateFileName(fileName));
+	ipcRenderer.on('openFile', (event, fileInfo)=>createEditorTab(fileInfo));
+	ipcRenderer.on('newFile', (event)=>createEditorTab());
+	ipcRenderer.on('closeTab', (event)=>removeEditorTab());
+	ipcRenderer.on('openWelcomePage', (event)=>createEditorTab('./pages/welcome.html', true));
+	ipcRenderer.on('openSettingsPage', (event)=>createEditorTab('./pages/welcome.html', true));
+	ipcRenderer.on('filePath', (event, filePath)=>updateFilePath(filePath));
+	ipcRenderer.on('fileName', (event, fileName)=>updateFileName(fileName));
 	// Hide the taskbar image unless on windows
 	if (os.platform() !== 'win32') document.querySelector('titlebar > icon > img').style.display = 'none';
 	
@@ -40,8 +23,9 @@ if(typeof require === 'function') {
 /**
  * 
  */
-var editors = Array();
-var lastEditor = Array();
+var editors = Array(),
+	lastEditor = Array(),
+	currEditor = null;
 //* Add event listeners for the tabs
 document.querySelector('tabs').addEventListener('click', function(event) {
 	target = event.target;
@@ -99,7 +83,58 @@ document.querySelectorAll('project-item').forEach((item)=>{
  * 
  */
 
-  
+/** createEditorTab
+ * 
+ */
+function createEditorTab(fileInfo=null, preview=false) {
+	const newID = editors.length;
+	// Create the tabs and editor
+	const newTab = document.createElement("tab");
+	const newTab_close = document.createElement("tab-close");
+	const newTab_title = document.createElement("tab-title");
+	const newPage = document.createElement("editor");
+	// Add classed and ID's to the elements
+	newTab.classList.add('selected');
+	newTab.id = newID;
+	newPage.classList.add('selected');
+	newPage.id = newID;
+	newTab_close.classList.add('oct-x');
+	//Append the elements
+	document.querySelector("tabs").appendChild(newTab);
+	newTab.appendChild(newTab_title);
+	newTab.appendChild(newTab_close);
+	document.querySelector("editors").appendChild(newPage);
+	// Check if the tab is supposed to be a preview tab and if it can be previewed
+	//*				 | IMAGE FILES			  	  |	AUDIO FILES | VIDEO FILES  | DOCUMENTS						| ARCHIVES		 | XML/HTML		| TEXT BASED  | FONTS			   | DATA	 | DATABASE		 | 3D MODELS  |				 *//
+	if(typeof fileInfo == 'string' && preview && /\.[ong|jpeg|jpg|gif|svg|eps|ai | mp3|wav|ogg | mp4|webm|ogg | pdf|doc|docx|xls|xlsx|ppt|pptx | zip|tar|gz|rar | html|htm|xml | css|js|json | ttf|woff|woff2|otf | csv|tsv | sqlite|db|sql | obj|stl|fbx]+/.exec(fileInfo)[0] !== '.html') {
+		preview = false;
+		console.log(`Unable to preview file: The file requested (${fileInfo}) is not a previewable file. Cannot be previewed`);
+	}
+	// Update the tab
+	if(preview && typeof fileInfo ==='string') {
+		const tabTitle = document.querySelector(`tab[id="${newID}"] > tab-title`);
+		const title = fileInfo.match(/([a-z]+)\.[a-z]+/)[1];
+		tabTitle.innerHTML = title.charAt(0).toUpperCase() + title.slice(1);
+
+		document.querySelector(`editor[id="${newID}"]`).classList.add('preview');
+		document.querySelector(`editor[id="${newID}"]`).setAttribute('preview-file', fileInfo)
+	} else {
+		if(fileInfo==null) { // Open a new file
+			const tabTitle = document.querySelector(`tab[id="${newID}"] > tab-title`);
+			tabTitle.innerHTML = `undefined-`+newID;
+		} else {
+			const tabTitle = document.querySelector(`tab[id="${newID}"] > tab-title`);
+			newTab.setAttribute('filepath', fileInfo.path);
+			newTab.setAttribute('fileencoding', fileInfo.encoding);
+			newTab.setAttribute('filename', fileInfo.path.split("/").pop());
+			tabTitle.innerHTML = fileInfo.path.split("/").pop();
+			newPage.innerText = fileInfo.content;
+		}
+	}
+	reloadEditors();
+	changeEditorTab(newID);
+
+}
 /** reloadEditors
  * 
  */
@@ -108,16 +143,17 @@ function reloadEditors() {
 		if(!editors[editor.id]) {
 			editors[editor.id] = Array();
 			editors[editor.id]['id'] = editor.id;
-			editors[editor.id]['title'] = document.querySelector(`tab[id="${editor.id}"]`).innerText;
-			editors[editor.id]['file path'] = '';
+			editors[editor.id]['tab'] = document.querySelector(`tab[id="${editor.id}"]`);
+			editors[editor.id]['editor'] = document.querySelector(`editor[id="${editor.id}"]`);
+			editors[editor.id]['title'] = editors[editor.id]['tab'].innerText;
 			mode = 'javascript';
 
 			if(editor.classList.contains('preview')) {
 				editors[editor.id]['type'] = 'preview';
 				editors[editor.id]['IDE'] = null;
 				const newIframe = document.createElement("iframe");
-				newIframe.setAttribute('src', document.querySelector(`editor[id="${editor.id}"]`).getAttribute('preview-file'));
-				IFrame = document.querySelector(`editor[id="${editor.id}"]`).appendChild(newIframe);
+				newIframe.setAttribute('src', editors[editor.id]['editor'].getAttribute('preview-file'));
+				IFrame = editors[editor.id]['editor'].appendChild(newIframe);
 				IFrame.onload = function() {
 					IFrame.contentWindow.postMessage({
 						type: 'initialize',
@@ -133,7 +169,9 @@ function reloadEditors() {
 				content = editor.innerText;
 				editor.innerHTML = '';
 				editors[editor.id]['type'] = 'code';
-				editors[editor.id]['IDE'] = Enigma(document.querySelector(`editor[id="${editor.id}"]`), {
+				editors[editor.id]['path'] = editors[editor.id]['tab'].getAttribute('filepath');
+				editors[editor.id]['encoding'] = editors[editor.id]['tab'].getAttribute('fileencoding');
+				editors[editor.id]['IDE'] = Enigma(editors[editor.id]['editor'], {
 					value: content,
 					mode: mode,
 					lineNumbers: true,
@@ -155,53 +193,7 @@ function reloadEditors() {
 		}
 	});
 	(Object.keys(editors).length == 0)? document.querySelector('tabs').classList.add('oct-plus') : document.querySelector('tabs').classList.remove('oct-plus');
-}
-/** createEditorTab
- * 
- */
-function createEditorTab(file=null, preview=false) {
-	const newID = editors.length;
-	// Create the tabs and editor
-	const newTab = document.createElement("tab");
-	const newTab_close = document.createElement("tab-close");
-	const newTab_title = document.createElement("tab-title");
-	const newPage = document.createElement("editor");
-	// Add classed and ID's to the elements
-	newTab.classList.add('selected');
-	newTab.id = newID;
-	newPage.classList.add('selected');
-	newPage.id = newID;
-	newTab_close.classList.add('oct-x');
-	//Append the elements
-	document.querySelector("tabs").appendChild(newTab);
-	newTab.appendChild(newTab_title);
-	newTab.appendChild(newTab_close);
-	document.querySelector("editors").appendChild(newPage);
-	// Check if the tab is supposed to be a preview tab and if it can be previewed
-	//*				 | IMAGE FILES			  	  |	AUDIO FILES | VIDEO FILES  | DOCUMENTS						| ARCHIVES		 | XML/HTML		| TEXT BASED  | FONTS			   | DATA	 | DATABASE		 | 3D MODELS  |				 *//
-	if(preview && /\.[ong|jpeg|jpg|gif|svg|eps|ai | mp3|wav|ogg | mp4|webm|ogg | pdf|doc|docx|xls|xlsx|ppt|pptx | zip|tar|gz|rar | html|htm|xml | css|js|json | ttf|woff|woff2|otf | csv|tsv | sqlite|db|sql | obj|stl|fbx]+/.exec(file)[0] !== '.html') {
-		preview = false;
-		console.log(`Unable to preview file: The file requested (${file}) is not a previewable file. Cannot be previewed`);
-	}
-	// Update the tab
-	if(preview) {
-		const tabElement = document.querySelector(`tab[id="${newID}"] > tab-title`);
-		const title = file.match(/([a-z]+)\.[a-z]+/)[1];
-		tabElement.innerHTML = title.charAt(0).toUpperCase() + title.slice(1);
-
-		document.querySelector(`editor[id="${newID}"]`).classList.add('preview');
-		document.querySelector(`editor[id="${newID}"]`).setAttribute('preview-file', file)
-	} else {
-		if(file==null) {
-			const tabElement = document.querySelector(`tab[id="${newID}"] > tab-title`);
-			tabElement.innerHTML = `undefined-`+newID;
-		} else {
-
-		}
-	}
-	reloadEditors();
-	changeEditorTab(newID);
-
+	console.log(editors);
 }
 /** changeEditorTab
  * 
@@ -211,6 +203,7 @@ function changeEditorTab(element_id) {
 	if(x = document.querySelector(`tab.selected`)) x.classList.remove('selected');
 	if(x = document.querySelector(`editor[id="${element_id}"]`)) x.classList.add('selected');
 	if(x = document.querySelector(`tab[id="${element_id}"]`)) x.classList.add('selected');
+	currEditor = element_id;
 	lastEditor.push(element_id);
 }
 /** removeEditorTab
@@ -236,12 +229,12 @@ function removeEditorTab(tabID = null) {
  */
 function getCurrentFile() {
 	resp = {};
-	if((edt = editors[document.querySelector(`tab.selected`).id].IDE) !== null) {
+	if((edt = editors[currEditor].IDE) !== null) {
 		resp.savable = true;
 		resp.content = edt.getValue();
-		resp.filePath = document.querySelector(`tab.selected`).getAttribute('filePath');
-		resp.fileName = document.querySelector(`tab.selected`).getAttribute('fileName');
-		resp.encoding = document.querySelector(`tab.selected`).getAttribute('fileEncoding');
+		resp.filePath = editors[currEditor]['path'];
+		resp.fileName = editors[currEditor]['title'];
+		resp.encoding = editors[currEditor]['encoding'];
 	} else {
 		resp.savable = false;
 	}
@@ -257,7 +250,6 @@ function updateFilePath(location) {
  * 
  */
 function updateFileName(name) {
-	console.log(name);
 	document.querySelector('tab.selected').setAttribute("FileName", name);
 	editors[document.querySelector('tab.selected').id]['title'] = name;
 	document.querySelector('tab.selected > tab-title').innerHTML = name;
