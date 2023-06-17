@@ -82,6 +82,15 @@
 		--search-content-border-style: solid;
 		--search-content-border-color: #b7bac2;
 		--search-content-background: #d0d0d0;
+	/* Settings */
+		--settings-color: #c5cad3;
+		--settings-padding-top: 5px;
+		--settings-padding-right: 5px;
+		--settings-padding-bottom: 5px;
+		--settings-padding-left: 5px;
+		--settings-border-thickness: 1px;
+		--settings-border-style: solid;
+		--settings-border-color: #5c6370;
 }
 @media (prefers-color-scheme: dark) {
 	:root { /* Theme */
@@ -192,7 +201,7 @@ titlebar icon img {
 	height: 80%;
 	top: 10%;
 	left: 10px;
-	display: none;
+	display: block;
 }
 
 sidebar {
@@ -299,6 +308,9 @@ content tabs tab {
 	display: flex;
 	z-index: 1;
 	background-color: var(--tabs-background);
+}
+content tabs tab tab-title {
+	pointer-events: none;
 }
 content tabs tab tab-close {
     width: fit-content;

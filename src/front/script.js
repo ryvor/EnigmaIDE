@@ -30,7 +30,7 @@ if(typeof require === 'function') {
 	ipcRenderer.on('filePath', (event, filePath) =>updateFilePath(filePath));
 	ipcRenderer.on('fileName', (event, fileName) =>updateFileName(fileName));
 	// Hide the taskbar image unless on windows
-	if (os.platform() === 'win32') document.querySelector('titlebar > icon > img').style.display = 'block';
+	if (os.platform() !== 'win32') document.querySelector('titlebar > icon > img').style.display = 'none';
 	
 }
 /**
@@ -187,14 +187,14 @@ function createEditorTab(file=null, preview=false) {
 	if(preview) {
 		const tabElement = document.querySelector(`tab[id="${newID}"] > tab-title`);
 		const title = file.match(/([a-z]+)\.[a-z]+/)[1];
-		tabElement.innerHTML = `${title.charAt(0).toUpperCase() + title.slice(1)}${tabElement.innerHTML}`;
+		tabElement.innerHTML = title.charAt(0).toUpperCase() + title.slice(1);
 
 		document.querySelector(`editor[id="${newID}"]`).classList.add('preview');
 		document.querySelector(`editor[id="${newID}"]`).setAttribute('preview-file', file)
 	} else {
 		if(file==null) {
 			const tabElement = document.querySelector(`tab[id="${newID}"] > tab-title`);
-			tabElement.innerHTML = `undefined-${newID}${tabElement.innerHTML}`;
+			tabElement.innerHTML = `undefined-`+newID;
 		} else {
 
 		}

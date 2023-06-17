@@ -1,30 +1,149 @@
 <link rel="stylesheet" href="../vendor/Octicons/octicons-all.min.css">
 <link rel="stylesheet" href="../style.css">
 <style>
-	:root{
-		--padding: 5px;
+	:root {
+		--setting-input-checkbox-background: blue;
+		--setting-input-checkbox-color: green;
+		--setting-input-checkbox-border-thickness: 1px;
+		--setting-input-checkbox-border-style: solid;
+		--setting-input-checkbox-border-color: pink;
+
+		--setting-input-number-background: blue;
+		--setting-input-number-color: green;
+		--setting-input-number-border-thickness: 1px;
+		--setting-input-number-border-style: solid;
+		--setting-input-number-border-color: pink;
+
+		--setting-input-text-background: blue;
+		--setting-input-text-color: green;
+		--setting-input-text-border-thickness: 1px;
+		--setting-input-text-border-style: solid;
+		--setting-input-text-border-color: pink;
 	}
 	body {
+		color: var(--settings-color);
 		display: grid;
-		grid-template-columns: 20% 80%;
+		grid-template-columns: 30% 70%;
 		grid-template-rows: 100%;
 	}
 	body > * {
-		width: calc(100% - calc(var(--padding) * 2));
+		width: calc(100% - calc(var(--settings-padding-left) + var(--settings-padding-right)));
 		height: 100%;
-		padding: var(--padding);
+		padding: var(--settings-padding-top) var(--settings-padding-right) var(--settings-padding-bottom) var(--settings-padding-left);
 	}
 	body categories {
-		/* border-right: 1px solid; */
+		border-right: var(--settings-border-thickness) var(--settings-border-style) var(--settings-border-color);
+	}
+	body categories category {
+		width: calc(100% - calc(calc(var(--settings-padding-left) + var(--settings-padding-right))) * 2);
+		display: block;
+		padding: 5px;
+		color: var(--settings-color);
+		padding-left: 2rem;
+		font-size: 1rem;
 	}
 	body settings {
+
+	}
+	body settings setting {
+		display: block;
+		height: auto;
+		border-bottom: var(--settings-border-thickness) var(--settings-border-style) var(--settings-border-color);
+		margin: 1rem 1rem 2rem 1rem;
+		padding: 0rem 0rem 1rem 4rem;
+
+	}
+	body settings setting setting-title {
+		display: block;
+		font-size: 1.3rem;
+	}
+	body settings setting setting-description {
+		display: block;
+		font-size: 1rem;
+	}
+	body settings setting setting-value {
+		display: block;
+	}
+	body settings setting setting-value input[type=text] {
+		display: block;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		appearance: none;
+		background-color: var(--setting-input-text-background);
+		color: var(--setting-input-text-color);
+		border: var(--setting-input-text-border-thickness) var(--setting-input-text-border-style) var(--setting-input-text-border-color);
+	}
+	body settings setting setting-value input[type=number] {
+		display: block;
+		background-color: var(--setting-input-number-background);
+		color: var(--setting-input-number-color);
+		border: var(--setting-input-number-border-thickness) var(--setting-input-number-border-style) var(--setting-input-number-border-color);
+	}
+	body settings setting setting-value input[type=checkbox] {
+		display: block;
+		background-color: var(--setting-input-checkbox-background);
+		color: var(--setting-input-checkbox-color);
+		border: var(--setting-input-checkbox-border-thickness) var(--setting-input-checkbox-border-style) var(--setting-input-checkbox-border-color);
 	}
 </style>
-<categories>
-	<category class="oct-person selected">Account</category>
-	<category class="oct-paintcan">Appearance</category>
-	<category class="oct-lock">Security</category>
-</categories>
-<settings>
+<categories></categories>
+<settings></settings>
+<script>
+	fetch("../assets/settingsDefault.json").then((res) => {
+		if (!res.ok) throw new Error("HTTP error " + res.status);
+		return res.json();
+	}).then((arr)=>{
+		arr.forEach(cat => {
+			// Created new elements
+			const category = document.createElement("category");
+			const categoryIcon = document.createElement("category-icon");
+			const categoryTitle = document.createElement("category-title");
+			// Add the classes and text
+			categoryIcon.classList.add(cat.icon);
+			categoryTitle.innerText = cat.title;
+			//Append icon and title
+			document.querySelector('categories').append(category);
+			category.append(categoryIcon);
+			category.append(categoryTitle);
+			cat.configuration.forEach((config)=>{
+				if(true) {
+					// Created new elements
+					const setting = document.createElement("setting");
+					const settingTitle = document.createElement("setting-title");
+					const settingDescription = document.createElement("setting-description");
+					const settingValue = document.createElement("setting-value");
+					const settingInput = document.createElement("input");
+					// Add the classes and text
+					settingTitle.innerText = config.title;
+					settingDescription.innerText = config.description;
+					// Set the value type for the input
+					switch(typeof config.value) {
+						case 'string':
+							settingInput.setAttribute('type', 'text')
+							break;
+						case 'number':
+							settingInput.setAttribute('type', 'number')
+							break;
+						case 'boolean':
+							settingInput.setAttribute('type', 'checkbox')
+	 						if(config.value) {
+								settingInput.setAttribute('checked')
+							}
+							break;
+						default:
+							settingInput = '';
+							console.log(config.value);
+							break;
+					}
+					//Append icon and title
+					document.querySelector('settings').append(setting);
+					setting.append(settingTitle);
+					setting.append(settingDescription);
+					setting.append(settingValue);
+					settingValue.append(settingInput);
+				}
+			});
+		});
+	}).catch((e) => console.error(e));
 
-</settings>
+</script>

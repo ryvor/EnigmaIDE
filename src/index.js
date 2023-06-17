@@ -12,22 +12,23 @@ var currentWindow=null,
 	aboutWindow=null,
 	aboutWindowActive=false,
 	keybinds_status=false;
+if(require('electron-squirrel-startup')) terminate(true);
 //#endregion *****************************/
 /*             SYSTEM EVENTS             */
 //#region ********************************/
 
-if(require('electron-squirrel-startup')) terminate(true);
 app.on('ready', createWindow);
 app.on('window-all-closed', terminate);
 app.on('activate', activate);
 app.on('window-all-closed', allWindowsClosed);
 app.on('browser-window-created', newWindow);
 //#endregion *****************************/
-/*            SYSTEM FUNCTIONS           */
+/*               FUNCTIONS               */
 //#region ********************************/
 
 /** createWindow
  * Creates a new window and loads the configuration
+ * @return Void
  */
 function createWindow() {
 	mainWindow = new BrowserWindow({
@@ -45,7 +46,7 @@ function createWindow() {
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
-			preload: path.join(__dirname, 'preload.js'),
+			webSecurity: false,
 		},
 	});
 	mainWindow.loadFile(path.join(__dirname, 'front/index.html'));
@@ -61,6 +62,7 @@ function createWindow() {
 };
 /** Terminate
  * Closes the program in windows and linux, but waits for all of the  CMD+Q command on MAC
+ * @return Void
  */
 function terminate(force=false) {
 	if (process.platform!=='darwin'|| force) {
@@ -70,30 +72,37 @@ function terminate(force=false) {
 }
 /** activate
  * This function is called when the application has been initially launched or attempted to launch whilst already open
+ * @return Void
  */
 function activate() {
 	if (BrowserWindow.getAllWindows().length === 0) createWindow();
 }
 /** blur
  * This this function is executed when the main browser window has lost focus
+ * @return Void
  */
 function blur() {
 	unregisterKeybinds();
 }
 /** focus
  * This this function is executed when the main browser window has gained focus
+ * @return Void
  */
 function focus() {
 	registerKeybinds();
 }
 /** allWindowsClosed
  * This function resets the current window if all of the windows have been closed
+ * @return Void
  */
 function allWindowsClosed() {
 	currentWindow = null;
 }
 /** newWindow
  * This function sets the current window each time you change/create windows and unsets the window when you leave it.
+ * @param Event event
+ * @param BriwserWindow window
+ * @return Void
  */
 function newWindow(event, window) {
 	window.on('focus', () => {
@@ -103,12 +112,9 @@ function newWindow(event, window) {
 		currentWindow = null;
 	});
 }
-//#endregion *****************************/
-/*               FUNCTIONS               */
-//#region ********************************/
-
 /** registerApplicationMenu
  * This function sets the application alt menu for the program
+ * @returns Void
  */
 function registerApplicationMenu() {
 	Menu.setApplicationMenu(Menu.buildFromTemplate([
@@ -192,7 +198,7 @@ function registerApplicationMenu() {
 				{	label: 'Welcome',
 					accelerator: '',
 					click: ()=>currentWindow.webContents.send('openWelcomePage'),
-				},{	label: 'Docs',
+				},{	label: 'Documentation',
 					accelerator: '',
 					click: ()=>require("shell").openExternal("http://ryvor.github.io/EnigmaIDE/")
 				},{	label: 'Open Developer Tools',
@@ -205,6 +211,7 @@ function registerApplicationMenu() {
 }
 /** registerKeybinds
  * Registers the keybinds once
+ * @returns Void
  */
 function registerKeybinds() {
 	if(keybinds_status === false) {
@@ -229,6 +236,7 @@ function registerKeybinds() {
 }
 /** unregisterKeybinds
  * This function will unbing any keybindings made.
+ * @returns Void
  */
 function unregisterKeybinds() {
 	if(keybinds_status === true) {
@@ -238,6 +246,8 @@ function unregisterKeybinds() {
 }
 /** openDialog
  * This function will open a window to enable the ability to open a file or folder
+ * @param Integer type
+ * @returns Void
  */
 function openDialog(type) {
 	switch(type) {
@@ -272,7 +282,8 @@ function openDialog(type) {
 	});
 }
 /** saveFile
- * 
+ * @param Boolean force
+ * @returns Void
  */
 async function saveFile(force=false) {
 	if((file = await getCurrentFile()).savable) {
@@ -303,17 +314,18 @@ async function saveFile(force=false) {
 		}
 	}
 }
-/** openSaveFileDialog
- * 
- */
 /** log
  * This function writes a string to the log file with the logging format.
+ * @param String str
+ * @returns Void
  */
 function log(str) {
 	console.log(str);
 }
 /** writeFileToDisk
- * 
+ * @param String location
+ * @param  String content
+ * @reeturn Boolean
  */
 function writeFileToDisk(location, content) {
 	log('Attempting to save file', location, content);
@@ -327,7 +339,7 @@ function writeFileToDisk(location, content) {
 	}
 }
 /** openAboutModal
- * 
+ * @returns Void
  */
 function openAboutModal() {
 	if(!aboutWindowActive) {
@@ -358,6 +370,10 @@ function openAboutModal() {
 		aboutWindow.on('close', ()=>{aboutWindowActive=false})
 	}
 }
+/** getCurrentFile
+ * This window requests information about the current open page from the open window
+ * @returns Object
+ */
 async function getCurrentFile() {
 	try {
 		return await mainWindow.webContents.executeJavaScript(`getCurrentFile()`);
