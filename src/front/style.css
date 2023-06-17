@@ -87,10 +87,32 @@
 		--settings-padding-top: 5px;
 		--settings-padding-right: 5px;
 		--settings-padding-bottom: 5px;
-		--settings-padding-left: 5px;
+		--settings-padding-left: 1rem;
 		--settings-border-thickness: 1px;
 		--settings-border-style: solid;
 		--settings-border-color: #5c6370;
+		
+		--setting-input-checkbox-background: #d7dae0;
+		--setting-input-checkbox-border-thickness: 1px;
+		--setting-input-checkbox-border-style: solid;
+		--setting-input-checkbox-border-color: #c5cad3;
+		--setting-input-checkbox-checked-background: #d7dae0;
+		--setting-input-checkbox-checked-color: #2c313a;
+		--setting-input-checkbox-checked-border-thickness: 1px;
+		--setting-input-checkbox-checked-border-style: solid;
+		--setting-input-checkbox-checked-border-color: #c5cad3;
+
+		--setting-input-number-background: #d7dae0;
+		--setting-input-number-color: #2c313a;
+		--setting-input-number-border-thickness: 1px;
+		--setting-input-number-border-style: solid;
+		--setting-input-number-border-color: #c5cad3;
+
+		--setting-input-text-background: #d7dae0;
+		--setting-input-text-color: #2c313a;
+		--setting-input-text-border-thickness: 1px;
+		--setting-input-text-border-style: solid;
+		--setting-input-text-border-color: #c5cad3;
 }
 @media (prefers-color-scheme: dark) {
 	:root { /* Theme */
@@ -157,6 +179,8 @@
 			--search-border-thickness: 1px;
 			--search-border-style: solid;
 			--search-border-color: #23272e;
+		/* Welcome */
+		/* Settings */
 	}
 }
 body {

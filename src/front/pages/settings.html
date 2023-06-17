@@ -1,25 +1,6 @@
 <link rel="stylesheet" href="../vendor/Octicons/octicons-all.min.css">
 <link rel="stylesheet" href="../style.css">
 <style>
-	:root {
-		--setting-input-checkbox-background: blue;
-		--setting-input-checkbox-color: green;
-		--setting-input-checkbox-border-thickness: 1px;
-		--setting-input-checkbox-border-style: solid;
-		--setting-input-checkbox-border-color: pink;
-
-		--setting-input-number-background: blue;
-		--setting-input-number-color: green;
-		--setting-input-number-border-thickness: 1px;
-		--setting-input-number-border-style: solid;
-		--setting-input-number-border-color: pink;
-
-		--setting-input-text-background: blue;
-		--setting-input-text-color: green;
-		--setting-input-text-border-thickness: 1px;
-		--setting-input-text-border-style: solid;
-		--setting-input-text-border-color: pink;
-	}
 	body {
 		color: var(--settings-color);
 		display: grid;
@@ -35,65 +16,101 @@
 		border-right: var(--settings-border-thickness) var(--settings-border-style) var(--settings-border-color);
 	}
 	body categories category {
-		width: calc(100% - calc(calc(var(--settings-padding-left) + var(--settings-padding-right))) * 2);
+		width: calc(100% - calc(var(--settings-padding-left) + var(--settings-padding-right)));
 		display: block;
-		padding: 5px;
+		padding: var(--settings-padding-top) var(--settings-padding-right) var(--settings-padding-bottom) var(--settings-padding-left);
 		color: var(--settings-color);
-		padding-left: 2rem;
-		font-size: 1rem;
+	}
+	body categories category.selected {
+		background: green;
+	}
+	body categories category:hover {
+		background: grey;
 	}
 	body settings {
 
 	}
 	body settings setting {
+		display: none;
+	}
+	body settings setting.selected {
 		display: block;
-		height: auto;
+	}
+	body settings setting setting-option {
+		display: block;
 		border-bottom: var(--settings-border-thickness) var(--settings-border-style) var(--settings-border-color);
 		margin: 1rem 1rem 2rem 1rem;
 		padding: 0rem 0rem 1rem 4rem;
-
 	}
-	body settings setting setting-title {
+	body settings setting setting-option setting-title {
 		display: block;
 		font-size: 1.3rem;
 	}
-	body settings setting setting-description {
+	body settings setting setting-option setting-description {
 		display: block;
 		font-size: 1rem;
+		padding: 3px 0px 6px 0px;
 	}
-	body settings setting setting-value {
+	body settings setting setting-option setting-value {
 		display: block;
 	}
-	body settings setting setting-value input[type=text] {
+	body settings setting setting-option setting-value input {
+		border-radius: 3px;
+		outline: none;
+	}
+	body settings setting setting-option setting-value input[type=text] {
 		display: block;
-		-webkit-appearance: none;
-		-moz-appearance: none;
-		appearance: none;
 		background-color: var(--setting-input-text-background);
 		color: var(--setting-input-text-color);
 		border: var(--setting-input-text-border-thickness) var(--setting-input-text-border-style) var(--setting-input-text-border-color);
 	}
-	body settings setting setting-value input[type=number] {
+	body settings setting setting-option setting-value input[type=number] {
 		display: block;
 		background-color: var(--setting-input-number-background);
 		color: var(--setting-input-number-color);
 		border: var(--setting-input-number-border-thickness) var(--setting-input-number-border-style) var(--setting-input-number-border-color);
 	}
-	body settings setting setting-value input[type=checkbox] {
+	body settings setting setting-option setting-value input[type=checkbox] {
 		display: block;
+		cursor: pointer;
+		-webkit-appearance: none;
+				appearance: none;
+		height: 16px;
+		width: 16px;
 		background-color: var(--setting-input-checkbox-background);
-		color: var(--setting-input-checkbox-color);
 		border: var(--setting-input-checkbox-border-thickness) var(--setting-input-checkbox-border-style) var(--setting-input-checkbox-border-color);
+	}
+	body settings setting setting-option setting-value input[type="checkbox"]:checked {
+		background-color: var(--setting-input-checkbox-checked-background);
+		border: var(--setting-input-checkbox-checked-border-thickness) var(--setting-input-checkbox-checked-border-style) var(--setting-input-checkbox-checked-border-color);
+	}
+	body settings setting setting-option setting-value input[type="checkbox"]:after {
+		content: ' ';
+		position: relative;
+		left: 40%;
+		top: 20%;
+		width: 15%;
+		height: 40%;
+		border: solid var(--setting-input-checkbox-checked-color);
+		border-width: 0 2px 2px 0;
+		transform: rotate(50deg);
+		display: none;
+	}
+	body settings setting setting-option setting-value input[type="checkbox"]:checked:after {
+		display: block;
 	}
 </style>
 <categories></categories>
 <settings></settings>
 <script>
-	fetch("../assets/settingsDefault.json").then((res) => {
+	fetch("../assets/settingsDefault.json")
+	.then((res) => {
 		if (!res.ok) throw new Error("HTTP error " + res.status);
 		return res.json();
-	}).then((arr)=>{
+	})
+	.then((arr)=>{
 		arr.forEach(cat => {
+			//CATEGORIES
 			// Created new elements
 			const category = document.createElement("category");
 			const categoryIcon = document.createElement("category-icon");
@@ -101,49 +118,66 @@
 			// Add the classes and text
 			categoryIcon.classList.add(cat.icon);
 			categoryTitle.innerText = cat.title;
-			//Append icon and title
+			// Append icon and title
 			document.querySelector('categories').append(category);
 			category.append(categoryIcon);
 			category.append(categoryTitle);
+			// SETTINGS
+			const setting = document.createElement("setting");
+			document.querySelector('settings').append(setting);
+
 			cat.configuration.forEach((config)=>{
-				if(true) {
-					// Created new elements
-					const setting = document.createElement("setting");
-					const settingTitle = document.createElement("setting-title");
-					const settingDescription = document.createElement("setting-description");
-					const settingValue = document.createElement("setting-value");
-					const settingInput = document.createElement("input");
-					// Add the classes and text
-					settingTitle.innerText = config.title;
-					settingDescription.innerText = config.description;
-					// Set the value type for the input
-					switch(typeof config.value) {
-						case 'string':
-							settingInput.setAttribute('type', 'text')
-							break;
-						case 'number':
-							settingInput.setAttribute('type', 'number')
-							break;
-						case 'boolean':
-							settingInput.setAttribute('type', 'checkbox')
-	 						if(config.value) {
-								settingInput.setAttribute('checked')
-							}
-							break;
-						default:
-							settingInput = '';
-							console.log(config.value);
-							break;
-					}
-					//Append icon and title
-					document.querySelector('settings').append(setting);
-					setting.append(settingTitle);
-					setting.append(settingDescription);
-					setting.append(settingValue);
-					settingValue.append(settingInput);
+				const settingOption = document.createElement("setting-option");
+				setting.append(settingOption);
+				// Created new elements
+				const settingTitle = document.createElement("setting-title");
+				const settingDescription = document.createElement("setting-description");
+				const settingValue = document.createElement("setting-value");
+				const settingInput = document.createElement("input");
+				// Add the classes and text
+				settingTitle.innerText = config.title;
+				settingDescription.innerText = config.description;
+				// Set the value type for the input
+				switch(typeof config.value) {
+					case 'string':
+						settingInput.setAttribute('type', 'text')
+						break;
+					case 'number':
+						settingInput.setAttribute('type', 'number')
+						break;
+					case 'boolean':
+						settingInput.setAttribute('type', 'checkbox')
+						if(config.value) {
+							settingInput.setAttribute('checked')
+						}
+						break;
+					default:
+						settingInput = '';
+						console.log(config.value);
+						break;
 				}
+				//Append icon and title
+				settingOption.append(settingTitle);
+				settingOption.append(settingDescription);
+				settingOption.append(settingValue);
+				settingValue.append(settingInput);
 			});
 		});
-	}).catch((e) => console.error(e));
+	})
+	.then(()=>{
+		document.querySelectorAll('category')[0].classList.add('selected');
+		document.querySelectorAll('setting')[0].classList.add('selected');
 
+		document.querySelectorAll('categories').forEach((category)=>{
+			category.addEventListener('click', (event)=>{
+				// Class
+				document.querySelector('category.selected').classList.remove('selected');
+				event.target.classList.add('selected');
+				// Setting			
+				document.querySelector('category.selected').classList.remove('selected');
+				event.target.classList.add('selected');
+			});
+		})
+	})
+	.catch((e) => console.error(e));
 </script>
