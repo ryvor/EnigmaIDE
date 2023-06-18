@@ -1,0 +1,41 @@
+<!-- about.html -->
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Electron Info</title>
+		<style>
+			body {
+				text-align: center;
+				font-family: arial;
+			}
+			img {
+				width: 50%;
+			}
+			button {
+				background-color: rgba(ccc ccc ccc / 30%);
+				border-radius: 5px;
+				border: unset;
+				padding: 0.5rem;
+				cursor: pointer;
+			}
+		</style>
+	</head>
+	<body>
+		<img src="../assets/enigma-color-text.svg">
+		<div id="info">
+			<p>The file requested is already open</p>
+		</div>
+
+		<button onclick="closeModal(1)">Locate</button>
+		<button onclick="closeModal(0)">Back</button>
+		<script>
+			const { ipcRenderer } = require('electron');
+			// Close button
+			function closeModal(message) {
+				ipcRenderer.send('closeModal', message);
+				window.close();
+			}
+		</script>
+	</body>
+</html>

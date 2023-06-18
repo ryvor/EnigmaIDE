@@ -2,14 +2,14 @@
 /*               VARIABLES               */
 //#region ********************************/
 
-const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain } = require('electron');
+const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain, shell } = require('electron');
 const windowManager = require('electron-window-manager');
 const fs = require('fs');
 const path = require('path');
 var currentWindow=null,
 	mainWindow=null,
-	aboutWindow=null,
-	aboutWindowActive=false,
+	modal=null,
+	modalActive=false,
 	keybinds_status=false;
 if(require('electron-squirrel-startup')) terminate(true);
 //#endregion *****************************/
@@ -21,6 +21,25 @@ app.on('window-all-closed', terminate);
 app.on('activate', activate);
 app.on('window-all-closed', allWindowsClosed);
 app.on('browser-window-created', newWindow);
+ipcMain.on('createProject', (event)=>openSaveDialog(2, createProjectFile));
+ipcMain.on('openFile', (event)=>openDialog(1, processFile));
+ipcMain.on('openProject', (event)=>openDialog(3, processProjectFile));
+ipcMain.on('openModal', async (event, message) => {
+	switch(typeof message) {
+		case "object":
+			file = message.file;
+			options = message.options;
+			break;
+		case "string":
+			file = message.file;
+			options = {};
+			break;
+	}
+	await openModal(file, options, (resp)=>{
+		event.reply('modal-response', resp);
+	});
+});
+  
 //#endregion *****************************/
 /*               FUNCTIONS               */
 //#region ********************************/
@@ -118,7 +137,7 @@ function registerApplicationMenu() {
 			submenu: [
 				{	label: 'About Enigma IDE',
 					accelerator: 'Alt+A',
-					click: () => {openAboutModal()},
+					click: () => {openModal('front/pages/about.html')},
 				},{	label: 'Check for updates',
 					accelerator: '',
 					click: () => {console.log('TODO')},
@@ -151,13 +170,13 @@ function registerApplicationMenu() {
 				},{	type: 'separator'
 				},{	label: 'Open File',
 					accelerator: 'CmdOrCtrl+O',
-					click: () => {openDialog(1)},
+					click: () => {openDialog(1, processFile)},
 				},{	label: 'Open Folder',
 					accelerator: 'CmdOrCtrl+Shift+O',
-					click: () => {openDialog(2)},
-				},{	label: 'Open Workspace',
+					click: () => {openDialog(3, processDirectory)},
+				},{	label: 'Open Project',
 					accelerator: 'CmdOrCtrl+Altt+O',
-					click: () => {openDialog(3)},
+					click: () => {openDialog(3, processProjectFile)},
 				},
 			]
 		},{	label: 'Edit',
@@ -171,10 +190,10 @@ function registerApplicationMenu() {
 				},{	type: 'separator'
 				},{	label: 'Save',
 					accelerator: 'CmdOrCtrl+S',
-					click: ()=>saveFile()
+					click: ()=>openSaveDialog(1, saveFile)
 				},{	label: 'Save As...',
 					accelerator: 'CmdOrCtrl+Shift+S',
-					click: ()=>saveFile(true)
+					click: ()=>openSaveDialog(1.1, saveFile)
 				},
 			]
 		},{	label: 'Selection',
@@ -196,7 +215,7 @@ function registerApplicationMenu() {
 					click: ()=>currentWindow.webContents.send('openWelcomePage'),
 				},{	label: 'Documentation',
 					accelerator: '',
-					click: ()=>require("shell").openExternal("http://ryvor.github.io/EnigmaIDE/")
+					click: ()=>shell.openExternal("http://ryvor.github.io/EnigmaIDE/")
 				},{	label: 'Open Developer Tools',
 					accelerator: '',
 					click: ()=>mainWindow.webContents.openDevTools(),
@@ -211,7 +230,7 @@ function registerApplicationMenu() {
  */
 function registerKeybinds() {
 	if(keybinds_status === false) {
-		if(!globalShortcut.register('Alt+A', ()=>{openAboutModal()})) log('Failed to register global shortcut 1');
+		if(!globalShortcut.register('Alt+A', ()=>{openModal('front/pages/about.html')})) log('Failed to register global shortcut 1');
 		if(!globalShortcut.register('CommandOrControl+H', ()=>{console.log('TODO')})) log('Failed to register global shortcut 2');
 		if(!globalShortcut.register('CommandOrControl+Shift+H', ()=>{console.log('TODO')})) log('Failed to register global shortcut 3');
 		if(process.platform==='darwin')
@@ -220,13 +239,13 @@ function registerKeybinds() {
 		//---//
 		if(!globalShortcut.register('CommandOrControl+N', ()=>currentWindow.webContents.send('newFile'))) log('Failed to register global shortcut 5');
 		if(!globalShortcut.register('CommandOrControl+Shift+N', ()=>createNewWindow())) log('Failed to register global shortcut 6');
-		if(!globalShortcut.register('CommandOrControl+O', ()=>openDialog(1))) log('Failed to register global shortcut 7');
-		if(!globalShortcut.register('CommandOrControl+Shift+O', ()=>openDialog(2))) log('Failed to register global shortcut 8');
-		if(!globalShortcut.register('CommandOrControl+Alt+O', ()=>openDialog(3))) log('Failed to register global shortcut 9');
+		if(!globalShortcut.register('CommandOrControl+O', ()=>openDialog(1, processFile))) log('Failed to register global shortcut 7');
+		if(!globalShortcut.register('CommandOrControl+Shift+O', ()=>openDialog(3, processDirectory))) log('Failed to register global shortcut 8');
+		if(!globalShortcut.register('CommandOrControl+Alt+O', ()=>openDialog(3, processProjectFile))) log('Failed to register global shortcut 9');
 		if(!globalShortcut.register('CommandOrControl+W', ()=>currentWindow.webContents.send('closeTab'))) log('Failed to register global shortcut 9');
 		//---//
-		if(!globalShortcut.register('CommandOrControl+S', ()=>{saveFile()})) log('Failed to register global shortcut 10');
-		if(!globalShortcut.register('CommandOrControl+Shift+S', ()=>{saveFile(true)})) log('Failed to register global shortcut 11');
+		if(!globalShortcut.register('CommandOrControl+S', ()=>{openSaveDialog(1, saveFile)})) log('Failed to register global shortcut 10');
+		if(!globalShortcut.register('CommandOrControl+Shift+S', ()=>{openSaveDialog(1.1, saveFile)})) log('Failed to register global shortcut 11');
 		keybinds_status = true;
 	}
 }
@@ -240,12 +259,76 @@ function unregisterKeybinds() {
 		keybinds_status = false;
 	}
 }
+/** processFile
+ * @param Object result
+ */
+async function processFile(result) {
+	var fileInfo={};
+	result.filePaths.forEach((filePath)=>{
+		fileInfo.path = filePath;
+		if(fs.statSync(fileInfo.path).isFile()) {
+			const buffer = fs.readFileSync(fileInfo.path);
+			fileInfo.encoding = detectEncoding(buffer);
+			fileInfo.content = buffer.toString(fileInfo.encoding);
+			currentWindow.webContents.send('openFile', fileInfo);
+		}
+	})
+}
+/** processProjectFile
+ * 
+ */
+async function processProjectFile(result) {
+	var c = JSON.parse(fs.readFileSync(result.filePaths[0]));
+	c.json = await processDirectory(c.base)
+	currentWindow.webContents.send('openDirectory', c);
+}
+/** createProjectFile
+ * @param Object result
+ */
+function createProjectFile(result) {
+	const content = {}
+	content.base = result.filePath;
+	content.folders = [result.filePath];
+	content.settings = {};
+	if(writeFileToDisk(result.filePath, JSON.stringify(content, null, "\t"))) {
+		processProjectFile(result.filePath);
+	}
+}
+/** processDirectory
+ * @param Object result
+ */
+async function processDirectory(folderPath) {
+	return await new Promise((resolve, reject) =>{
+		fs.readdir(folderPath, { withFileTypes: true }, async (err, files) => {
+			if (err) {
+				reject(err);
+				return;
+			}
+			const directoryJSON = {
+				path: folderPath,
+				contents: []
+			};
+			const promises = files.map(async (file) => {
+					const item = {
+						name: file.name,
+						type: file.isDirectory() ? 'directory' : 'file'
+					};
+					if (file.isDirectory()) item.contents = await processDirectory(path.join(folderPath, file.name));
+					return item;
+			});
+			// Wait for all the promises to resolve
+			directoryJSON.contents = await Promise.all(promises);
+			resolve(directoryJSON);
+		});
+	});
+}
 /** openDialog
  * This function will open a window to enable the ability to open a file or folder
  * @param Integer type
  * @returns Void
  */
-function openDialog(type) {
+async function openDialog(type, cb) {
+	let type_text, filters, properties;
 	switch(type) {
 		case 1:
 			type_text = 'File';
@@ -258,31 +341,87 @@ function openDialog(type) {
 			properties = ['openDirectory', 'createDirectory'];
 			break;
 		case 3:
-			type_text = 'Enigma Workspace';
+			type_text = 'Enigma Project';
 			filters = [
-				{ name: 'Enigma Workspace File', extensions: ['enigma_workspace'] }
+				{ name: 'Enigma Project File', extensions: ['enws'] }
 			];
 			properties = ['openFile'];
 			break;
 	}
-	dialog.showOpenDialog({
-		filters: filters,
-		properties: properties
-	}).then(result => {
-		if (!result.canceled && result.filePaths.length > 0) {
-			var fileInfo={};
-			fileInfo.path = result.filePaths[0];
-			if(fs.statSync(fileInfo.path).isFile()) {
-				const buffer = fs.readFileSync(fileInfo.path);
-				fileInfo.encoding = detectEncoding(buffer);
-				fileInfo.content = buffer.toString(fileInfo.encoding);
-
-				currentWindow.webContents.send('openFile', fileInfo);
+	try {
+		dialog.showOpenDialog({
+			filters: filters,
+			properties: properties
+		}).then((result)=>{
+			cb(result);
+		});
+	} catch (error) {
+		return false;
+	}
+}
+/** openSaveDialog
+ * This function will open a window to enable the ability to open a file or folder
+ * @param Integer type
+ * @returns Void
+ */
+async function openSaveDialog(type, cb) {
+	let type_text, defaultName, filters, force=false, saveas=false;
+	switch(type) {
+		case 1:
+			title = 'Save File';
+			defaultName = 'untitled.txt';
+			filters = [
+				{ name: 'All Files', extensions: ['*'] }
+			]
+			break;
+		case 1.1:
+			title = 'Save File As';
+			defaultName = 'untitled.txt';
+			filters = [
+				{ name: 'All Files', extensions: ['*'] }
+			]
+			saveas = true;
+			break;
+		case 1.2:
+			title = 'Save File As';
+			defaultName = 'untitled.txt';
+			filters = [
+				{ name: 'All Files', extensions: ['*'] }
+			]
+			force = true;
+			break;
+		case 2:
+			type_text = 'Save Enigma Project';
+			defaultName = 'untitled.enws';
+			filters = [
+				{ name: 'Enigma Project File', extensions: ['enws'] }
+			];
+			force = true;
+			break;
+	}
+	try {
+		if((file = await getCurrentFile()).savable || force) {
+			if(file.filePath == null || saveas || force) { // Check if the file already exists
+				log('File to be saved path is not already set')
+				dialog.showSaveDialog(mainWindow, {
+					title: type_text,
+					filters: filters,
+					defaultPath: defaultName, 
+					buttonLabel: 'Save',
+				}).then(res => {
+					cb(res);
+				}).catch(err => {
+					log(err);
+				});
+			} else {
+				log('File to be saved path already set')
+				writeFileToDisk(file.filePath, file.content)
 			}
 		}
-	}).catch(err => {
-		console.log('Error opening '+type_text+':', err);
-	});
+	} catch (error) {
+		console.log('err');
+		return false;
+	}
 }
 /** detectEncoding
  * @param Object buffer
@@ -317,8 +456,8 @@ function log(str) {
  * @reeturn Boolean
  */
 function writeFileToDisk(location, content) {
-	log('Attempting to save file', location, content);
 	try {
+		log('Attempting to save file', location, content);
 		fs.writeFileSync(location, content, 'utf-8');
 		log('File saved successfully ', location);
 		return true;
@@ -327,37 +466,49 @@ function writeFileToDisk(location, content) {
 		return false;
 	}
 }
-/** openAboutModal
+/** openModal
  * @returns Void
  */
-function openAboutModal() {
-	if(!aboutWindowActive) {
-		aboutWindowActive = true;
-		aboutWindow = new BrowserWindow({
-			parent: mainWindow,
-			modal: true,
-			show: false,
-			width: 300,
-			height: 450,
-			resizable: false,
-			autoHideMenuBar: true,
-			titleBarStyle: 'hidden',
-			webPreferences: {
-				nodeIntegration: true,
-				contextIsolation: false,
-			},
-		});
-		aboutWindow.loadFile(path.join(__dirname, 'front/pages/about.html'));
-		aboutWindow.once('ready-to-show', ()=>{
-			if(InDev) {	// If the program is started with electron-forge, it then shows the debug console
-				aboutWindow.webContents.openDevTools();
-			}
-			aboutWindow.show();
-		})
-		aboutWindow.on('focus', ()=>focus())
-		aboutWindow.on('blur', ()=>blur())
-		aboutWindow.on('close', ()=>{aboutWindowActive=false})
-	}
+function openModal(page, options={}, cb) {
+	return new Promise((resolve, reject) => {
+		var res=null,
+				defaultOptions = {
+				parent: mainWindow,
+				modal: true,
+				show: false,
+				width: 300,
+				height: 450,
+				resizable: false,
+				autoHideMenuBar: true,
+				titleBarStyle: 'hidden',
+				webPreferences: {
+					nodeIntegration: true,
+					contextIsolation: false,
+				},
+			};
+		browserOptions = Object.assign({}, defaultOptions, options);
+		if(!modalActive) {
+			modalActive = true;
+			var modal = new BrowserWindow(browserOptions);
+			modal.loadFile(path.join(__dirname, page));
+			modal.once('ready-to-show', ()=>modal.show());
+			modal.on('focus', ()=>focus())
+			modal.on('blur', ()=>blur())
+			modal.on('close', ()=>{
+				modal=false;
+				modalActive=false;
+				if(cb) cb(res);
+				resolve(); // Resolve the promise when modal is closed
+			})
+			modal.webContents.on('ipc-message', (event, channel, message) => {
+				if (channel === 'closeModal') {
+					res = message;
+				}
+			});
+		} else {
+			reject(new Error('Modal is already active'));
+		}
+	});
 }
 /** getCurrentFile
  * This window requests information about the current open page from the open window
@@ -375,32 +526,13 @@ async function getCurrentFile() {
  * @param Boolean force
  * @returns Void
  */
-async function saveFile(force=false) {
-	if((file = await getCurrentFile()).savable) {
-		if(file.filePath == null || force) { // Check if the file already exists
-			log('File to be saved path is not already set')
-			dialog.showSaveDialog(mainWindow, {
-					title: 'Save File', // Dialog title
-					defaultPath: 'untitled.txt', // Default file name/path
-					buttonLabel: 'Save', // Custom button label
-					filters: [ // file filters
-						{ name: 'All Files', extensions: ['*'] }
-					],
-			}).then(res => {
-				if(res.canceled) { // Check if the save dialog was cancelled
-					log('cancelled save dialog');
-				} else {
-					if(writeFileToDisk(res.filePath, file.content)) {
-						currentWindow.webContents.send('filePath', res.filePath);
-						currentWindow.webContents.send('fileName', path.basename(res.filePath));
-					}
-				}
-			}).catch(err => {
-				log(err);
-			});
-		} else {
-			log('File to be saved path already set')
-			writeFileToDisk(file.filePath, file.content)
+async function saveFile(response) {
+	if(response.canceled) { // Check if the save dialog was cancelled
+		log('cancelled save dialog');
+	} else {
+		if(writeFileToDisk(response.filePath, file.content)) {
+			currentWindow.webContents.send('filePath', response.filePath);
+			currentWindow.webContents.send('fileName', path.basename(response.filePath));
 		}
 	}
 }
