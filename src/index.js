@@ -4,11 +4,11 @@
 
 const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain, shell } = require('electron');
 const windowManager = require('electron-window-manager');
-const fs = require('fs');
 const path = require('path');
-var currentWindow=null,
-	mainWindow=null,
-	modal=null,
+const fs = require('fs');
+var	
+	allWindows=[],
+	windowStyles=[],
 	modalActive=false,
 	keybinds_status=false;
 if(require('electron-squirrel-startup')) terminate(true);
@@ -16,11 +16,35 @@ if(require('electron-squirrel-startup')) terminate(true);
 /*             SYSTEM EVENTS             */
 //#region ********************************/
 
-app.on('ready', createWindow);
+app.on('ready', ()=>{
+	windowStyles[0] = {
+		width: 1000,
+		height: 770,
+		show: false,
+		icon: path.join(__dirname, '/front/assets/icons/enigma.png'),
+		autoHideMenuBar: true,
+		title: process.env.productName,
+		titleBarStyle: 'hidden',
+		resizable: true,
+		titleBarOverlay: {
+			symbolColor: '#74b1be',
+			height: 20
+		},
+		webPreferences: {
+			nodeIntegration: true,
+			contextIsolation: false,
+			webSecurity: false,
+		},
+	};
+	registerApplicationMenu();
+	createWindow();
+	var x = windowManager.getCurrent()
+	console.log(typeof x);
+});
 app.on('window-all-closed', terminate);
 app.on('activate', activate);
 app.on('window-all-closed', allWindowsClosed);
-app.on('browser-window-created', newWindow);
+  
 ipcMain.on('createProject', (event)=>openSaveDialog(2, createProjectFile));
 ipcMain.on('openFile', (event)=>openDialog(1, processFile));
 ipcMain.on('openProject', (event)=>openDialog(3, processProjectFile));
@@ -49,31 +73,12 @@ ipcMain.on('openModal', async (event, message) => {
  * @return Void
  */
 function createWindow() {
-	mainWindow = new BrowserWindow({
-		width: 1000,
-		height: 770,
-		show: false,
-		icon: path.join(__dirname, '/front/assets/icons/enigma.png'),
-		autoHideMenuBar: true,
-		title: process.env.productName,
-		titleBarStyle: 'hidden',
-		titleBarOverlay: {
-			symbolColor: '#74b1be',
-			height: 20
-		},
-		webPreferences: {
-			nodeIntegration: true,
-			contextIsolation: false,
-			webSecurity: false,
-		},
-	});
-	mainWindow.loadFile(path.join(__dirname, 'front/index.html'));
-	mainWindow.once('ready-to-show', ()=>{
-		registerApplicationMenu();
-		mainWindow.show();
-	})
-	mainWindow.on('focus', ()=>focus())
-	mainWindow.on('blur', ()=>blur())
+	console.log('Create window');
+	var x = allWindows[allWindows.length] = windowManager.createNew(''+allWindows.length, false, path.join('file://', __dirname, '/front/index.html'), false, windowStyles[0]);
+	x.open();
+	x.focus();
+	x.content().on('focus', ()=>focus);
+	x.content().on('blur', ()=>blur);
 };
 /** Terminate
  * Closes the program in windows and linux, but waits for all of the  CMD+Q command on MAC
@@ -90,7 +95,8 @@ function terminate(force=false) {
  * @return Void
  */
 function activate() {
-	if (BrowserWindow.getAllWindows().length === 0) createWindow();
+	console.log('activate');
+	// if(BrowserWindow.getAllWindows().length === 0) createWindow();
 }
 /** blur
  * This this function is executed when the main browser window has lost focus
@@ -104,7 +110,11 @@ function blur() {
  * @return Void
  */
 function focus() {
-	registerKeybinds();
+	if (applicationMenu) {
+		iterateMenuItems(applicationMenu.items);
+	} else {
+		console.log('Application menu not found.');
+	}
 }
 /** allWindowsClosed
  * This function resets the current window if all of the windows have been closed
@@ -112,20 +122,6 @@ function focus() {
  */
 function allWindowsClosed() {
 	currentWindow = null;
-}
-/** newWindow
- * This function sets the current window each time you change/create windows and unsets the window when you leave it.
- * @param Event event
- * @param BriwserWindow window
- * @return Void
- */
-function newWindow(event, window) {
-	window.on('focus', () => {
-		currentWindow = window;
-	});
-	window.on('blur', () => {
-		currentWindow = null;
-	});
 }
 /** registerApplicationMenu
  * This function sets the application alt menu for the program
@@ -137,56 +133,20 @@ function registerApplicationMenu() {
 			submenu: [
 				{	label: 'About Enigma IDE',
 					accelerator: 'Alt+A',
-					click: () => {openModal('front/pages/about.html')},
+					click: ()=>openModal('front/pages/about.html'),
 				},{	label: 'Check for updates',
 					accelerator: '',
-					click: () => {console.log('TODO')},
+					click: ()=>{},
 				},{	label: 'Open settings',
 					accelerator: '',
-					click: () => {console.log('TODO')},
+					click: ()=>{},
 				},{	type: 'separator'
-				},{	label: 'Hide window',
+				},{	label: 'Hide '+process.env.productName,
 					accelerator: 'CmdOrCtrl+H',
-					click: () => {console.log('TODO')},
-				},{	label: 'Hide all other windows',
-					accelerator: 'CmdOrCtrl+Shift+H',
-					click: () => {console.log('TODO')},
-				},{	label: 'Quit',
-					accelerator: 'CmdOrCtrl+Q',
-					click: () => {terminate(true)},
-				},
-			]
-		},{	label: 'File',
-			submenu: [
-				{	label: 'New File',
-					accelerator: 'CmdOrCtrl+N',
-					click: () => {currentWindow.webContents.send('newFile')},
-				},{	label: 'New Project',
-					accelerator: 'CmdOrCtrl+Shift+N',
-					click: () => {console.log('TODO')},
-				},{	label: 'New Window',
-					accelerator: 'CmdOrCtrl+Alt+N',
-					click: ()=>createNewWindow(),
-				},{	type: 'separator'
-				},{	label: 'Open File',
-					accelerator: 'CmdOrCtrl+O',
-					click: () => {openDialog(1, processFile)},
-				},{	label: 'Open Folder',
-					accelerator: 'CmdOrCtrl+Shift+O',
-					click: () => {openDialog(3, processDirectory)},
-				},{	label: 'Open Project',
-					accelerator: 'CmdOrCtrl+Altt+O',
-					click: () => {openDialog(3, processProjectFile)},
-				},
-			]
-		},{	label: 'Edit',
-			submenu: [
-				{	label: 'Undo',
-					accelerator: 'CmdOrCtrl+Z',
-					click: () => {console.log('TODO')}
-				},{	label: 'Redo',
-					accelerator: 'CmdOrCtrl+Shift+Z',
-					click: () => {console.log('TODO')}
+					click: ()=>{},
+				},{	label: 'Hide Others',
+					accelerator: 'CmdOrCtrl+Alt+H',
+					click: ()=>{},
 				},{	type: 'separator'
 				},{	label: 'Save',
 					accelerator: 'CmdOrCtrl+S',
@@ -194,6 +154,70 @@ function registerApplicationMenu() {
 				},{	label: 'Save As...',
 					accelerator: 'CmdOrCtrl+Shift+S',
 					click: ()=>openSaveDialog(1.1, saveFile)
+				},{	type: 'separator'
+				},{	label: 'Quit',
+					accelerator: 'CmdOrCtrl+Q',
+					click: ()=>terminate(true),
+				},
+			]
+		},{	label: 'File',
+			submenu: [
+				{	label: 'New File',
+					accelerator: 'CmdOrCtrl+N',
+					click: ()=>windowManager.getCurrent().content().send('newFile'),
+				},{	label: 'New Project',
+					accelerator: 'CmdOrCtrl+Alt+N',
+					click: ()=>createProjectFile(),
+				},{	label: 'New Window',
+					accelerator: 'CmdOrCtrl+Shift+N',
+					click: ()=>createWindow(),
+				},{	type: 'separator'
+				},{	label: 'Open File',
+					accelerator: 'CmdOrCtrl+O',
+					click: ()=>openDialog(1, processFile),
+				},{	label: 'Open Project',
+					accelerator: 'CmdOrCtrl+Alt+O',
+					click: ()=>openDialog(3, processProjectFile),
+				},{	label: 'Open Folder',
+					accelerator: 'CmdOrCtrl+Shift+O',
+					click: ()=>openDialog(3, processDirectory),
+				},{	type: 'separator'
+				},{	label: 'Close Editor',
+					accelerator: 'CmdOrCtrl+W',
+					click: ()=>windowManager.getCurrent().content().send('closeTab'),
+				},{	label: 'Close Project',
+					accelerator: 'CmdOrCtrl+Alt+W',
+					click: ()=>{},
+				},{	label: 'Close Folder',
+					accelerator: 'CmdOrCtrl+Shift+W',
+					click: ()=>{},
+				},
+			]
+		},{	label: 'Edit',
+			submenu: [
+				{	label: 'Undo',
+					accelerator: 'CmdOrCtrl+Z',
+					click: () => {}
+				},{	label: 'Redo',
+					accelerator: 'CmdOrCtrl+Shift+Z',
+					click: () => {}
+				},{	type: 'separator'
+				},{	label: 'Cut',
+					accelerator: 'CmdOrCtrl+X',
+					click: () => {}
+				},{	label: 'Copy',
+					accelerator: 'CmdOrCtrl+C',
+					click: () => {}
+				},{	label: 'Paste',
+					accelerator: 'CmdOrCtrl+V',
+					click: () => {}
+				},{	type: 'separator'
+				},{	label: 'Find',
+					accelerator: 'CmdOrCtrl+F',
+					click: () => {}
+				},{	label: 'Replace',
+					accelerator: 'CmdOrCtrl+Alt+F',
+					click: () => {}
 				},
 			]
 		},{	label: 'Selection',
@@ -212,42 +236,17 @@ function registerApplicationMenu() {
 			submenu: [
 				{	label: 'Welcome',
 					accelerator: '',
-					click: ()=>currentWindow.webContents.send('openWelcomePage'),
+					click: ()=>windowManager.getCurrent().content().send('openWelcomePage'),
 				},{	label: 'Documentation',
 					accelerator: '',
 					click: ()=>shell.openExternal("http://ryvor.github.io/EnigmaIDE/")
 				},{	label: 'Open Developer Tools',
 					accelerator: '',
-					click: ()=>mainWindow.webContents.openDevTools(),
+					click: ()=>windowManager.getCurrent().content().openDevTools(),
 				}
 			]
 		}
 	]));
-}
-/** registerKeybinds
- * Registers the keybinds once
- * @returns Void
- */
-function registerKeybinds() {
-	if(keybinds_status === false) {
-		if(!globalShortcut.register('Alt+A', ()=>{openModal('front/pages/about.html')})) log('Failed to register global shortcut 1');
-		if(!globalShortcut.register('CommandOrControl+H', ()=>{console.log('TODO')})) log('Failed to register global shortcut 2');
-		if(!globalShortcut.register('CommandOrControl+Shift+H', ()=>{console.log('TODO')})) log('Failed to register global shortcut 3');
-		if(process.platform==='darwin')
-			if(!globalShortcut.register('Command+Q', ()=>terminate(true)))
-				log('Failed to register global shortcut 4');
-		//---//
-		if(!globalShortcut.register('CommandOrControl+N', ()=>currentWindow.webContents.send('newFile'))) log('Failed to register global shortcut 5');
-		if(!globalShortcut.register('CommandOrControl+Shift+N', ()=>createNewWindow())) log('Failed to register global shortcut 6');
-		if(!globalShortcut.register('CommandOrControl+O', ()=>openDialog(1, processFile))) log('Failed to register global shortcut 7');
-		if(!globalShortcut.register('CommandOrControl+Shift+O', ()=>openDialog(3, processDirectory))) log('Failed to register global shortcut 8');
-		if(!globalShortcut.register('CommandOrControl+Alt+O', ()=>openDialog(3, processProjectFile))) log('Failed to register global shortcut 9');
-		if(!globalShortcut.register('CommandOrControl+W', ()=>currentWindow.webContents.send('closeTab'))) log('Failed to register global shortcut 9');
-		//---//
-		if(!globalShortcut.register('CommandOrControl+S', ()=>{openSaveDialog(1, saveFile)})) log('Failed to register global shortcut 10');
-		if(!globalShortcut.register('CommandOrControl+Shift+S', ()=>{openSaveDialog(1.1, saveFile)})) log('Failed to register global shortcut 11');
-		keybinds_status = true;
-	}
 }
 /** unregisterKeybinds
  * This function will unbing any keybindings made.
@@ -259,28 +258,10 @@ function unregisterKeybinds() {
 		keybinds_status = false;
 	}
 }
-/** processFile
- * @param Object result
- */
-async function processFile(result) {
-	var fileInfo={};
-	result.filePaths.forEach((filePath)=>{
-		fileInfo.path = filePath;
-		if(fs.statSync(fileInfo.path).isFile()) {
-			const buffer = fs.readFileSync(fileInfo.path);
-			fileInfo.encoding = detectEncoding(buffer);
-			fileInfo.content = buffer.toString(fileInfo.encoding);
-			currentWindow.webContents.send('openFile', fileInfo);
-		}
-	})
-}
-/** processProjectFile
+/** hide
  * 
  */
-async function processProjectFile(result) {
-	var c = JSON.parse(fs.readFileSync(result.filePaths[0]));
-	c.json = await processDirectory(c.base)
-	currentWindow.webContents.send('openDirectory', c);
+function toggle() {
 }
 /** createProjectFile
  * @param Object result
@@ -292,6 +273,152 @@ function createProjectFile(result) {
 	content.settings = {};
 	if(writeFileToDisk(result.filePath, JSON.stringify(content, null, "\t"))) {
 		processProjectFile(result.filePath);
+	}
+}
+/** detectEncoding
+ * @param Object buffer
+ * @return String
+ */
+function detectEncoding(buffer) {
+	if (buffer.length >= 3 && buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
+		return 'utf-8'; // UTF-8 with BOM
+	} else if (buffer.length >= 2 && buffer[0] === 0xFF && buffer[1] === 0xFE) {
+		return 'utf-16le'; // UTF-16LE with BOM
+	} else if (buffer.length >= 2 && buffer[0] === 0xFE && buffer[1] === 0xFF) {
+		return 'utf-16be'; // UTF-16BE with BOM
+	} else if (buffer.length >= 4 && buffer[0] === 0x00 && buffer[1] === 0x00 && buffer[2] === 0xFE && buffer[3] === 0xFF) {
+		return 'utf-32be'; // UTF-32BE with BOM
+	} else if (buffer.length >= 4 && buffer[0] === 0xFF && buffer[1] === 0xFE && buffer[2] === 0x00 && buffer[3] === 0x00) {
+		return 'utf-32le'; // UTF-32LE with BOM
+	} else {
+		return 'utf-8'; // Default to UTF-8 if no BOM is detected
+	}
+}
+/** log
+ * This function writes a string to the log file with the logging format.
+ * @param String str
+ * @returns Void
+ */
+function log(str) {
+	console.log(str);
+}
+/** writeFileToDisk
+ * @param String location
+ * @param  String content
+ * @reeturn Boolean
+ */
+function writeFileToDisk(location, content) {
+	try {
+		log('Attempting to save file', location, content);
+		fs.writeFileSync(location, content, 'utf-8');
+		log('File saved successfully ', location);
+		return true;
+	} catch(e) {
+		log('Failed to save the file!', location, e);
+		return false;
+	}
+}
+/** openModal
+ * @returns Void
+ */
+function openModal(page, options={}, cb) {
+	return new Promise((resolve, reject) => {
+		var res=null,
+				defaultOptions = {
+				parent: currentWindow,
+				modal: true,
+				show: false,
+				width: 300,
+				height: 450,
+				resizable: false,
+				autoHideMenuBar: true,
+				titleBarStyle: 'hidden',
+				webPreferences: {
+					nodeIntegration: true,
+					contextIsolation: false,
+				},
+			};
+		browserOptions = Object.assign({}, defaultOptions, options);
+		if(!modalActive) {
+			modalActive = true;
+			var modal = new BrowserWindow(browserOptions);
+			modal.loadFile(path.join(__dirname, page));
+			modal.once('ready-to-show', ()=>modal.show());
+			modal.on('close', ()=>{
+				modal=false;
+				modalActive=false;
+				if(cb) cb(res);
+				resolve(); // Resolve the promise when modal is closed
+			})
+			modal.webContents.on('ipc-message', (event, channel, message) => {
+				if (channel === 'closeModal') {
+					res = message;
+				}
+			});
+		} else {
+			reject(new Error('Modal is already active'));
+		}
+	});
+}
+/** changeEditorTab
+ * 
+ * @param {*} modifier 
+ */
+function changeEditorTab(modifier) {
+	windowManager.getCurrent().content().send('changeTab', modifier);
+}
+/** reopenLastEditor
+ * This window requests information about the current open page from the open window
+ * @returns Object
+ */
+async function reopenLastEditor() {
+	try {
+		return await windowManager.getCurrent().content().executeJavaScript(`reopenLasClosed()`);
+	} catch (error) {
+		console.error('Error getting info for the open file:', error);
+		return false;
+	}
+}
+/** getCurrentFile
+ * This window requests information about the current open page from the open window
+ * @returns Object
+ */
+async function getCurrentFile() {
+	try {
+		return await windowManager.getCurrent().content().executeJavaScript(`getCurrentFile()`);
+	} catch (error) {
+		console.error('Error getting info for the open file:', error);
+		return false;
+	}
+}
+/** getCurrentFiles
+ * This window requests information about all current editors from the open window
+ * @returns Object
+ */
+async function getCurrentFiles() {
+	try {
+		return await windowManager.getCurrent().content().executeJavaScript(`getCurrentFiles()`);
+	} catch (error) {
+		console.error('Error getting info for the open file:', error);
+		return false;
+	}
+}
+/** saveFile
+ * @param Boolean force
+ * @returns Void
+ */
+async function saveFile(response) {
+	if(response.canceled) { // Check if the save dialog was cancelled
+		log('cancelled save dialog');
+	} else {
+		if(writeFileToDisk(response.filePath, file.content)) {
+			if(fs.statSync(response.filePath).isFile()) {
+				const buffer = fs.readFileSync(response.filePath);
+				windowManager.getCurrent().content().send('fileEncoding', detectEncoding(buffer));
+				windowManager.getCurrent().content().send('filePath', response.filePath);
+				windowManager.getCurrent().content().send('fileName', path.basename(response.filePath));
+			}
+		}
 	}
 }
 /** processDirectory
@@ -321,6 +448,29 @@ async function processDirectory(folderPath) {
 			resolve(directoryJSON);
 		});
 	});
+}
+/** processFile
+ * @param Object result
+ */
+async function processFile(result) {
+	var fileInfo={};
+	result.filePaths.forEach((filePath)=>{
+		fileInfo.path = filePath;
+		if(fs.statSync(fileInfo.path).isFile()) {
+			const buffer = fs.readFileSync(fileInfo.path);
+			fileInfo.encoding = detectEncoding(buffer);
+			fileInfo.content = buffer.toString(fileInfo.encoding);
+			windowManager.getCurrent().content().send('openFile', fileInfo);
+		}
+	})
+}
+/** processProjectFile
+ * 
+ */
+async function processProjectFile(result) {
+	var c = JSON.parse(fs.readFileSync(result.filePaths[0]));
+	c.json = await processDirectory(c.base)
+	windowManager.getCurrent().content().send('openDirectory', c);
 }
 /** openDialog
  * This function will open a window to enable the ability to open a file or folder
@@ -403,7 +553,7 @@ async function openSaveDialog(type, cb) {
 		if((file = await getCurrentFile()).savable || force) {
 			if(file.filePath == null || saveas || force) { // Check if the file already exists
 				log('File to be saved path is not already set')
-				dialog.showSaveDialog(mainWindow, {
+				dialog.showSaveDialog(currentWindow, {
 					title: type_text,
 					filters: filters,
 					defaultPath: defaultName, 
@@ -421,119 +571,6 @@ async function openSaveDialog(type, cb) {
 	} catch (error) {
 		console.log('err');
 		return false;
-	}
-}
-/** detectEncoding
- * @param Object buffer
- * @return String
- */
-function detectEncoding(buffer) {
-	if (buffer.length >= 3 && buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
-		return 'utf-8'; // UTF-8 with BOM
-	} else if (buffer.length >= 2 && buffer[0] === 0xFF && buffer[1] === 0xFE) {
-		return 'utf-16le'; // UTF-16LE with BOM
-	} else if (buffer.length >= 2 && buffer[0] === 0xFE && buffer[1] === 0xFF) {
-		return 'utf-16be'; // UTF-16BE with BOM
-	} else if (buffer.length >= 4 && buffer[0] === 0x00 && buffer[1] === 0x00 && buffer[2] === 0xFE && buffer[3] === 0xFF) {
-		return 'utf-32be'; // UTF-32BE with BOM
-	} else if (buffer.length >= 4 && buffer[0] === 0xFF && buffer[1] === 0xFE && buffer[2] === 0x00 && buffer[3] === 0x00) {
-		return 'utf-32le'; // UTF-32LE with BOM
-	} else {
-		return 'utf-8'; // Default to UTF-8 if no BOM is detected
-	}
-}
-/** log
- * This function writes a string to the log file with the logging format.
- * @param String str
- * @returns Void
- */
-function log(str) {
-	console.log(str);
-}
-/** writeFileToDisk
- * @param String location
- * @param  String content
- * @reeturn Boolean
- */
-function writeFileToDisk(location, content) {
-	try {
-		log('Attempting to save file', location, content);
-		fs.writeFileSync(location, content, 'utf-8');
-		log('File saved successfully ', location);
-		return true;
-	} catch(e) {
-		log('Failed to save the file!', location, e);
-		return false;
-	}
-}
-/** openModal
- * @returns Void
- */
-function openModal(page, options={}, cb) {
-	return new Promise((resolve, reject) => {
-		var res=null,
-				defaultOptions = {
-				parent: mainWindow,
-				modal: true,
-				show: false,
-				width: 300,
-				height: 450,
-				resizable: false,
-				autoHideMenuBar: true,
-				titleBarStyle: 'hidden',
-				webPreferences: {
-					nodeIntegration: true,
-					contextIsolation: false,
-				},
-			};
-		browserOptions = Object.assign({}, defaultOptions, options);
-		if(!modalActive) {
-			modalActive = true;
-			var modal = new BrowserWindow(browserOptions);
-			modal.loadFile(path.join(__dirname, page));
-			modal.once('ready-to-show', ()=>modal.show());
-			modal.on('focus', ()=>focus())
-			modal.on('blur', ()=>blur())
-			modal.on('close', ()=>{
-				modal=false;
-				modalActive=false;
-				if(cb) cb(res);
-				resolve(); // Resolve the promise when modal is closed
-			})
-			modal.webContents.on('ipc-message', (event, channel, message) => {
-				if (channel === 'closeModal') {
-					res = message;
-				}
-			});
-		} else {
-			reject(new Error('Modal is already active'));
-		}
-	});
-}
-/** getCurrentFile
- * This window requests information about the current open page from the open window
- * @returns Object
- */
-async function getCurrentFile() {
-	try {
-		return await mainWindow.webContents.executeJavaScript(`getCurrentFile()`);
-	} catch (error) {
-		console.error('Error getting info for the open file:', error);
-		return false;
-	}
-}
-/** saveFile
- * @param Boolean force
- * @returns Void
- */
-async function saveFile(response) {
-	if(response.canceled) { // Check if the save dialog was cancelled
-		log('cancelled save dialog');
-	} else {
-		if(writeFileToDisk(response.filePath, file.content)) {
-			currentWindow.webContents.send('filePath', response.filePath);
-			currentWindow.webContents.send('fileName', path.basename(response.filePath));
-		}
 	}
 }
 //#endregion *****************************/
