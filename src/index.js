@@ -3,10 +3,14 @@
 //#region ********************************/
 
 const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain, shell } = require('electron');
+
 const windowManager = require('electron-window-manager');
 const path = require('path');
 const fs = require('fs');
-var	applicationMenu=[],
+const os = require('os');
+const { constants } = require('buffer');
+var	applicationMenuDefaults=[],
+	applicationMenu={},
 	allWindows=[],
 	windowStyles=[],
 	modalActive=false,
@@ -24,7 +28,7 @@ app.on('ready', ()=>{
 		icon: path.join(__dirname, '/front/assets/icons/enigma.png'),
 		showDevTools: true,
 		autoHideMenuBar: true,
-		title: process.env.productName,
+		title: app.getName(),
 		titleBarStyle: 'hidden',
 		resizable: true,
 		titleBarOverlay: {
@@ -37,150 +41,168 @@ app.on('ready', ()=>{
 			webSecurity: false,
 		},
 	};
-	applicationMenu["windows"] = [
-		{	label: process.env.productName,
-			submenu: [
-				{	label: 'About Enigma IDE',
-					accelerator: 'Alt+A',
-					click: ()=>openModal('front/pages/about.html'),
-				},{	label: 'Check for updates',
-					accelerator: '',
-					click: ()=>{},
-				},{	label: 'Open settings',
-					accelerator: '',
-					click: ()=>{},
-				},{	type: 'separator'
-				},{	label: 'Hide '+process.env.productName,
-					accelerator: 'CmdOrCtrl+H',
-					click: ()=>{},
-				},{	label: 'Hide Others',
-					accelerator: 'CmdOrCtrl+Alt+H',
-					click: ()=>{},
-				},{	type: 'separator'
-				},{	label: 'Save',
-					accelerator: 'CmdOrCtrl+S',
-					click: ()=>openSaveDialog(1, saveFile)
-				},{	label: 'Save As...',
-					accelerator: 'CmdOrCtrl+Shift+S',
-					click: ()=>openSaveDialog(1.1, saveFile)
-				},{	type: 'separator'
-				},{	label: 'Quit',
-					accelerator: 'Alt+F4',
-					click: ()=>terminate(true),
-				},
-			]
-		},{	label: 'File',
-			submenu: [
-				{	label: 'New File',
-					accelerator: 'CmdOrCtrl+N',
-					click: ()=>windowManager.getCurrent().content().send('newFile'),
-				},{	label: 'New Project',
-					accelerator: 'CmdOrCtrl+Alt+N',
-					click: ()=>createProjectFile(),
-				},{	label: 'New Window',
-					accelerator: 'CmdOrCtrl+Shift+N',
-					click: ()=>createWindow(),
-				},{	type: 'separator'
-				},{	label: 'Open File',
-					accelerator: 'CmdOrCtrl+O',
-					click: ()=>openDialog(1, processFile),
-				},{	label: 'Open Project',
-					accelerator: 'CmdOrCtrl+Alt+O',
-					click: ()=>openDialog(3, processProjectFile),
-				},{	label: 'Open Folder',
-					accelerator: 'CmdOrCtrl+Shift+O',
-					click: ()=>openDialog(3, processDirectory),
-				},{	type: 'separator'
-				},{	label: 'Close Editor',
-					accelerator: 'CmdOrCtrl+W',
-					click: ()=>windowManager.getCurrent().content().send('closeTab'),
-				},{	label: 'Close Project',
-					accelerator: 'CmdOrCtrl+Alt+W',
-					click: ()=>{},
-				},{	label: 'Close Folder',
-					accelerator: 'CmdOrCtrl+Shift+W',
-					click: ()=>{},
-				},
-			]
-		},{	label: 'Edit',
-			submenu: [
-				{	label: 'Undo',
-					accelerator: 'CmdOrCtrl+Z',
-					click: ()=>{}
-				},{	label: 'Redo',
-					accelerator: 'CmdOrCtrl+Shift+Z',
-					click: ()=>{}
-				},{	type: 'separator'
-				},{	label: 'Cut',
-					accelerator: 'CmdOrCtrl+X',
-					click: ()=>{}
-				},{	label: 'Copy',
-					accelerator: 'CmdOrCtrl+C',
-					click: ()=>{}
-				},{	label: 'Paste',
-					accelerator: 'CmdOrCtrl+V',
-					click: ()=>{}
-				},{	type: 'separator'
-				},{	label: 'Find',
-					accelerator: 'CmdOrCtrl+F',
-					click: ()=>{}
-				},{	label: 'Replace',
-					accelerator: 'CmdOrCtrl+Alt+F',
-					click: ()=>{}
-				},{	type: 'separator'
-				},{	label: 'Next Tab',
-					accelerator: 'CmdOrCtrl+Tab',
-					click: ()=>windowManager.getCurrent().content().send('changeTab', '++'),
-				},{	label: 'Previous Tab',
-					accelerator: 'CmdOrCtrl+Shift+Tab',
-					click: ()=>windowManager.getCurrent().content().send('changeTab', '--'),
-				},
-			]
-		},{	label: 'Selection',
-			submenu: []
-		},{	label: 'View',
-			submenu: []
-		},{	label: 'Go',
-			submenu: []
-		},{	label: 'Run',
-			submenu: []
-		},{	label: 'Terminal',
-			submenu: []
-		},{	label: 'Window',
-			submenu: []
-		},{	label: 'Help',
-			submenu: [
-				{	label: 'Welcome',
-					accelerator: '',
-					click: ()=>windowManager.getCurrent().content().send('openWelcomePage'),
-				},{	label: 'Documentation',
-					accelerator: '',
-					click: ()=>shell.openExternal("http://ryvor.github.io/EnigmaIDE/")
-				},{	label: 'Open Developer Tools',
-					accelerator: '',
-					click: ()=>windowManager.getCurrent().content().openDevTools(),
-				}
-			]
-		}
-	]
-	applicationMenu["darwin_changes"] = [
-		{	label: process.env.productName,
-			submenu: [
-				{	label: 'Quit',
-					accelerator: 'CmdOrCtrl+Q',
-					click: ()=>terminate(true),
-				}
-			]
-		}
-	]
-	applicationMenu["darwin"] = applicationMenu["windows"].map(item1 => {
-		const matchingItem = applicationMenu["darwin_changes"].find(item2 => Object.keys(item2)[0] === Object.keys(item1)[0]);
-		if (matchingItem) {
-			return { ...item1, ...matchingItem };
-		}
-		return item1;
-	});
-	
+	applicationMenuDefaults = {
+		default: [
+			{	label: app.getName(),
+				submenu: [
+					{	label: 'About Enigma IDE',
+						accelerator: 'Alt+A',
+						click: ()=>openModal('front/pages/about.html'),
+					},{	label: 'Check for updates',
+						accelerator: 'f10',
+						click: ()=>{},
+					},{	label: 'Open settings',
+						accelerator: 'f12',
+						click: ()=>{},
+					},{	type: 'separator'
+					},{	label: 'Hide '+app.getName(),
+						accelerator: 'CmdOrCtrl+H',
+						click: ()=>{},
+					},{	label: 'Hide Others',
+						accelerator: 'CmdOrCtrl+Alt+H',
+						click: ()=>{},
+					},{	type: 'separator'
+					},{	label: 'Save',
+						accelerator: 'CmdOrCtrl+S',
+						click: ()=>openSaveDialog(1, saveFile)
+					},{	label: 'Save As...',
+						accelerator: 'CmdOrCtrl+Shift+S',
+						click: ()=>openSaveDialog(1.1, saveFile)
+					},{	type: 'separator'
+					},{	label: 'Quit',
+						accelerator: '',
+						click: ()=>terminate(true),
+					},
+				]
+			},{	label: 'File',/*  */
+				submenu: [
+					{	label: 'New File',
+						accelerator: 'CmdOrCtrl+N',
+						click: ()=>windowManager.getCurrent().content().send('newFile'),
+					},{	label: 'New Project',
+						accelerator: 'CmdOrCtrl+Alt+N',
+						click: ()=>openSaveDialog(2, createProjectFile),
+					},{	label: 'New Window',
+						accelerator: 'CmdOrCtrl+Shift+N',
+						click: ()=>createWindow(),
+					},{	type: 'separator'
+					},{	label: 'Open File',
+						accelerator: 'CmdOrCtrl+O',
+						click: ()=>openDialog(1, processFile),
+					},{	label: 'Open Project',
+						accelerator: 'CmdOrCtrl+Alt+O',
+						click: ()=>openDialog(3, processProjectFile),
+					},{	label: 'Open Folder',
+						accelerator: 'CmdOrCtrl+Shift+O',
+						click: ()=>openDialog(3, processDirectory),
+					},{	type: 'separator'
+					},{	label: 'Close Editor',
+						accelerator: 'CmdOrCtrl+W',
+						click: ()=>windowManager.getCurrent().content().send('closeTab'),
+					},{	label: 'Close Project',
+						accelerator: 'CmdOrCtrl+Alt+W',
+						click: ()=>{}, // TODO
+					},{	label: 'Close Folder',
+						accelerator: 'CmdOrCtrl+Shift+W',
+						click: ()=>{}, // TODO
+					},
+				]
+			},{	label: 'Edit',
+				submenu: [
+					{	label: 'Undo',
+						accelerator: 'CmdOrCtrl+Z',
+						click: ()=>{}
+					},{	label: 'Redo',
+						accelerator: 'CmdOrCtrl+Shift+Z',
+						click: ()=>{}
+					},{	type: 'separator'
+					},{	label: 'Cut',
+						accelerator: 'CmdOrCtrl+X',
+						click: ()=>{}
+					},{	label: 'Copy',
+						accelerator: 'CmdOrCtrl+C',
+						click: ()=>{}
+					},{	label: 'Paste',
+						accelerator: 'CmdOrCtrl+V',
+						click: ()=>{}
+					},{	type: 'separator'
+					},{	label: 'Find',
+						accelerator: 'CmdOrCtrl+F',
+						click: ()=>{} // TODO
+					},{	label: 'Replace',
+						accelerator: 'CmdOrCtrl+Alt+F',
+						click: ()=>{} // TODO
+					},{	type: 'separator'
+					},{	label: 'Next Tab',
+						accelerator: 'Ctrl+Tab',
+						click: ()=>changeEditorTab('++'),
+					},{	label: 'Previous Tab',
+						accelerator: 'Ctrl+Shift+Tab',
+						click: ()=>changeEditorTab('--'),
+					},
+				]
+			},{	label: 'Selection',
+				submenu: []
+			},{	label: 'View',
+				submenu: []
+			},{	label: 'Go',
+				submenu: []
+			},{	label: 'Run',
+				submenu: []
+			},{	label: 'Terminal',
+				submenu: []
+			},{	label: 'Window',
+				submenu: []
+			},{	label: 'Help',
+				submenu: [
+					{	label: 'Welcome',
+						accelerator: '',
+						click: ()=>windowManager.getCurrent().content().send('openWelcomePage'),
+					},{	label: 'Documentation',
+						accelerator: '',
+						click: ()=>shell.openExternal("http://ryvor.github.io/EnigmaIDE/")
+					},{	label: 'Open Developer Tools',
+						accelerator: '',
+						click: ()=>windowManager.getCurrent().content().openDevTools(),
+					}
+				]
+			}
+		],
+		win: [
+			{	label: app.getName(),
+				submenu: [
+					{	label: 'Quit',
+						accelerator: 'Alt+F4',
+						click: ()=>terminate(true),
+					},
+				]
+			}
+		],
+		lnx: [
+			{	label: app.getName(),
+				submenu: [
+					{	label: 'Quit',
+						accelerator: 'Alt+F7',
+						click: ()=>terminate(true),
+					},
+				]
+			}
+		],
+		mac: [
+			{	label: app.getName(),
+				submenu: [
+					{	label: 'Quit',
+						accelerator: 'CmdOrCtrl+Q',
+						click: ()=>terminate(true),
+					},
+				]
+			}
+		],
+	}
+	applicationMenu.win32  = merge(applicationMenuDefaults.default, applicationMenuDefaults.win);
+	applicationMenu.darwin = merge(applicationMenuDefaults.default, applicationMenuDefaults.mac);
+	applicationMenu.linux  = merge(applicationMenuDefaults.default, applicationMenuDefaults.lnx);
+
 	registerApplicationMenu();
 	createWindow();
 });
@@ -222,6 +244,37 @@ function createWindow() {
 	x.content().on('focus', ()=>focus);
 	x.content().on('blur', ()=>blur);
 };
+/**
+ * 
+ */
+function merge(var1, var2) {
+	var out;
+	if (Array.isArray(var1) && Array.isArray(var2)) { // both arrays
+		out = var1.slice(); // Make a shallow copy of var1
+		for(var x=0; x<var1.length; x++) {
+			for(var y=0; y<var2.length; y++) {
+				if(var1[x].label == var2[y].label) {
+					out[x] = merge(var1[x], var2[y]);
+				}
+			}
+		}
+	} else if(typeof var1 === 'object' && typeof var2 === 'object') { // both objects
+		out = { ...var1 }; // Make a shallow copy of var1
+		for (let key in var1) {
+			if(var2[key]) {
+				out[key] = merge(var1[key], var2[key]);
+			}
+		}
+	} else { // both
+		if(var1 === var2) {
+			return var1;
+		} else {
+			return var2;
+		}
+	}
+	return out;
+}
+
 /** Terminate
  * Closes the program in windows and linux, but waits for all of the  CMD+Q command on MAC
  * @return Void
@@ -252,143 +305,19 @@ function blur() {
  * @return Void
  */
 function focus() {
-	if (applicationMenu) {
-		iterateMenuItems(applicationMenu.items);
-	} else {
-		console.log('Application menu not found.');
-	}
 }
 /** allWindowsClosed
  * This function resets the current window if all of the windows have been closed
  * @return Void
  */
 function allWindowsClosed() {
-	currentWindow = null;
 }
 /** registerApplicationMenu
  * This function sets the application alt menu for the program
  * @returns Void
  */
 function registerApplicationMenu() {
-	Menu.setApplicationMenu(Menu.buildFromTemplate([
-		{	label: process.env.productName,
-			submenu: [
-				{	label: 'About Enigma IDE',
-					accelerator: 'Alt+A',
-					click: ()=>openModal('front/pages/about.html'),
-				},{	label: 'Check for updates',
-					accelerator: '',
-					click: ()=>{},
-				},{	label: 'Open settings',
-					accelerator: '',
-					click: ()=>{},
-				},{	type: 'separator'
-				},{	label: 'Hide '+process.env.productName,
-					accelerator: 'CmdOrCtrl+H',
-					click: ()=>{},
-				},{	label: 'Hide Others',
-					accelerator: 'CmdOrCtrl+Alt+H',
-					click: ()=>{},
-				},{	type: 'separator'
-				},{	label: 'Save',
-					accelerator: 'CmdOrCtrl+S',
-					click: ()=>openSaveDialog(1, saveFile)
-				},{	label: 'Save As...',
-					accelerator: 'CmdOrCtrl+Shift+S',
-					click: ()=>openSaveDialog(1.1, saveFile)
-				},{	type: 'separator'
-				},{	label: 'Quit',
-					accelerator: 'CmdOrCtrl+Q',
-					click: ()=>terminate(true),
-				},
-			]
-		},{	label: 'File',
-			submenu: [
-				{	label: 'New File',
-					accelerator: 'CmdOrCtrl+N',
-					click: ()=>windowManager.getCurrent().content().send('newFile'),
-				},{	label: 'New Project',
-					accelerator: 'CmdOrCtrl+Alt+N',
-					click: ()=>createProjectFile(),
-				},{	label: 'New Window',
-					accelerator: 'CmdOrCtrl+Shift+N',
-					click: ()=>createWindow(),
-				},{	type: 'separator'
-				},{	label: 'Open File',
-					accelerator: 'CmdOrCtrl+O',
-					click: ()=>openDialog(1, processFile),
-				},{	label: 'Open Project',
-					accelerator: 'CmdOrCtrl+Alt+O',
-					click: ()=>openDialog(3, processProjectFile),
-				},{	label: 'Open Folder',
-					accelerator: 'CmdOrCtrl+Shift+O',
-					click: ()=>openDialog(3, processDirectory),
-				},{	type: 'separator'
-				},{	label: 'Close Editor',
-					accelerator: 'CmdOrCtrl+W',
-					click: ()=>windowManager.getCurrent().content().send('closeTab'),
-				},{	label: 'Close Project',
-					accelerator: 'CmdOrCtrl+Alt+W',
-					click: ()=>{},
-				},{	label: 'Close Folder',
-					accelerator: 'CmdOrCtrl+Shift+W',
-					click: ()=>{},
-				},
-			]
-		},{	label: 'Edit',
-			submenu: [
-				{	label: 'Undo',
-					accelerator: 'CmdOrCtrl+Z',
-					click: () => {}
-				},{	label: 'Redo',
-					accelerator: 'CmdOrCtrl+Shift+Z',
-					click: () => {}
-				},{	type: 'separator'
-				},{	label: 'Cut',
-					accelerator: 'CmdOrCtrl+X',
-					click: () => {}
-				},{	label: 'Copy',
-					accelerator: 'CmdOrCtrl+C',
-					click: () => {}
-				},{	label: 'Paste',
-					accelerator: 'CmdOrCtrl+V',
-					click: () => {}
-				},{	type: 'separator'
-				},{	label: 'Find',
-					accelerator: 'CmdOrCtrl+F',
-					click: () => {}
-				},{	label: 'Replace',
-					accelerator: 'CmdOrCtrl+Alt+F',
-					click: () => {}
-				},
-			]
-		},{	label: 'Selection',
-			submenu: []
-		},{	label: 'View',
-			submenu: []
-		},{	label: 'Go',
-			submenu: []
-		},{	label: 'Run',
-			submenu: []
-		},{	label: 'Terminal',
-			submenu: []
-		},{	label: 'Window',
-			submenu: []
-		},{	label: 'Help',
-			submenu: [
-				{	label: 'Welcome',
-					accelerator: '',
-					click: ()=>windowManager.getCurrent().content().send('openWelcomePage'),
-				},{	label: 'Documentation',
-					accelerator: '',
-					click: ()=>shell.openExternal("http://ryvor.github.io/EnigmaIDE/")
-				},{	label: 'Open Developer Tools',
-					accelerator: '',
-					click: ()=>windowManager.getCurrent().content().openDevTools(),
-				}
-			]
-		}
-	]));
+	Menu.setApplicationMenu(Menu.buildFromTemplate(applicationMenu[process.platform]));
 }
 /** unregisterKeybinds
  * This function will unbing any keybindings made.
@@ -409,6 +338,7 @@ function toggle() {
  * @param Object result
  */
 function createProjectFile(result) {
+	console.log(result)
 	const content = {}
 	content.base = result.filePath;
 	content.folders = [result.filePath];
@@ -675,7 +605,7 @@ async function openSaveDialog(type, cb) {
 			saveas = true;
 			break;
 		case 1.2:
-			title = 'Save File As';
+			title = 'Foce Save File As';
 			defaultName = 'untitled.txt';
 			filters = [
 				{ name: 'All Files', extensions: ['*'] }
@@ -695,7 +625,8 @@ async function openSaveDialog(type, cb) {
 		if((file = await getCurrentFile()).savable || force) {
 			if(file.filePath == null || saveas || force) { // Check if the file already exists
 				log('File to be saved path is not already set')
-				dialog.showSaveDialog(currentWindow, {
+				console.log(type_text, defaultName, filters, force);
+				dialog.showSaveDialog(windowManager.getCurrent().content(), {
 					title: type_text,
 					filters: filters,
 					defaultPath: defaultName, 
@@ -703,15 +634,15 @@ async function openSaveDialog(type, cb) {
 				}).then(res => {
 					cb(res);
 				}).catch(err => {
-					log(err);
+					new Error(err);
 				});
 			} else {
-				log('File to be saved path already set')
-				writeFileToDisk(file.filePath, file.content)
+				log('File to be saved path already set');
+				cb(file);
 			}
 		}
 	} catch (error) {
-		console.log('err');
+		console.log('error: ', error);
 		return false;
 	}
 }

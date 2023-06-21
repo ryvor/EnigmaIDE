@@ -28,8 +28,8 @@ if (os.platform() == 'win32') {
 	document.querySelector('titlebar[for="linux"]').style.display = 'flex';
 }
 */
-if (os.platform() == 'win32') {
-	document.querySelector('titlebar > titlebar-icon > img').style.display = 'block'; 
+if (os.platform() !== 'win32') {
+	document.querySelector('titlebar > titlebar-icon > img').style.display = 'none'; 
 }
 /**
  * 
