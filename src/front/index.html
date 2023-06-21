@@ -13,30 +13,38 @@
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<titlebar for="windows">
-			<titlebar-icon>
-				<img src="assets/enigma-color-logo.svg">
-			</titlebar-icon>
-			<titlebar-menu></titlebar-menu>
-			<titlebar-drag></titlebar-drag>
-			<titlebar-buttons>
-				<minimise></minimise>
-				<restore></restore>
-				<maximise></maximise>
-				<close></close>
-			</titlebar-buttons>
-		</titlebar>
-		<titlebar for="mac">
-			<app-buttons>
-				<minimise></minimise>
-				<restore></restore>
-				<maximise></maximise>
-				<close></close>
-			</app-buttons>
-			<titlebar-drag></titlebar-drag>
-		</titlebar>
-		<titlebar for="linux">
-		</titlebar>
+		<titlebars>
+			<titlebar for="win32">
+				<titlebar-icon>
+					<img src="assets/enigma-color-logo.svg">
+				</titlebar-icon>
+				<titlebar-menu></titlebar-menu>
+				<titlebar-drag></titlebar-drag>
+				<titlebar-buttons>
+					<minimise></minimise>
+					<maximise></maximise>
+					<close></close>
+				</titlebar-buttons>
+			</titlebar>
+			<titlebar for="darwin">
+				<app-buttons>
+					<minimise></minimise>
+					<restore></restore>
+					<maximise></maximise>
+					<close></close>
+				</app-buttons>
+				<titlebar-drag></titlebar-drag>
+			</titlebar>
+			<titlebar for="linux">
+				<app-buttons>
+					<minimise></minimise>
+					<restore></restore>
+					<maximise></maximise>
+					<close></close>
+				</app-buttons>
+				<titlebar-drag></titlebar-drag>
+			</titlebar>
+		</titlebars>
 		<sidebar>
 			<!--
 			<project-title>Enigma IDE</project-title>

@@ -4,33 +4,30 @@
 
 const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain, shell } = require('electron');
 
-const windowManager = require('electron-window-manager');
 const path = require('path');
 const fs = require('fs');
-const os = require('os');
-const { constants } = require('buffer');
 var	applicationMenuDefaults=[],
 	applicationMenu={},
 	allWindows=[],
+	currentWindow,
 	windowStyles=[],
-	modalActive=false,
-	keybinds_status=false;
+	modalActive=false;
 if(require('electron-squirrel-startup')) terminate(true);
 //#endregion *****************************/
 /*             SYSTEM EVENTS             */
 //#region ********************************/
 
 app.on('ready', ()=>{
-	windowStyles[0] = {
-		width: 1000,
-		height: 770,
+	windowStyles.default = {
+		width: 1080,
+		height: 700,
+		minWidth: 1080,
+		minHeight: 600,
 		show: false,
 		icon: path.join(__dirname, '/front/assets/icons/enigma.png'),
-		showDevTools: true,
 		autoHideMenuBar: true,
 		title: app.getName(),
 		titleBarStyle: 'hidden',
-		resizable: true,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
@@ -58,13 +55,6 @@ app.on('ready', ()=>{
 						accelerator: 'CmdOrCtrl+Alt+H',
 						click: ()=>{},
 					},{	type: 'separator'
-					},{	label: 'Save',
-						accelerator: 'CmdOrCtrl+S',
-						click: ()=>openSaveDialog(1, saveFile)
-					},{	label: 'Save As...',
-						accelerator: 'CmdOrCtrl+Shift+S',
-						click: ()=>openSaveDialog(1.1, saveFile)
-					},{	type: 'separator'
 					},{	label: 'Quit',
 						accelerator: '',
 						click: ()=>terminate(true),
@@ -74,7 +64,7 @@ app.on('ready', ()=>{
 				submenu: [
 					{	label: 'New File',
 						accelerator: 'CmdOrCtrl+N',
-						click: ()=>windowManager.getCurrent().content().send('newFile'),
+						click: ()=>currentWindow.send('newFile'),
 					},{	label: 'New Project',
 						accelerator: 'CmdOrCtrl+Alt+N',
 						click: ()=>openSaveDialog(2, createProjectFile),
@@ -92,9 +82,16 @@ app.on('ready', ()=>{
 						accelerator: 'CmdOrCtrl+Shift+O',
 						click: ()=>openDialog(3, processDirectory),
 					},{	type: 'separator'
+					},{	label: 'Save',
+						accelerator: 'CmdOrCtrl+S',
+						click: ()=>openSaveDialog(1, saveFile)
+					},{	label: 'Save As...',
+						accelerator: 'CmdOrCtrl+Shift+S',
+						click: ()=>openSaveDialog(1.1, saveFile)
+					},{	type: 'separator'
 					},{	label: 'Close Editor',
 						accelerator: 'CmdOrCtrl+W',
-						click: ()=>windowManager.getCurrent().content().send('closeTab'),
+						click: ()=>currentWindow.send('closeTab'),
 					},{	label: 'Close Project',
 						accelerator: 'CmdOrCtrl+Alt+W',
 						click: ()=>{}, // TODO
@@ -128,19 +125,21 @@ app.on('ready', ()=>{
 					},{	label: 'Replace',
 						accelerator: 'CmdOrCtrl+Alt+F',
 						click: ()=>{} // TODO
-					},{	type: 'separator'
-					},{	label: 'Next Tab',
-						accelerator: 'Ctrl+Tab',
-						click: ()=>changeEditorTab('++'),
-					},{	label: 'Previous Tab',
-						accelerator: 'Ctrl+Shift+Tab',
-						click: ()=>changeEditorTab('--'),
 					},
 				]
 			},{	label: 'Selection',
 				submenu: []
 			},{	label: 'View',
-				submenu: []
+				submenu: [
+					{	label: 'Next Tab',
+						accelerator: 'Ctrl+Tab',
+						click: ()=>changeEditorTab('++'),
+					},{	label: 'Previous Tab',
+						accelerator: 'Ctrl+Shift+Tab',
+						click: ()=>changeEditorTab('--'),
+					},{	type: 'separator'
+					},
+				]
 			},{	label: 'Go',
 				submenu: []
 			},{	label: 'Run',
@@ -153,18 +152,18 @@ app.on('ready', ()=>{
 				submenu: [
 					{	label: 'Welcome',
 						accelerator: '',
-						click: ()=>windowManager.getCurrent().content().send('openWelcomePage'),
+						click: ()=>currentWindow.send('openWelcomePage'),
 					},{	label: 'Documentation',
 						accelerator: '',
 						click: ()=>shell.openExternal("http://ryvor.github.io/EnigmaIDE/")
 					},{	label: 'Open Developer Tools',
-						accelerator: '',
-						click: ()=>windowManager.getCurrent().content().openDevTools(),
+						accelerator: 'Ctrl+Alt+I',
+						click: ()=>currentWindow.openDevTools(),
 					}
 				]
 			}
 		],
-		win: [
+		win32: [
 			{	label: app.getName(),
 				submenu: [
 					{	label: 'Quit',
@@ -174,17 +173,7 @@ app.on('ready', ()=>{
 				]
 			}
 		],
-		lnx: [
-			{	label: app.getName(),
-				submenu: [
-					{	label: 'Quit',
-						accelerator: 'Alt+F7',
-						click: ()=>terminate(true),
-					},
-				]
-			}
-		],
-		mac: [
+		darwin: [
 			{	label: app.getName(),
 				submenu: [
 					{	label: 'Quit',
@@ -194,10 +183,20 @@ app.on('ready', ()=>{
 				]
 			}
 		],
+		linux: [
+			{	label: app.getName(),
+				submenu: [
+					{	label: 'Quit',
+						accelerator: 'Alt+F4',
+						click: ()=>terminate(true),
+					},
+				]
+			}
+		],
 	}
-	applicationMenu.win32  = merge(applicationMenuDefaults.default, applicationMenuDefaults.win);
-	applicationMenu.darwin = merge(applicationMenuDefaults.default, applicationMenuDefaults.mac);
-	applicationMenu.linux  = merge(applicationMenuDefaults.default, applicationMenuDefaults.lnx);
+	applicationMenu.win32  = merge(applicationMenuDefaults.default, applicationMenuDefaults.win32);
+	applicationMenu.darwin = merge(applicationMenuDefaults.default, applicationMenuDefaults.darwin);
+	applicationMenu.linux  = merge(applicationMenuDefaults.default, applicationMenuDefaults.linux);
 
 	registerApplicationMenu();
 	createWindow();
@@ -224,12 +223,10 @@ ipcMain.on('openModal', async (event, message) => {
 		event.reply('modal-response', resp);
 	});
 });
-ipcMain.on('requestWindowState', (event) => {
-	windowManager.getCurrent().content().send('windowState',
-		windowManager.getCurrent().window.isMaximized()
-	)
-});
-
+ipcMain.on('minimiseWindow', (event)=>minimize())
+ipcMain.on('maximiseWindow', (event)=>(currentWindow.isMaximized())? currentWindow.restore(): currentWindow.maximize())
+ipcMain.on('closeWindow', (event)=>close())
+ipcMain.on('requestAppMenu', (event)=>event.sender.send('appMenu', JSON.stringify(applicationMenu[process.platform])))
 
 //#endregion *****************************/
 /*               FUNCTIONS               */
@@ -240,11 +237,17 @@ ipcMain.on('requestWindowState', (event) => {
  * @return Void
  */
 function createWindow() {
-	var x = allWindows[allWindows.length] = windowManager.createNew(''+allWindows.length, false, path.join('file://', __dirname, '/front/index.html'), false, windowStyles[0]);
-	x.open();
-	x.focus();
-	x.content().on('focus', ()=>focus);
-	x.content().on('blur', ()=>blur);
+	allWindows[allWindows.length] = x = new BrowserWindow(windowStyles.default);
+	x.loadFile(__dirname+'/front/index.html');
+	
+	x.on('focus', focus);
+	x.on('blur', blur);
+	x.on('maximize', ()=>(currentWindow)? currentWindow.send('windowState', true): null);
+	x.on('unmaximize', ()=>(currentWindow)? currentWindow.send('windowState', false): null);
+	x.once('ready-to-show', ()=>{
+		x.show();
+		x.send('windowState', x.isMaximized());
+	})
 };
 /**
  * 
@@ -276,7 +279,6 @@ function merge(var1, var2) {
 	}
 	return out;
 }
-
 /** Terminate
  * Closes the program in windows and linux, but waits for all of the  CMD+Q command on MAC
  * @return Void
@@ -300,13 +302,32 @@ function activate() {
  * @return Void
  */
 function blur() {
-	unregisterKeybinds();
+	currentWindow=null;
 }
 /** focus
  * This this function is executed when the main browser window has gained focus
  * @return Void
  */
 function focus() {
+	currentWindow = BrowserWindow.getFocusedWindow();
+}
+/**close
+ * 
+ */
+function close() {
+	currentWindow.close()
+}
+/** maximize
+ * 
+ */
+function maximize() {
+	currentWindow.maximize()
+}
+/**minimize
+ * 
+ */
+function minimize() {
+	currentWindow.minimize()
 }
 /** allWindowsClosed
  * This function resets the current window if all of the windows have been closed
@@ -321,20 +342,10 @@ function allWindowsClosed() {
 function registerApplicationMenu() {
 	Menu.setApplicationMenu(Menu.buildFromTemplate(applicationMenu[process.platform]));
 }
-/** unregisterKeybinds
- * This function will unbing any keybindings made.
- * @returns Void
- */
-function unregisterKeybinds() {
-	if(keybinds_status === true) {
-		globalShortcut.unregisterAll();
-		keybinds_status = false;
-	}
-}
 /** hide
  * 
  */
-function toggle() {
+function hide() {
 }
 /** createProjectFile
  * @param Object result
@@ -439,7 +450,7 @@ function openModal(page, options={}, cb) {
  * @param {*} modifier 
  */
 function changeEditorTab(modifier) {
-	windowManager.getCurrent().content().send('changeTab', modifier);
+	currentWindow.send('changeTab', modifier);
 }
 /** reopenLastEditor
  * This window requests information about the current open page from the open window
@@ -447,7 +458,7 @@ function changeEditorTab(modifier) {
  */
 async function reopenLastEditor() {
 	try {
-		return await windowManager.getCurrent().content().executeJavaScript(`reopenLasClosed()`);
+		return await currentWindow.executeJavaScript(`reopenLastClosed()`);
 	} catch (error) {
 		console.error('Error getting info for the open file:', error);
 		return false;
@@ -459,7 +470,7 @@ async function reopenLastEditor() {
  */
 async function getCurrentFile() {
 	try {
-		return await windowManager.getCurrent().content().executeJavaScript(`getCurrentFile()`);
+		return await currentWindow.executeJavaScript(`getCurrentFile()`);
 	} catch (error) {
 		console.error('Error getting info for the open file:', error);
 		return false;
@@ -471,7 +482,7 @@ async function getCurrentFile() {
  */
 async function getCurrentFiles() {
 	try {
-		return await windowManager.getCurrent().content().executeJavaScript(`getCurrentFiles()`);
+		return await currentWindow.executeJavaScript(`getCurrentFiles()`);
 	} catch (error) {
 		console.error('Error getting info for the open file:', error);
 		return false;
@@ -488,9 +499,9 @@ async function saveFile(response) {
 		if(writeFileToDisk(response.filePath, file.content)) {
 			if(fs.statSync(response.filePath).isFile()) {
 				const buffer = fs.readFileSync(response.filePath);
-				windowManager.getCurrent().content().send('fileEncoding', detectEncoding(buffer));
-				windowManager.getCurrent().content().send('filePath', response.filePath);
-				windowManager.getCurrent().content().send('fileName', path.basename(response.filePath));
+				currentWindow.send('fileEncoding', detectEncoding(buffer));
+				currentWindow.send('filePath', response.filePath);
+				currentWindow.send('fileName', path.basename(response.filePath));
 			}
 		}
 	}
@@ -534,7 +545,7 @@ async function processFile(result) {
 			const buffer = fs.readFileSync(fileInfo.path);
 			fileInfo.encoding = detectEncoding(buffer);
 			fileInfo.content = buffer.toString(fileInfo.encoding);
-			windowManager.getCurrent().content().send('openFile', fileInfo);
+			currentWindow.send('openFile', fileInfo);
 		}
 	})
 }
@@ -544,7 +555,7 @@ async function processFile(result) {
 async function processProjectFile(result) {
 	var c = JSON.parse(fs.readFileSync(result.filePaths[0]));
 	c.json = await processDirectory(c.base)
-	windowManager.getCurrent().content().send('openDirectory', c);
+	currentWindow.send('openDirectory', c);
 }
 /** openDialog
  * This function will open a window to enable the ability to open a file or folder
@@ -628,7 +639,7 @@ async function openSaveDialog(type, cb) {
 			if(file.filePath == null || saveas || force) { // Check if the file already exists
 				log('File to be saved path is not already set')
 				console.log(type_text, defaultName, filters, force);
-				dialog.showSaveDialog(windowManager.getCurrent().content(), {
+				dialog.showSaveDialog(currentWindow, {
 					title: type_text,
 					filters: filters,
 					defaultPath: defaultName, 

@@ -1,3 +1,12 @@
+
+@font-face {
+	font-family: 'Segoe Fluent Icons';
+	font-weight: normal;
+	font-style: normal;
+	src: url(vendor/Segoe/fluentIcons.ttf) format('truetype'),
+		 url(vendor/Segoe/fluentIcons.woff) format('woff'),
+		 url(vendor/Segoe/fluentIcons.woff2) format('woff2');
+}
 :root {
 	--enigma-background: #2c313a;
 	--enigma-color: #f8f8f2;
@@ -361,22 +370,24 @@ span.Enigma-selectedtext {
     background: 0 0;
 }
 .Enigma-foldmarker {
-	font-family: 'Octicons'!important;
+	font-family: 'Segoe Fluent Icons';
 	line-height: .3;
 	cursor: pointer;
+	vertical-align: middle;
 }
 .Enigma-foldgutter {
 	width: .7em;
 }
 .Enigma-foldgutter-open,
 .Enigma-foldgutter-folded {
+	font-family: 'Segoe Fluent Icons';
 	cursor: pointer;
 }
 .Enigma-foldgutter-open:after {
-	content: "\25BE";
+	content: "";
 }
 .Enigma-foldgutter-folded:after {
-	content: "\25B8";
+	content: "";
 }
 
 .enigma-t-default.Enigma {background-color: var(--enigma-background);color: var(--enigma-color);}

@@ -12,6 +12,7 @@ var editors = [],
  */
 const { ipcRenderer, remote } = require('electron');
 const os = require('os');
+const { report } = require('process');
 
 ipcRenderer.on('openFile', (event, fileInfo)=>createEditorTab(fileInfo));
 ipcRenderer.on('openDirectory', (event, message )=>console.log(message));
@@ -23,19 +24,31 @@ ipcRenderer.on('fileEncoding', (event, fileEncoding)=>updateFileEncoding(fileEnc
 ipcRenderer.on('filePath', (event, filePath)=>updateFilePath(filePath));
 ipcRenderer.on('fileName', (event, fileName)=>updateFileName(fileName));
 ipcRenderer.on('changeTab', (event, modifier)=>changeEditorTab(modifier));
-ipcRenderer.on('windowState', (event, state)=>isMaximized=state);
+ipcRenderer.on('windowState', (event, state)=>{
+	if(state) {
+		document.querySelector('titlebar[for="win32"] maximise').innerHTML = '';
+		document.querySelector('titlebar[for="darwin"] maximise').innerHTML = '';
+		document.querySelector('titlebar[for="linux"] maximise').innerHTML = '';
+	} else {
+		document.querySelector('titlebar[for="win32"] maximise').innerHTML = '';
+		document.querySelector('titlebar[for="darwin"] maximise').innerHTML = '';
+		document.querySelector('titlebar[for="linux"] maximise').innerHTML = '';
+	}
+})
 
 ipcRenderer.on('console', (event, element)=>console.log(element));
 
-// Hide the taskbar image unless on windows
 if (os.platform() == 'win32') {
-	document.querySelector('titlebar[for="windows"]').style.display = 'flex'; 
-
-} else if (os.platform() == 'darwin') {
-	document.querySelector('titlebar[for="mac"]').style.display = 'flex';
-} else {
-	document.querySelector('titlebar[for="linux"]').style.display = 'flex';
+	ipcRenderer.send('requestAppMenu');
+	ipcRenderer.on('appMenu', (event, menuJSON)=>{
+		parseApplicationMenu(JSON.parse(menuJSON));
+	});
 }
+document.querySelector(`titlebar[for="${os.platform()}"]`).style.display = 'flex';
+document.querySelectorAll('minimise').forEach((btn)=>{btn.addEventListener('click', ()=>ipcRenderer.send('minimiseWindow'))});
+document.querySelectorAll('maximise').forEach((btn)=>{btn.addEventListener('click', ()=>ipcRenderer.send('maximiseWindow'))});
+document.querySelectorAll('close').forEach((btn)=>{btn.addEventListener('click', ()=>ipcRenderer.send('closeWindow'))});
+
 //* Add event listeners for the tabs
 document.querySelector('tabs').addEventListener('click', function(event) {
 	target = event.target;
@@ -75,6 +88,7 @@ window.addEventListener('message', function(event) {
 	// clsoe tab is requested
 	if(message.closeTab) removeEditorTab(message.frameID);
 });
+
 document.querySelectorAll('.openSettingsPage').forEach((btn)=>{
 	btn.addEventListener('click', ()=>openSettingsPage())
 })
@@ -92,6 +106,50 @@ document.querySelectorAll('project-item').forEach((item)=>{
 		}
 	})
 })
+
+/** */
+function parseApplicationMenu(menu) {
+	var	cont, cnt=0;
+	menu.forEach((element)=>{
+		if(cont = document.querySelector(`titlebar[for="${os.platform()}"] titlebar-menu`)) {
+			titlebarMenuContainer = document.createElement("titlebar-menu-container");
+			titlebarMenuLabel = document.createElement("titlebar-menu-label");
+			titlebarMenuSubmenu = document.createElement("titlebar-menu-submenu");
+			titlebarMenuContainer.setAttribute('tabindex', 0)
+			titlebarMenuLabel.innerText = element.label;
+			cont.appendChild(titlebarMenuContainer);
+			titlebarMenuContainer.appendChild(titlebarMenuLabel);
+			titlebarMenuContainer.appendChild(titlebarMenuSubmenu);
+			cont.classList.add('show');
+			
+			if(element.submenu) {
+				element.submenu.forEach((element)=>{
+					if(element.label) {
+						titlebarMenuSubmenuItem = document.createElement("titlebar-menu-submenu-item");
+						titlebarMenuSubmenuItemLabel = document.createElement("titlebar-menu-submenu-item-label");
+						titlebarMenuSubmenuItemAccellerator = document.createElement("titlebar-menu-submenu-item-accellerator");
+						// append title
+						titlebarMenuSubmenuItemLabel.innerText = element.label;
+						//append accellerators
+						titlebarMenuSubmenuItemAccellerator.innerText = getAcceleratorString(element.accelerator);
+
+						titlebarMenuSubmenu.appendChild(titlebarMenuSubmenuItem);
+						titlebarMenuSubmenuItem.appendChild(titlebarMenuSubmenuItemLabel);
+						titlebarMenuSubmenuItem.appendChild(titlebarMenuSubmenuItemAccellerator);
+					} else if(element.type == 'separator') {
+						titlebarMenuSubmenuItem = document.createElement("hr");
+						titlebarMenuSubmenu.appendChild(titlebarMenuSubmenuItem);
+					} else [
+						console.log(element)
+					]
+				})
+			}
+		}
+		cnt++
+	})
+	//* Add event listeners for application menu
+
+}
 
 /** createEditorTab
  * 
@@ -118,7 +176,7 @@ function createEditorTab(fileInfo) {
 				newTab.setAttribute('filename', fileInfo.path.split("/").pop());
 			newTab_title.innerHTML = (fileInfo.title)? fileInfo.title: fileInfo.path.split("/").pop();
 			newEditor.innerText = fileInfo.content;
-			reloadEditors();
+			loadEditors();
 			changeEditorTab(parseInt(newID));
 			break;
 		case 'string': // Open preview
@@ -132,13 +190,13 @@ function createEditorTab(fileInfo) {
 			newTab_title.innerHTML = fileInfo.match(/([a-z]+)\.[a-z]+/)[1].charAt(0).toUpperCase() + fileInfo.match(/([a-z]+)\.[a-z]+/)[1].slice(1);
 			newEditor.classList.add('preview');
 			newEditor.setAttribute('preview-file', fileInfo)
-			reloadEditors();
+			loadEditors();
 			changeEditorTab(parseInt(newID));
 			break;
 		case 'undefined':
 			createTab();
 			newTab_title.innerHTML = `undefined-`+newID;
-			reloadEditors();
+			loadEditors();
 			changeEditorTab(parseInt(newID));
 			break;
 		default:
@@ -163,10 +221,54 @@ function createEditorTab(fileInfo) {
 		document.querySelector("editors").appendChild(newEditor);
 	}
 }
-/** reloadEditors
+/** getAcceleratorString */
+function getAcceleratorString(string) {
+	if(string.includes('+')) {
+		var out = string.split('+').map((str)=>{
+			return getAcceleratorString(str);
+		});
+		if(os.platform()=='darwin') {
+			return out.join('')
+		} else if(os.platform()=='darwin') {
+			return out.join('+')
+		} else {
+			return out.join('+')
+		}
+	} else {
+		switch(string) {
+			case 'CommandOrControl':
+			case 'CmdOrCtrl':
+				return (os.platform()=='darwin')? '⌃': 'Ctrl';
+			case 'Command':
+			case 'Control':
+			case 'Cmd':
+			case 'Ctrl':
+				return (os.platform()=='darwin')? '⌘': 'Ctrl';
+			case 'Alt':
+				return (os.platform()=='darwin')? '⌥': 'Alt';
+			case 'Shift':
+				return (os.platform()=='darwin')? '⇧': 'Shift';
+			case 'f1':
+			case 'f2':
+			case 'f3':
+			case 'f4':
+			case 'f5':
+			case 'f6':
+			case 'f7':
+			case 'f8':
+			case 'f9':
+			case 'f10':
+			case 'f11':
+			case 'f12':
+			default:
+				return string;
+		}
+	}
+}
+/** loadEditors
  * 
  */
-function reloadEditors() {
+function loadEditors() {
 	document.querySelectorAll('editor').forEach((editor) => {
 		if(!editors[editor.id]) {
 			editors[editor.id] = Array();
@@ -211,7 +313,7 @@ function reloadEditors() {
 					},
 					foldGutter: true,
 					foldOptions: {
-						widget: " ... ",
+						widget: "  ",
 					},
 					gutters: ["Enigma-linenumbers", "Enigma-foldgutter"],
 				});
@@ -254,7 +356,7 @@ function changeEditorTab(modifier) {
 /** removeEditorTab
  * 
  */
-function removeEditorTab(tabID = null) {
+function removeEditorTab(tabID) {
 	if(!tabID) tabID = document.querySelector(`tab.selected`).id;
 	var elem = document.querySelector(`tab[id="${tabID}"]`);
 	elem.parentNode.removeChild(elem);
@@ -269,13 +371,13 @@ function removeEditorTab(tabID = null) {
 	lastClosed = editors[tabID];
 	delete editors[tabID]
 	changeEditorTab(parseInt(lastEditor[lastEditor.length - 1]));
-	reloadEditors();
+	loadEditors();
 }
-/** reopenLasClosed
+/** reopenLastClosed
  * 
  * @param {*} EditorInfo 
  */
-function reopenLasClosed() {
+function reopenLastClosed() {
 	console.log('BEFORE', 'lastClosed: ', lastClosed, ', recentlyClosed: ', recentlyClosed)
 	var fileInfo = {
 		path: (lastClosed.path)? lastClosed.path: '',

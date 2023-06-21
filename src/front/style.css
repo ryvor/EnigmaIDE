@@ -16,8 +16,13 @@
 	--color-secondary: white;
 	--color-accent: grey;
 	/* Taskbar */
-		--taskbar-background: #d7dae0;
-		--taskbar-color: ;
+		--titlebar-background: #d7dae0;
+		--titlebar-color: ;
+		--titlebar-menu-border-thickness: 1px;
+		--titlebar-menu-border-style: solid;
+		--titlebar-menu-border-color-primary: #f95959;
+		--titlebar-menu-border-color-secondary: #b7bac2;
+		--titlebar-menu-item-background-hover: #c5cad3;
 	/* Sidebar */
 		--sidebar-radius: 3px;
 		--sidebar-background: #d7dae0;
@@ -131,8 +136,14 @@
 		--color-secondary: black;
 		--color-accent: grey;
 		/* Taskbar */
-			--taskbar-background: #1e2227;
-			--taskbar-color: ;
+			--titlebar-background: #1e2227;
+			--titlebar-color: ;
+			--titlebar-color: ;
+			--titlebar-menu-border-thickness: 1px;
+			--titlebar-menu-border-style: solid;
+			--titlebar-menu-border-color-primary: #f95959;
+			--titlebar-menu-border-color-secondary: #474a4e;
+			--titlebar-menu-item-background-hover: #444A55;
 		/* Sidebar */
 			--sidebar-radius: 3px;
 			--sidebar-background: #1e2227;
@@ -219,86 +230,139 @@ body {
 	color: var(--color-primary);
 	overflow: hidden;
 }
+titlebars,
 titlebar {
     height: 2rem;
 	grid-column-start: 1;
     grid-column-end: 3;
-	background-color: var(--taskbar-background);
-	color: var(--taskbar-color);
+	background-color: var(--titlebar-background);
+	color: var(--titlebar-color);
+}
+titlebar {
 	display: none;
 }
 /**/
-titlebar[for="windows"] * {
-	display: inline-block;
+titlebar[for="win32"] * {
+	display: block;
 }
 titlebar titlebar-icon,
-titlebar[for="windows"] titlebar-icon {
+titlebar[for="win32"] titlebar-icon {
 	float: left;
 	padding: 0.2rem 0.4rem;
     height: 1.6rem;
 }
 titlebar titlebar-icon img,
-titlebar[for="windows"] titlebar-icon img {
+titlebar[for="win32"] titlebar-icon img {
 	height: 100%;
 }
-titlebar[for="windows"] titlebar-menu {
+titlebar[for="win32"] titlebar-menu {
+	transition: display 1s;
+	display: none;
 	height: 100%;
-	width: 200px;
+	width: auto;
 }
-titlebar[for="windows"] titlebar-drag {
+titlebar[for="win32"] titlebar-menu.show {
+	display: flex;
+}
+titlebar[for="win32"] titlebar-menu titlebar-menu-container {
+	height: fit-content;
+	position: relative;
+	top: 4px;
+}
+titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-label {
+	width: max-content;
+    padding: 2px 4px 3px 4px;
+    margin-inline: 3px;
+    border-radius: 3px;
+}
+titlebar[for="win32"] titlebar-menu titlebar-menu-container:hover titlebar-menu-label {
+    padding: 1px 3px 2px 3px;
+    border: var(--titlebar-menu-border-thickness) var(--titlebar-menu-border-style) var(--titlebar-menu-border-color-primary);
+}
+titlebar[for="win32"] titlebar-menu:focus-within titlebar-menu-container:hover titlebar-menu-submenu {
+	transition-delay: 0.2s;
+	height: max-content;
+	border: var(--titlebar-menu-border-thickness) var(--titlebar-menu-border-style) var(--titlebar-menu-border-color-secondary);
+}
+titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu {
+	overflow: hidden;
+	transition: height 0.25s;
+	display: block;
+    width: max-content;
+    min-width: 100px;
+    height: 0px;
+    position: absolute;
+    background-color: var(--titlebar-background);
+    z-index: 999;
+    border-radius: 3px;
+}
+titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu hr {
+    width: 85%;
+    opacity: 0.5;
+}
+titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item {
+    display: grid;
+    margin: 2px;
+    border-radius: 3px;
+    padding: 2px 14px 3px 14px;
+    grid-template-columns: 1fr 0fr;
+}
+titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item:hover {
+	background-color: var(--titlebar-menu-item-background-hover);
+}
+titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item:active {
+}
+titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item titlebar-menu-submenu-item-label {
+	padding-right: 10px;
+}
+titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item titlebar-menu-submenu-item-accellerator {
+	font-size: 0.5rem;
+}
+titlebar[for="win32"] titlebar-drag {
+	-webkit-app-region: drag;
 	height: 100%;
 	width: -webkit-fill-available;
-	-webkit-app-region: drag;
 }
-titlebar[for="windows"] titlebar-buttons {
+titlebar[for="win32"] titlebar-buttons {
 	display: inline-flex;
 	float: right;
     height: 100%;
 }
-titlebar[for="windows"] titlebar-buttons > * {
+titlebar[for="win32"] titlebar-buttons > * {
 	font-family: 'Segoe Fluent Icons';
-    aspect-ratio: 1.4;
+	aspect-ratio: 1.4;
 	height: 100%;
 	display: flex;
 	align-items: center;
 	place-content: center;
+	font-size: 0.6rem;
 }
-titlebar[for="windows"] titlebar-buttons > *:hover {
+titlebar[for="win32"] titlebar-buttons > *:hover {
 	background-color: #7478807d;
 }
-titlebar[for="windows"] titlebar-buttons minimise {
-}
-titlebar[for="windows"] titlebar-buttons restore {
-}
-titlebar[for="windows"] titlebar-buttons maximise {
-}
-titlebar[for="windows"] titlebar-buttons close {
-	content: "\E8BB";
-}
-titlebar[for="windows"] titlebar-buttons close:hover {
+titlebar[for="win32"] titlebar-buttons close:hover {
 	background-color: #FF0000;
 }
 /**/
-titlebar[for="mac"] * {
+titlebar[for="madarwinc"] * {
 	display: inline-block;
 }
-titlebar[for="mac"] titlebar-drag {
+titlebar[for="darwin"] titlebar-drag {
 	height: 100%;
 	width: -webkit-fill-available;
-	-webkit-app-region: drag;
 }
-titlebar[for="mac"] titlebar-buttons {
+titlebar[for="darwin"] titlebar-buttons {
 	float: right;
     height: 100%;
 }
-titlebar[for="mac"] titlebar-buttons > * {
+titlebar[for="darwin"] titlebar-buttons > * {
     aspect-ratio: 1;
 	height: 100%
 }
-titlebar[for="mac"] titlebar-buttons > *:hover {
+titlebar[for="darwin"] titlebar-buttons > *:hover {
 	background-color: #ffffff14;
 }
-titlebar[for="mac"] titlebar-buttons close:hover {
+titlebar[for="darwin"] titlebar-buttons close:hover {
 	background-color: #FF0000;
 }
 /**/
