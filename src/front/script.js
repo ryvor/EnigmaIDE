@@ -1,10 +1,18 @@
 /**
+ * 
+ */
+var editors = [],
+	lastEditor = [],
+	recentlyClosed = [],
+	lastClosed = {},
+	currEditor = null,
+	isMaximized=null;
+/**
  * ELECTRON IPC
  */
 const { ipcRenderer, remote } = require('electron');
-const fs = require('fs');
 const os = require('os');
-const { electron } = require('process');
+
 ipcRenderer.on('openFile', (event, fileInfo)=>createEditorTab(fileInfo));
 ipcRenderer.on('openDirectory', (event, message )=>console.log(message));
 ipcRenderer.on('newFile', (event)=>createEditorTab());
@@ -15,30 +23,19 @@ ipcRenderer.on('fileEncoding', (event, fileEncoding)=>updateFileEncoding(fileEnc
 ipcRenderer.on('filePath', (event, filePath)=>updateFilePath(filePath));
 ipcRenderer.on('fileName', (event, fileName)=>updateFileName(fileName));
 ipcRenderer.on('changeTab', (event, modifier)=>changeEditorTab(modifier));
+ipcRenderer.on('windowState', (event, state)=>isMaximized=state);
 
 ipcRenderer.on('console', (event, element)=>console.log(element));
 
 // Hide the taskbar image unless on windows
-/*
 if (os.platform() == 'win32') {
 	document.querySelector('titlebar[for="windows"]').style.display = 'flex'; 
+
 } else if (os.platform() == 'darwin') {
 	document.querySelector('titlebar[for="mac"]').style.display = 'flex';
 } else {
 	document.querySelector('titlebar[for="linux"]').style.display = 'flex';
 }
-*/
-if (os.platform() !== 'win32') {
-	document.querySelector('titlebar > titlebar-icon > img').style.display = 'none'; 
-}
-/**
- * 
- */
-var editors = [],
-	lastEditor = [],
-	recentlyClosed = [],
-	lastClosed = {},
-	currEditor = null;
 //* Add event listeners for the tabs
 document.querySelector('tabs').addEventListener('click', function(event) {
 	target = event.target;

@@ -3,7 +3,15 @@
  * style.css v1.0
  * author: ryvor (@ryvor)
  */
- :root { /* Theme */
+ @font-face {
+	font-family: 'Segoe Fluent Icons';
+	font-weight: normal;
+	font-style: normal;
+	src: url(vendor/Segoe/fluentIcons.ttf) format('truetype'),
+		 url(vendor/Segoe/fluentIcons.woff) format('woff'),
+		 url(vendor/Segoe/fluentIcons.woff2) format('woff2');
+}
+:root { /* Theme */
 	--color-primary: black;
 	--color-secondary: white;
 	--color-accent: grey;
@@ -211,12 +219,6 @@ body {
 	color: var(--color-primary);
 	overflow: hidden;
 }
-
-titlebar:first-of-type {
-	display: block;
-	-webkit-app-region: drag;
-}
-
 titlebar {
     height: 2rem;
 	grid-column-start: 1;
@@ -249,15 +251,29 @@ titlebar[for="windows"] titlebar-drag {
 	-webkit-app-region: drag;
 }
 titlebar[for="windows"] titlebar-buttons {
+	display: inline-flex;
 	float: right;
     height: 100%;
 }
 titlebar[for="windows"] titlebar-buttons > * {
-    aspect-ratio: 1;
-	height: 100%
+	font-family: 'Segoe Fluent Icons';
+    aspect-ratio: 1.4;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	place-content: center;
 }
 titlebar[for="windows"] titlebar-buttons > *:hover {
-	background-color: #ffffff14;
+	background-color: #7478807d;
+}
+titlebar[for="windows"] titlebar-buttons minimise {
+}
+titlebar[for="windows"] titlebar-buttons restore {
+}
+titlebar[for="windows"] titlebar-buttons maximise {
+}
+titlebar[for="windows"] titlebar-buttons close {
+	content: "\E8BB";
 }
 titlebar[for="windows"] titlebar-buttons close:hover {
 	background-color: #FF0000;
@@ -289,27 +305,35 @@ titlebar[for="mac"] titlebar-buttons close:hover {
 titlebar[for="linux"] * {
 	display: inline-block;
 }
-titlebar[for="windows"] titlebar-menu {
+titlebar[for="linux"] titlebar-menu {
 	height: 100%;
 	width: 200px;
 }
-titlebar[for="windows"] titlebar-drag {
+titlebar[for="linux"] titlebar-drag {
 	height: 100%;
 	width: -webkit-fill-available;
 	-webkit-app-region: drag;
 }
-titlebar[for="windows"] titlebar-buttons {
+titlebar[for="linux"] titlebar-buttons {
 	float: right;
     height: 100%;
 }
-titlebar[for="windows"] titlebar-buttons > * {
+titlebar[for="linux"] titlebar-buttons > * {
     aspect-ratio: 1;
 	height: 100%
 }
-titlebar[for="windows"] titlebar-buttons > *:hover {
+titlebar[for="linux"] titlebar-buttons > *:hover {
 	background-color: #ffffff14;
 }
-titlebar[for="windows"] titlebar-buttons close:hover {
+titlebar[for="linux"] titlebar-buttons minimise {
+}
+titlebar[for="linux"] titlebar-buttons restore {
+}
+titlebar[for="linux"] titlebar-buttons maximise {
+}
+titlebar[for="linux"] titlebar-buttons close {
+}
+titlebar[for="linux"] titlebar-buttons close:hover {
 	background-color: #FF0000;
 }
 

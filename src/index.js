@@ -31,10 +31,6 @@ app.on('ready', ()=>{
 		title: app.getName(),
 		titleBarStyle: 'hidden',
 		resizable: true,
-		titleBarOverlay: {
-			symbolColor: '#74b1be',
-			height: 20
-		},
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
@@ -228,6 +224,12 @@ ipcMain.on('openModal', async (event, message) => {
 		event.reply('modal-response', resp);
 	});
 });
+ipcMain.on('requestWindowState', (event) => {
+	windowManager.getCurrent().content().send('windowState',
+		windowManager.getCurrent().window.isMaximized()
+	)
+});
+
 
 //#endregion *****************************/
 /*               FUNCTIONS               */
