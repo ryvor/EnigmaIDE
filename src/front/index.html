@@ -14,9 +14,33 @@
 	</head>
 	<body>
 		<titlebar>
-			<icon>
+			<titlebar-icon>
 				<img src="assets/enigma-color-logo.svg">
-			</icon>
+			</titlebar-icon>
+		</titlebar>
+		<titlebar for="windows">
+			<titlebar-icon>
+				<img src="assets/enigma-color-logo.svg">
+			</titlebar-icon>
+			<titlebar-menu></titlebar-menu>
+			<titlebar-drag></titlebar-drag>
+			<titlebar-buttons>
+				<minimise></minimise>
+				<restore></restore>
+				<maximise></maximise>
+				<close></close>
+			</titlebar-buttons>
+		</titlebar>
+		<titlebar for="mac">
+			<app-buttons>
+				<minimise></minimise>
+				<restore></restore>
+				<maximise></maximise>
+				<close></close>
+			</app-buttons>
+			<titlebar-drag></titlebar-drag>
+		</titlebar>
+		<titlebar for="linux">
 		</titlebar>
 		<sidebar>
 			<!--

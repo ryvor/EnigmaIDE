@@ -1,7 +1,7 @@
 /**
  * ELECTRON IPC
  */
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, remote } = require('electron');
 const fs = require('fs');
 const os = require('os');
 const { electron } = require('process');
@@ -17,12 +17,20 @@ ipcRenderer.on('fileName', (event, fileName)=>updateFileName(fileName));
 ipcRenderer.on('changeTab', (event, modifier)=>changeEditorTab(modifier));
 
 ipcRenderer.on('console', (event, element)=>console.log(element));
+
 // Hide the taskbar image unless on windows
-if (os.platform() !== 'win32') document.querySelector('titlebar > icon > img').style.display = 'none';
-/**
- * Keybinds
- */
-//TODO: Move keybinds to within the window
+/*
+if (os.platform() == 'win32') {
+	document.querySelector('titlebar[for="windows"]').style.display = 'flex'; 
+} else if (os.platform() == 'darwin') {
+	document.querySelector('titlebar[for="mac"]').style.display = 'flex';
+} else {
+	document.querySelector('titlebar[for="linux"]').style.display = 'flex';
+}
+*/
+if (os.platform() == 'win32') {
+	document.querySelector('titlebar > titlebar-icon > img').style.display = 'block'; 
+}
 /**
  * 
  */
