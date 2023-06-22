@@ -482,8 +482,71 @@ function openDirectory() {
 /** handleOpenDirectory
  * 
  */
-function handleOpenDirectory() {
+function handleOpenDirectory(project) {
+	console.log(project);
+	var sidebar = document.querySelector('sidebar'),
+		projectTitle = document.createElement('project-title');
+		projectTree = document.createElement('project-tree');
+		projectFolder = document.createElement('project-folder');
+		projectItem = document.createElement('project-item');
+		projectNameIcon = document.createElement('project-name-icon');
+		projectName = document.createElement('project-name');
+		projectLabelIcon = document.createElement('project-label-icon');
+		projectLabel = document.createElement('project-label');
+	//projectTitle.innerText=project.name;
+	projectName.innerText=project.name;
+	projectNameIcon.classList.add();
 
+	currTitle = sidebar.appendChild(projectTitle);
+	currTree = sidebar.appendChild(projectTree);
+	currItem = currTree	.appendChild(projectItem)
+	currItem.classList.add('oct-chevron-down');
+	CurrNameIcon = currItem.appendChild(projectNameIcon)
+	CurrNameIcon.classList.add('oct-repo');
+	currName = currItem.appendChild(projectName);
+	currFolder = currTree.appendChild(document.createElement('project-folder'))
+	currFolder.classList.add('unfolded');
+	project.folders.forEach((folder)=>{
+		processFolder(folder.contents, currFolder)
+	});
+
+	function processFolder(folder, container) {
+		folder.forEach((item)=>{
+			console.log(item);
+			switch(item.type) {
+				case "file":
+					cont = document.createElement('project-item');
+					icon = document.createElement('project-label-icon');
+  					label = document.createElement('project-label');
+
+					cont.classList.add('oct-nodef');
+					icon.classList.add('oct-file-text');
+					label.innerText = item.name;
+
+					container.appendChild(cont)
+					cont.appendChild(icon)
+					cont.appendChild(label)
+					break;
+				case "directory":
+					cont = document.createElement('project-item');
+					icon = document.createElement('project-label-icon');
+  					label = document.createElement('project-label');
+					folder = document.createElement('project-folder');
+
+					cont.classList.add('oct-chevron-right');
+					icon.classList.accelerator('oct-file-directory');
+					label.innerText = item.name;
+
+					container.appendChild(cont)
+					cont.appendChild(icon)
+					cont.appendChild(label)
+					break;
+				default:
+					console.log(item.type)
+					break;
+			}
+		})	
+	}
 }
 /****************/
 /** INITIALIZE **/

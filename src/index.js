@@ -542,14 +542,14 @@ async function processFile(result) {
  * @param Object result
  */
 function createProjectFile(result) {
-	const content = {}
-	console.log(result);
-	content.base = result.filePath;
-	content.folders = [
+	const project = {}
+	project.base = result.filePath;
+	project.name = path.basename(result.filePath, path.extname(result.filePath));
+	project.folders = [
 		path.dirname(result.filePath)
 	];
-	content.settings = {};
-	if(writeFileToDisk(result.filePath, JSON.stringify(content, null, "\t"))) {
+	project.settings = {};
+	if(writeFileToDisk(result.filePath, JSON.stringify(project, null, "\t"))) {
 		processProjectFile(result.filePath);
 	}
 }
