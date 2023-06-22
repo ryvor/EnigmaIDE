@@ -241,50 +241,49 @@ titlebar {
 titlebar {
 	display: none;
 }
-/**/
-titlebar[for="win32"] * {
+titlebar * {
 	display: block;
 }
-titlebar titlebar-icon,
-titlebar[for="win32"] titlebar-icon {
+/* Titlebar Icon */
+titlebar titlebar-icon {
 	float: left;
 	padding: 0.2rem 0.4rem;
     height: 1.6rem;
 }
-titlebar titlebar-icon img,
-titlebar[for="win32"] titlebar-icon img {
+titlebar titlebar-icon img {
 	height: 100%;
 }
-titlebar[for="win32"] titlebar-menu {
+/* Titlebar Menu bar */
+titlebar titlebar-menu {
 	transition: display 1s;
 	display: none;
 	height: 100%;
 	width: auto;
 }
-titlebar[for="win32"] titlebar-menu.show {
+titlebar titlebar-menu.show {
 	display: flex;
 }
-titlebar[for="win32"] titlebar-menu titlebar-menu-container {
+titlebar titlebar-menu titlebar-menu-container {
 	height: fit-content;
 	position: relative;
 	top: 4px;
 }
-titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-label {
+titlebar titlebar-menu titlebar-menu-container titlebar-menu-label {
 	width: max-content;
     padding: 2px 4px 3px 4px;
     margin-inline: 3px;
     border-radius: 3px;
 }
-titlebar[for="win32"] titlebar-menu titlebar-menu-container:hover titlebar-menu-label {
+titlebar titlebar-menu titlebar-menu-container:hover titlebar-menu-label {
     padding: 1px 3px 2px 3px;
     border: var(--titlebar-menu-border-thickness) var(--titlebar-menu-border-style) var(--titlebar-menu-border-color-primary);
 }
-titlebar[for="win32"] titlebar-menu:focus-within titlebar-menu-container:hover titlebar-menu-submenu {
+titlebar titlebar-menu:focus-within titlebar-menu-container:hover titlebar-menu-submenu {
 	transition-delay: 0.2s;
 	height: max-content;
 	border: var(--titlebar-menu-border-thickness) var(--titlebar-menu-border-style) var(--titlebar-menu-border-color-secondary);
 }
-titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu {
+titlebar titlebar-menu titlebar-menu-container titlebar-menu-submenu {
 	overflow: hidden;
 	transition: height 0.25s;
 	display: block;
@@ -296,33 +295,36 @@ titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submen
     z-index: 999;
     border-radius: 3px;
 }
-titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu hr {
+titlebar titlebar-menu titlebar-menu-container titlebar-menu-submenu hr {
     width: 85%;
     opacity: 0.5;
 }
-titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item {
+titlebar titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item {
     display: grid;
     margin: 2px;
     border-radius: 3px;
     padding: 2px 14px 3px 14px;
     grid-template-columns: 1fr 0fr;
 }
-titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item:hover {
+titlebar titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item:hover {
 	background-color: var(--titlebar-menu-item-background-hover);
 }
-titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item:active {
+titlebar titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item:active {
+	background-color: var(--titlebar-menu-item-background-active);
 }
-titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item titlebar-menu-submenu-item-label {
+titlebar titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item titlebar-menu-submenu-item-label {
 	padding-right: 10px;
 }
-titlebar[for="win32"] titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item titlebar-menu-submenu-item-accellerator {
+titlebar titlebar-menu titlebar-menu-container titlebar-menu-submenu titlebar-menu-submenu-item titlebar-menu-submenu-item-accellerator {
 	font-size: 0.5rem;
 }
-titlebar[for="win32"] titlebar-drag {
+/* Titlebar Drag Area */
+titlebar titlebar-drag {
 	-webkit-app-region: drag;
 	height: 100%;
 	width: -webkit-fill-available;
 }
+/* Titlebar Buttons */
 titlebar[for="win32"] titlebar-buttons {
 	display: inline-flex;
 	float: right;
@@ -343,14 +345,6 @@ titlebar[for="win32"] titlebar-buttons > *:hover {
 titlebar[for="win32"] titlebar-buttons close:hover {
 	background-color: #FF0000;
 }
-/**/
-titlebar[for="madarwinc"] * {
-	display: inline-block;
-}
-titlebar[for="darwin"] titlebar-drag {
-	height: 100%;
-	width: -webkit-fill-available;
-}
 titlebar[for="darwin"] titlebar-buttons {
 	float: right;
     height: 100%;
@@ -365,41 +359,7 @@ titlebar[for="darwin"] titlebar-buttons > *:hover {
 titlebar[for="darwin"] titlebar-buttons close:hover {
 	background-color: #FF0000;
 }
-/**/
-titlebar[for="linux"] * {
-	display: inline-block;
-}
-titlebar[for="linux"] titlebar-menu {
-	height: 100%;
-	width: 200px;
-}
-titlebar[for="linux"] titlebar-drag {
-	height: 100%;
-	width: -webkit-fill-available;
-	-webkit-app-region: drag;
-}
-titlebar[for="linux"] titlebar-buttons {
-	float: right;
-    height: 100%;
-}
-titlebar[for="linux"] titlebar-buttons > * {
-    aspect-ratio: 1;
-	height: 100%
-}
-titlebar[for="linux"] titlebar-buttons > *:hover {
-	background-color: #ffffff14;
-}
-titlebar[for="linux"] titlebar-buttons minimise {
-}
-titlebar[for="linux"] titlebar-buttons restore {
-}
-titlebar[for="linux"] titlebar-buttons maximise {
-}
-titlebar[for="linux"] titlebar-buttons close {
-}
-titlebar[for="linux"] titlebar-buttons close:hover {
-	background-color: #FF0000;
-}
+/*  */
 
 sidebar {
 	background-color: var(--sidebar-background);

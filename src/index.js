@@ -6,6 +6,7 @@ const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain,
 
 const path = require('path');
 const fs = require('fs');
+const { create } = require('domain');
 var	applicationMenuDefaults=[],
 	applicationMenu={},
 	allWindows=[],
@@ -204,7 +205,11 @@ app.on('ready', ()=>{
 app.on('window-all-closed', terminate);
 app.on('activate', activate);
 app.on('window-all-closed', allWindowsClosed);
-  
+
+ipcMain.on('minimiseWindow', (event)=>minimize())
+ipcMain.on('maximiseWindow', (event)=>(currentWindow.isMaximized())? currentWindow.restore(): currentWindow.maximize())
+ipcMain.on('closeWindow', (event)=>close())
+ipcMain.on('requestAppMenu', (event)=>event.sender.send('appMenu', JSON.stringify(applicationMenu[process.platform])))
 ipcMain.on('createProject', (event)=>openSaveDialog(2, createProjectFile));
 ipcMain.on('openFile', (event)=>openDialog(1, processFile));
 ipcMain.on('openProject', (event)=>openDialog(3, processProjectFile));
@@ -223,10 +228,6 @@ ipcMain.on('openModal', async (event, message) => {
 		event.reply('modal-response', resp);
 	});
 });
-ipcMain.on('minimiseWindow', (event)=>minimize())
-ipcMain.on('maximiseWindow', (event)=>(currentWindow.isMaximized())? currentWindow.restore(): currentWindow.maximize())
-ipcMain.on('closeWindow', (event)=>close())
-ipcMain.on('requestAppMenu', (event)=>event.sender.send('appMenu', JSON.stringify(applicationMenu[process.platform])))
 
 //#endregion *****************************/
 /*               FUNCTIONS               */
@@ -239,7 +240,7 @@ ipcMain.on('requestAppMenu', (event)=>event.sender.send('appMenu', JSON.stringif
 function createWindow() {
 	allWindows[allWindows.length] = x = new BrowserWindow(windowStyles.default);
 	x.loadFile(__dirname+'/front/index.html');
-	
+
 	x.on('focus', focus);
 	x.on('blur', blur);
 	x.on('maximize', ()=>(currentWindow)? currentWindow.send('windowState', true): null);
@@ -248,6 +249,7 @@ function createWindow() {
 		x.show();
 		x.send('windowState', x.isMaximized());
 	})
+	return x;
 };
 /**
  * 
@@ -346,19 +348,6 @@ function registerApplicationMenu() {
  * 
  */
 function hide() {
-}
-/** createProjectFile
- * @param Object result
- */
-function createProjectFile(result) {
-	console.log(result)
-	const content = {}
-	content.base = result.filePath;
-	content.folders = [result.filePath];
-	content.settings = {};
-	if(writeFileToDisk(result.filePath, JSON.stringify(content, null, "\t"))) {
-		processProjectFile(result.filePath);
-	}
 }
 /** detectEncoding
  * @param Object buffer
@@ -460,7 +449,7 @@ async function reopenLastEditor() {
 	try {
 		return await currentWindow.executeJavaScript(`reopenLastClosed()`);
 	} catch (error) {
-		console.error('Error getting info for the open file:', error);
+		log('Error re-opening the last file');
 		return false;
 	}
 }
@@ -472,7 +461,7 @@ async function getCurrentFile() {
 	try {
 		return await currentWindow.executeJavaScript(`getCurrentFile()`);
 	} catch (error) {
-		console.error('Error getting info for the open file:', error);
+		log('Error getting info for the open file');
 		return false;
 	}
 }
@@ -484,7 +473,7 @@ async function getCurrentFiles() {
 	try {
 		return await currentWindow.executeJavaScript(`getCurrentFiles()`);
 	} catch (error) {
-		console.error('Error getting info for the open file:', error);
+		log('Error getting info for the open files');
 		return false;
 	}
 }
@@ -549,13 +538,40 @@ async function processFile(result) {
 		}
 	})
 }
+/** createProjectFile
+ * @param Object result
+ */
+function createProjectFile(result) {
+	const content = {}
+	console.log(result);
+	content.base = result.filePath;
+	content.folders = [
+		path.dirname(result.filePath)
+	];
+	content.settings = {};
+	if(writeFileToDisk(result.filePath, JSON.stringify(content, null, "\t"))) {
+		processProjectFile(result.filePath);
+	}
+}
 /** processProjectFile
  * 
  */
 async function processProjectFile(result) {
-	var c = JSON.parse(fs.readFileSync(result.filePaths[0]));
-	c.json = await processDirectory(c.base)
-	currentWindow.send('openDirectory', c);
+	var files=[];
+	(typeof result !== 'object')? files.push(result): files=result.filePaths;
+	try {
+		for(i1=0; i1<files.length; i1++) {
+			var file=files[i1],
+				dir={},
+				json =  JSON.parse(fs.readFileSync(file));
+			dir.file = json.base;
+			dir.folders=[];
+			for(i2=0; i2<json.folders.length; i2++) dir.folders.push(await processDirectory(json.folders[i2]));
+			(i1==0)?currentWindow.send('openDirectory', dir): createWindow().send('openDirectory', dir);
+		};
+	} catch(e) {
+		log(e);
+	}
 }
 /** openDialog
  * This function will open a window to enable the ability to open a file or folder
@@ -580,7 +596,7 @@ async function openDialog(type, cb) {
 			filters = [
 				{ name: 'Enigma Project File', extensions: ['enws'] }
 			];
-			properties = ['openFile'];
+			properties = ['openFile', 'multiSelections'];
 			break;
 	}
 	try {
@@ -635,27 +651,26 @@ async function openSaveDialog(type, cb) {
 			break;
 	}
 	try {
-		if((file = await getCurrentFile()).savable || force) {
+		file = await getCurrentFile();
+		if(file.savable || force) {
 			if(file.filePath == null || saveas || force) { // Check if the file already exists
-				log('File to be saved path is not already set')
-				console.log(type_text, defaultName, filters, force);
 				dialog.showSaveDialog(currentWindow, {
 					title: type_text,
 					filters: filters,
 					defaultPath: defaultName, 
 					buttonLabel: 'Save',
 				}).then(res => {
+					log('here');
 					cb(res);
 				}).catch(err => {
 					new Error(err);
 				});
 			} else {
-				log('File to be saved path already set');
 				cb(file);
 			}
 		}
 	} catch (error) {
-		console.log('error: ', error);
+		log('Unable to process save dialog');
 		return false;
 	}
 }

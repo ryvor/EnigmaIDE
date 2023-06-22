@@ -15,7 +15,7 @@ const os = require('os');
 const { report } = require('process');
 
 ipcRenderer.on('openFile', (event, fileInfo)=>createEditorTab(fileInfo));
-ipcRenderer.on('openDirectory', (event, message )=>console.log(message));
+ipcRenderer.on('openDirectory', (event, message )=>handleOpenDirectory(message));
 ipcRenderer.on('newFile', (event)=>createEditorTab());
 ipcRenderer.on('closeTab', (event)=>removeEditorTab());
 ipcRenderer.on('openWelcomePage', (event)=>createEditorTab('./pages/welcome.html', true));
@@ -107,7 +107,10 @@ document.querySelectorAll('project-item').forEach((item)=>{
 	})
 })
 
-/** */
+/** parseApplicationMenu
+ * 
+ * @param {object} menu 
+ */
 function parseApplicationMenu(menu) {
 	var	cont, cnt=0;
 	menu.forEach((element)=>{
@@ -150,7 +153,6 @@ function parseApplicationMenu(menu) {
 	//* Add event listeners for application menu
 
 }
-
 /** createEditorTab
  * 
  */
@@ -477,7 +479,12 @@ function openFile() {
 function openDirectory() {
 	ipcRenderer.send('openProject')
 }
+/** handleOpenDirectory
+ * 
+ */
+function handleOpenDirectory() {
 
+}
 /****************/
 /** INITIALIZE **/
 /****************/
