@@ -95,18 +95,20 @@ document.querySelectorAll('.openSettingsPage').forEach((btn)=>{
 document.querySelectorAll('.openWelcomePage').forEach((btn)=>{
 	btn.addEventListener('click', ()=>openWelcomePage())
 })
-document.querySelectorAll('project-item').forEach((item)=>{
-	item.addEventListener('click', ()=>{
-		if(item.nextElementSibling && item.nextElementSibling.tagName == 'PROJECT-FOLDER') {
-			item.classList.toggle('oct-chevron-right');
-			item.classList.toggle('oct-chevron-down');
-			item.nextElementSibling.classList.toggle('unfolded');
-		} else {
-			console.log('openFile');
-		}
-	})
-})
 
+function reloadProjectTree() {
+	document.querySelectorAll('project-item').forEach((item)=>{
+		item.addEventListener('click', ()=>{
+			if(item.nextElementSibling && item.nextElementSibling.tagName == 'PROJECT-FOLDER') {
+				item.classList.toggle('oct-chevron-right');
+				item.classList.toggle('oct-chevron-down');
+				item.nextElementSibling.classList.toggle('unfolded');
+			} else {
+				console.log('openFile');
+			}
+		})
+	})
+}
 /** parseApplicationMenu
  * 
  * @param {object} menu 
@@ -510,42 +512,49 @@ function handleOpenDirectory(project) {
 		processFolder(folder.contents, currFolder)
 	});
 
+	reloadProjectTree();
+
 	function processFolder(folder, container) {
-		folder.forEach((item)=>{
-			console.log(item);
-			switch(item.type) {
-				case "file":
-					cont = document.createElement('project-item');
-					icon = document.createElement('project-label-icon');
-  					label = document.createElement('project-label');
+		try {
+			folder.forEach((item)=>{
+				switch(item.type) {
+					case "file":
+						cont = document.createElement('project-item');
+						icon = document.createElement('project-label-icon');
+						label = document.createElement('project-label');
 
-					cont.classList.add('oct-nodef');
-					icon.classList.add('oct-file-text');
-					label.innerText = item.name;
+						cont.classList.add('oct-nodef');
+						icon.classList.add('oct-file-text');
+						label.innerText = item.name;
 
-					container.appendChild(cont)
-					cont.appendChild(icon)
-					cont.appendChild(label)
-					break;
-				case "directory":
-					cont = document.createElement('project-item');
-					icon = document.createElement('project-label-icon');
-  					label = document.createElement('project-label');
-					folder = document.createElement('project-folder');
+						container.appendChild(cont)
+						cont.appendChild(icon)
+						cont.appendChild(label)
+						break;
+					case "directory":
+						cont = document.createElement('project-item');
+						icon = document.createElement('project-label-icon');
+						label = document.createElement('project-label');
+						folder = document.createElement('project-folder');
 
-					cont.classList.add('oct-chevron-right');
-					icon.classList.accelerator('oct-file-directory');
-					label.innerText = item.name;
+						cont.classList.add('oct-chevron-right');
+						icon.classList.add('oct-file-directory');
+						label.innerText = item.name;
 
-					container.appendChild(cont)
-					cont.appendChild(icon)
-					cont.appendChild(label)
-					break;
-				default:
-					console.log(item.type)
-					break;
-			}
-		})	
+						container.appendChild(cont);
+						cont.appendChild(icon);
+						cont.appendChild(label);
+						var x = container.appendChild(folder);
+						processFolder(x);
+						break;
+					default:
+						console.log(item.type)
+						break;
+				}
+			});
+		} catch {
+
+		};
 	}
 }
 /****************/

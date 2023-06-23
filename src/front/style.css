@@ -416,15 +416,16 @@ sidebar project-tree project-item project-label:before {
 	margin-right: 10px;
 }
 sidebar project-tree project-folder {
-	transition: height 1s ease;
+	transition: max-height 0.25s ease;
 	padding-left: 1rem;
 	width: calc(100% - 1rem);
 	display: block;
 	overflow: hidden;
-	height: 0px;
+	height: auto;
+	max-height: 0px;
 }
 sidebar project-tree project-folder.unfolded {
-	height: auto;
+	max-height: 100%;
 }
 sidebar project-tree project-folder > * {
 	width: calc(100% - 1rem);
