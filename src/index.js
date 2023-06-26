@@ -3,10 +3,11 @@
 //#region ********************************/
 
 const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain, shell } = require('electron');
-
+const contextMenu = require('electron-context-menu');
 const path = require('path');
 const fs = require('fs');
-const { create } = require('domain');
+const os = require('os');
+
 var	applicationMenuDefaults=[],
 	applicationMenu={},
 	allWindows=[],
@@ -212,7 +213,9 @@ ipcMain.on('closeWindow', (event)=>close())
 ipcMain.on('requestAppMenu', (event)=>event.sender.send('appMenu', JSON.stringify(applicationMenu[process.platform])))
 ipcMain.on('createProject', (event)=>openSaveDialog(2, createProjectFile));
 ipcMain.on('openFile', (event)=>openDialog(1, processFile));
+ipcMain.on('processFile', (event, file )=>processFile(file));
 ipcMain.on('openProject', (event)=>openDialog(3, processProjectFile));
+ipcMain.on('getFileContent', (event)=>event.reply('getFileContent-reply', resp));
 ipcMain.on('openModal', async (event, message) => {
 	switch(typeof message) {
 		case "object":
@@ -248,7 +251,11 @@ function createWindow() {
 	x.once('ready-to-show', ()=>{
 		x.show();
 		x.send('windowState', x.isMaximized());
-	})
+	});
+	contextMenu({
+		window: x,
+	});
+	
 	return x;
 };
 /**
@@ -459,7 +466,7 @@ async function reopenLastEditor() {
  */
 async function getCurrentFile() {
 	try {
-		return await currentWindow.executeJavaScript(`getCurrentFile()`);
+		return await currentWindow.webContents.executeJavaScript('getCurrentFile()');
 	} catch (error) {
 		log('Error getting info for the open file');
 		return false;
@@ -471,7 +478,7 @@ async function getCurrentFile() {
  */
 async function getCurrentFiles() {
 	try {
-		return await currentWindow.executeJavaScript(`getCurrentFiles()`);
+		return await currentWindow.webContents.executeJavaScript('getCurrentFiles()');
 	} catch (error) {
 		log('Error getting info for the open files');
 		return false;
@@ -481,11 +488,13 @@ async function getCurrentFiles() {
  * @param Boolean force
  * @returns Void
  */
-async function saveFile(response) {
+async function saveFile(response, obfuscate) {
 	if(response.canceled) { // Check if the save dialog was cancelled
 		log('cancelled save dialog');
 	} else {
+		file = (obfuscate)? handleObfuscation(file.content): file;
 		if(writeFileToDisk(response.filePath, file.content)) {
+			if(obfuscate) writeFileToDisk(response.filePath, file.key);
 			if(fs.statSync(response.filePath).isFile()) {
 				const buffer = fs.readFileSync(response.filePath);
 				currentWindow.send('fileEncoding', detectEncoding(buffer));
@@ -499,23 +508,27 @@ async function saveFile(response) {
  * @param Object result
  */
 async function processDirectory(folderPath) {
-	return await new Promise((resolve, reject) =>{
-		fs.readdir(folderPath, { withFileTypes: true }, async (err, files) => {
+	return await new Promise((resolve, reject) => {
+		fs.readdir(folderPath, { withFileTypes: true }, async (err, unfilteredFiles) => {
 			if (err) {
 				reject(err);
 				return;
 			}
+
+			const files = filterSystemFiles(unfilteredFiles, folderPath)
+
 			const directoryJSON = {
 				path: folderPath,
 				contents: []
 			};
-			const promises = files.map(async (file) => {
-					const item = {
-						name: file.name,
-						type: file.isDirectory() ? 'directory' : 'file'
-					};
-					if (file.isDirectory()) item.contents = await processDirectory(path.join(folderPath, file.name));
-					return item;
+			const promises = files.map(async (dirent) => {
+				const filePath = path.join(folderPath, dirent.name);
+				const item = {
+				name: dirent.name,
+				type: dirent.isDirectory() ? 'directory' : 'file'
+				};
+				if (dirent.isDirectory()) item.contents = await processDirectory(filePath);
+				return item;
 			});
 			// Wait for all the promises to resolve
 			directoryJSON.contents = await Promise.all(promises);
@@ -523,12 +536,45 @@ async function processDirectory(folderPath) {
 		});
 	});
 }
+function filterSystemFiles(files, root) {
+	return files.filter((dirent) => {
+		const filePath = path.join(root, dirent.name);
+		const fileStats = fs.statSync(filePath);
+
+		// Exclude system files based on criteria specific to your platform
+		if (os.platform() === 'win32') {
+			// Exclude files with system and hidden attributes
+			if ((fileStats.isFile() && (fileStats.win32.system || fileStats.win32.hidden))) return false;
+			// Exclude files with specific extensions commonly used for system files
+			const systemFileExtensions = ['.sys', '.dll', '.ini', '.lnk'];
+			const fileExtension = path.extname(dirent.name).toLowerCase();
+			if (fileStats.isFile() && systemFileExtensions.includes(fileExtension)) return false;
+		} else if (os.platform() === 'darwin') {
+			// Exclude files with specific extensions commonly used for system files
+			const systemFileExtensions = ['.localized', '.ds_store'];
+			const fileExtension = path.extname(dirent.name).toLowerCase();
+			if (fileStats.isFile() && (systemFileExtensions.includes(fileExtension) || systemFileExtensions.includes(dirent.name.toLowerCase()))) return false;
+		} else if (os.platform() === 'linux') {
+			// Exclude files with specific extensions commonly used for system files
+			const systemFileExtensions = ['.so', '.conf'];
+			const fileExtension = path.extname(dirent.name).toLowerCase();
+			if (fileStats.isFile() && systemFileExtensions.includes(fileExtension)) return false;
+		}
+		// Include the file if it doesn't match any system file criteria
+		return true;
+	});
+}
 /** processFile
  * @param Object result
  */
 async function processFile(result) {
 	var fileInfo={};
-	result.filePaths.forEach((filePath)=>{
+	if(typeof result === 'string') {
+		process(result);
+	} else {
+		result.filePaths.forEach((filePath)=>process(filePath))
+	}
+	function process(filePath) {
 		fileInfo.path = filePath;
 		if(fs.statSync(fileInfo.path).isFile()) {
 			const buffer = fs.readFileSync(fileInfo.path);
@@ -536,14 +582,13 @@ async function processFile(result) {
 			fileInfo.content = buffer.toString(fileInfo.encoding);
 			currentWindow.send('openFile', fileInfo);
 		}
-	})
+	}
 }
 /** createProjectFile
  * @param Object result
  */
 function createProjectFile(result) {
 	const project = {}
-	project.base = result.filePath;
 	project.name = path.basename(result.filePath, path.extname(result.filePath));
 	project.folders = [
 		path.dirname(result.filePath)
@@ -567,7 +612,7 @@ async function processProjectFile(result) {
 			dir.file = json.base;
 			dir.folders=[];
 			for(i2=0; i2<json.folders.length; i2++) dir.folders.push(await processDirectory(json.folders[i2]));
-			(i1==0)?currentWindow.send('openDirectory', dir): createWindow().send('openDirectory', dir);
+			(i1==0)?currentWindow.send('processProject', dir, json): createWindow().send('processProject', dir, json);
 		};
 	} catch(e) {
 		log(e);
@@ -673,6 +718,15 @@ async function openSaveDialog(type, cb) {
 		log('Unable to process save dialog');
 		return false;
 	}
+}
+//#endregion *****************************/
+/*              Obfuscation              */
+//#region ********************************/
+function handleObfuscation(content) {
+
+}
+function handleDeobfuscation(content, key) {
+
 }
 //#endregion *****************************/
 /*                  EOF                  */

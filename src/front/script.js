@@ -16,6 +16,7 @@ const { report } = require('process');
 
 ipcRenderer.on('openFile', (event, fileInfo)=>createEditorTab(fileInfo));
 ipcRenderer.on('openDirectory', (event, message )=>handleOpenDirectory(message));
+ipcRenderer.on('processProject', (event, dir, json)=>openProject(dir, json));
 ipcRenderer.on('newFile', (event)=>createEditorTab());
 ipcRenderer.on('closeTab', (event)=>removeEditorTab());
 ipcRenderer.on('openWelcomePage', (event)=>createEditorTab('./pages/welcome.html', true));
@@ -48,7 +49,6 @@ document.querySelector(`titlebar[for="${os.platform()}"]`).style.display = 'flex
 document.querySelectorAll('minimise').forEach((btn)=>{btn.addEventListener('click', ()=>ipcRenderer.send('minimiseWindow'))});
 document.querySelectorAll('maximise').forEach((btn)=>{btn.addEventListener('click', ()=>ipcRenderer.send('maximiseWindow'))});
 document.querySelectorAll('close').forEach((btn)=>{btn.addEventListener('click', ()=>ipcRenderer.send('closeWindow'))});
-
 //* Add event listeners for the tabs
 document.querySelector('tabs').addEventListener('click', function(event) {
 	target = event.target;
@@ -95,7 +95,16 @@ document.querySelectorAll('.openSettingsPage').forEach((btn)=>{
 document.querySelectorAll('.openWelcomePage').forEach((btn)=>{
 	btn.addEventListener('click', ()=>openWelcomePage())
 })
-
+/**
+ * 
+ */
+function openProject(dir, json) {
+	handleOpenDirectory(dir);
+	document.querySelector('project-name').innerText = json.name
+}
+/**
+ * 
+ */
 function reloadProjectTree() {
 	document.querySelectorAll('project-item').forEach((item)=>{
 		item.addEventListener('click', ()=>{
@@ -104,7 +113,7 @@ function reloadProjectTree() {
 				item.classList.toggle('oct-chevron-down');
 				item.nextElementSibling.classList.toggle('unfolded');
 			} else {
-				console.log('openFile');
+				ipcRenderer.send('processFile', item.getAttribute('filepath'))
 			}
 		})
 	})
@@ -382,7 +391,6 @@ function removeEditorTab(tabID) {
  * @param {*} EditorInfo 
  */
 function reopenLastClosed() {
-	console.log('BEFORE', 'lastClosed: ', lastClosed, ', recentlyClosed: ', recentlyClosed)
 	var fileInfo = {
 		path: (lastClosed.path)? lastClosed.path: '',
 		encoding: (lastClosed.encoding)? lastClosed.encoding: '',
@@ -392,19 +400,21 @@ function reopenLastClosed() {
 	createEditorTab(fileInfo);
 	recentlyClosed.splice(recentlyClosed.length - 1, 1);;
 	lastClosed = recentlyClosed[recentlyClosed.length - 1];
-	console.log('AFTER', 'lastClosed: ', lastClosed, ', recentlyClosed: ', recentlyClosed)
 }
 /** getCurrentFile
  * 
  */
 function getCurrentFile() {
+	console.log('Getting file conent');
 	resp = {};
-	if(edt = editors[currEditor].IDE) {
+	if(editors[currEditor].IDE) {
 		resp.savable = true;
-		resp.content = edt.getValue();
+		resp.content = editors[currEditor].IDE.getValue();
 		resp.filePath = editors[currEditor]['path'];
 		resp.fileName = editors[currEditor]['title'];
 		resp.encoding = editors[currEditor]['encoding'];
+		
+		console.log(resp);
 		console.log(editors);
 	} else {
 		resp.savable = false;
@@ -487,17 +497,19 @@ function openDirectory() {
 function handleOpenDirectory(project) {
 	console.log(project);
 	var sidebar = document.querySelector('sidebar'),
-		projectTitle = document.createElement('project-title');
-		projectTree = document.createElement('project-tree');
-		projectFolder = document.createElement('project-folder');
-		projectItem = document.createElement('project-item');
-		projectNameIcon = document.createElement('project-name-icon');
-		projectName = document.createElement('project-name');
-		projectLabelIcon = document.createElement('project-label-icon');
+		projectTitle = document.createElement('project-title'),
+		projectTree = document.createElement('project-tree'),
+		projectFolder = document.createElement('project-folder'),
+		projectItem = document.createElement('project-item'),
+		projectNameIcon = document.createElement('project-name-icon'),
+		projectName = document.createElement('project-name'),
+		projectLabelIcon = document.createElement('project-label-icon'),
 		projectLabel = document.createElement('project-label');
 	//projectTitle.innerText=project.name;
 	projectName.innerText=project.name;
 	projectNameIcon.classList.add();
+
+	sidebar.innerHTML = '';
 
 	currTitle = sidebar.appendChild(projectTitle);
 	currTree = sidebar.appendChild(projectTree);
@@ -506,17 +518,19 @@ function handleOpenDirectory(project) {
 	CurrNameIcon = currItem.appendChild(projectNameIcon)
 	CurrNameIcon.classList.add('oct-repo');
 	currName = currItem.appendChild(projectName);
+	currName.innerText = ''
 	currFolder = currTree.appendChild(document.createElement('project-folder'))
 	currFolder.classList.add('unfolded');
 	project.folders.forEach((folder)=>{
-		processFolder(folder.contents, currFolder)
+		processFolder(folder, currFolder)
 	});
 
 	reloadProjectTree();
 
 	function processFolder(folder, container) {
+		var baseFolder = folder.path;
 		try {
-			folder.forEach((item)=>{
+			folder.contents.forEach((item)=>{
 				switch(item.type) {
 					case "file":
 						cont = document.createElement('project-item');
@@ -524,6 +538,8 @@ function handleOpenDirectory(project) {
 						label = document.createElement('project-label');
 
 						cont.classList.add('oct-nodef');
+						cont.setAttribute('filepath', baseFolder+'/'+item.name);
+						cont.setAttribute('filename', item.name);
 						icon.classList.add('oct-file-text');
 						label.innerText = item.name;
 
@@ -545,10 +561,9 @@ function handleOpenDirectory(project) {
 						cont.appendChild(icon);
 						cont.appendChild(label);
 						var x = container.appendChild(folder);
-						processFolder(x);
+						processFolder(item.contents, x);
 						break;
 					default:
-						console.log(item.type)
 						break;
 				}
 			});
@@ -557,9 +572,11 @@ function handleOpenDirectory(project) {
 		};
 	}
 }
-/****************/
-/** INITIALIZE **/
-/****************/
-if(editors.length == 0) {
-	openWelcomePage();
-}
+/******************/
+/** CONTEXT MENU **/
+/******************/
+
+/******************/
+/**  INITIALIZE  **/
+/******************/
+if(editors.length == 0) openWelcomePage();
