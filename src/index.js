@@ -2,7 +2,7 @@
 /*               VARIABLES               */
 //#region ********************************/
 
-const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain, shell } = require('electron');
+const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain, shell, screen } = require('electron');
 const contextMenu = require('electron-context-menu');
 const path = require('path');
 const fs = require('fs');
@@ -13,13 +13,20 @@ var	applicationMenuDefaults=[],
 	allWindows=[],
 	currentWindow,
 	windowStyles=[],
-	modalActive=false;
+	modalActive=false,
+	screenWidth,
+	screenHeight,
+	halfScreenWidth;
+
 if(require('electron-squirrel-startup')) terminate(true);
 //#endregion *****************************/
 /*             SYSTEM EVENTS             */
 //#region ********************************/
 
 app.on('ready', ()=>{
+	screenWidth = screen.getPrimaryDisplay().workAreaSize.width;
+	screenHeight = screen.getPrimaryDisplay().workAreaSize.height;
+	halfScreenWidth = Math.floor(screenWidth / 2);
 	windowStyles.default = {
 		width: 1080,
 		height: 700,
@@ -52,10 +59,10 @@ app.on('ready', ()=>{
 					},{	type: 'separator'
 					},{	label: 'Hide '+app.getName(),
 						accelerator: 'CmdOrCtrl+H',
-						click: ()=>{},
+						role: 'hide',
 					},{	label: 'Hide Others',
 						accelerator: 'CmdOrCtrl+Alt+H',
-						click: ()=>{},
+						role: 'hideOthers',
 					},{	type: 'separator'
 					},{	label: 'Quit',
 						accelerator: '',
@@ -106,20 +113,20 @@ app.on('ready', ()=>{
 				submenu: [
 					{	label: 'Undo',
 						accelerator: 'CmdOrCtrl+Z',
-						click: ()=>{}
+						role: 'undo',
 					},{	label: 'Redo',
 						accelerator: 'CmdOrCtrl+Shift+Z',
-						click: ()=>{}
+						role: 'redo',
 					},{	type: 'separator'
 					},{	label: 'Cut',
 						accelerator: 'CmdOrCtrl+X',
-						click: ()=>{}
+						role: 'cut',
 					},{	label: 'Copy',
 						accelerator: 'CmdOrCtrl+C',
-						click: ()=>{}
+						role: 'copy',
 					},{	label: 'Paste',
 						accelerator: 'CmdOrCtrl+V',
-						click: ()=>{}
+						role: 'paste',
 					},{	type: 'separator'
 					},{	label: 'Find',
 						accelerator: 'CmdOrCtrl+F',
@@ -149,7 +156,22 @@ app.on('ready', ()=>{
 			},{	label: 'Terminal',
 				submenu: []
 			},{	label: 'Window',
-				submenu: []
+				submenu: [
+					{	label: 'Minimize',
+						accelerator: '',
+						click: ()=>currentWindow.minimize(),
+					},{	label: 'Zoom',
+						accelerator: '',
+						click: ()=>(currentWindow.isMaximized())? currentWindow.restore(): currentWindow.maximize(),
+					},{	label: 'Tile left',
+						accelerator: '',
+						click: ()=>tileWindowToLeft(),
+					},{	label: 'Tile Right',
+						accelerator: '',
+						click: ()=>tileWindowToRight(),
+					},{	type: 'separator'
+				},
+				]
 			},{	label: 'Help',
 				submenu: [
 					{	label: 'Welcome',
@@ -159,7 +181,7 @@ app.on('ready', ()=>{
 						accelerator: '',
 						click: ()=>shell.openExternal("http://ryvor.github.io/EnigmaIDE/")
 					},{	label: 'Open Developer Tools',
-						accelerator: 'Ctrl+Alt+I',
+						accelerator: '',
 						click: ()=>currentWindow.openDevTools(),
 					}
 				]
@@ -206,10 +228,10 @@ app.on('ready', ()=>{
 app.on('window-all-closed', terminate);
 app.on('activate', activate);
 app.on('window-all-closed', allWindowsClosed);
-
-ipcMain.on('minimiseWindow', (event)=>minimize())
+app.on('web-contents-created', (event, contents)=>initialiseContextMenu(event, contents))
+ipcMain.on('minimiseWindow', (event)=>currentWindow.minimize())
 ipcMain.on('maximiseWindow', (event)=>(currentWindow.isMaximized())? currentWindow.restore(): currentWindow.maximize())
-ipcMain.on('closeWindow', (event)=>close())
+ipcMain.on('closeWindow', (event)=>currentWindow.close())
 ipcMain.on('requestAppMenu', (event)=>event.sender.send('appMenu', JSON.stringify(applicationMenu[process.platform])))
 ipcMain.on('createProject', (event)=>openSaveDialog(2, createProjectFile));
 ipcMain.on('openFile', (event)=>openDialog(1, processFile));
@@ -236,6 +258,40 @@ ipcMain.on('openModal', async (event, message) => {
 /*               FUNCTIONS               */
 //#region ********************************/
 
+/** initialiseContextMenu
+ * 
+ */
+function initialiseContextMenu(event, contents) {
+	contextMenu({
+		window: contents,
+		showLearnSpelling: false,
+		showLookUpSelection: false,
+		showSearchWithGoogle: false,
+		showCopyImage: false,
+		showCopyLink: false,
+		prepend: (defaultActions, parameters, browserWindow) => [
+			{	label: '',
+			},{	type: 'separator'
+			},
+		],
+		append: () => [
+			{	label: 'Command Pelette...',
+			},
+		],
+	});  
+}
+/** tileWindowToLeft
+ * 
+ */
+function tileWindowToLeft() {
+	currentWindow.setBounds({ x: 0, y: 0, width: halfScreedWidth, screenHeight });
+}
+/** tileWindowToRight
+ * 
+ */
+function tileWindowToRight() {
+	currentWindow.setBounds({ x: halfScreenWidth, y: 0, width: halfScreenWidth, screenHeight });
+}
 /** createWindow
  * Creates a new window and loads the configuration
  * @return Void
@@ -252,13 +308,10 @@ function createWindow() {
 		x.show();
 		x.send('windowState', x.isMaximized());
 	});
-	contextMenu({
-		window: x,
-	});
 	
 	return x;
 };
-/**
+/** merge
  * 
  */
 function merge(var1, var2) {
@@ -303,8 +356,7 @@ function terminate(force=false) {
  * @return Void
  */
 function activate() {
-	console.log('activate');
-	// if(BrowserWindow.getAllWindows().length === 0) createWindow();
+	if(BrowserWindow.getAllWindows().length === 0) createWindow();
 }
 /** blur
  * This this function is executed when the main browser window has lost focus
@@ -319,24 +371,6 @@ function blur() {
  */
 function focus() {
 	currentWindow = BrowserWindow.getFocusedWindow();
-}
-/**close
- * 
- */
-function close() {
-	currentWindow.close()
-}
-/** maximize
- * 
- */
-function maximize() {
-	currentWindow.maximize()
-}
-/**minimize
- * 
- */
-function minimize() {
-	currentWindow.minimize()
 }
 /** allWindowsClosed
  * This function resets the current window if all of the windows have been closed

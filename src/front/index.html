@@ -1,157 +1,74 @@
 <!-- index.html -->
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
 
-		<title>Enigma IDE</title>
+    <title>Enigma IDE</title>
 
-		<link rel="stylesheet" href="vendor/Octicons/octicons-all.min.css" />
-		<link rel="stylesheet" href="vendor/Enigma/style.css" />
-		<link rel="stylesheet" href="style.css" />
-	</head>
-	<body>
-		<titlebars>
-			<titlebar for="win32">
-				<titlebar-icon>
-					<img src="assets/enigma-color-logo.svg">
-				</titlebar-icon>
-				<titlebar-menu></titlebar-menu>
-				<titlebar-drag></titlebar-drag>
-				<titlebar-buttons>
-					<minimise></minimise>
-					<maximise></maximise>
-					<close></close>
-				</titlebar-buttons>
-			</titlebar>
-			<titlebar for="darwin">
-				<app-buttons>
-					<minimise></minimise>
-					<restore></restore>
-					<maximise></maximise>
-					<close></close>
-				</app-buttons>
-				<titlebar-drag></titlebar-drag>
-			</titlebar>
-			<titlebar for="linux">
-				<app-buttons>
-					<minimise></minimise>
-					<restore></restore>
-					<maximise></maximise>
-					<close></close>
-				</app-buttons>
-				<titlebar-drag></titlebar-drag>
-			</titlebar>
-		</titlebars>
-		<sidebar>
-			<!--
-			<project-title>Enigma IDE</project-title>
-			<project-tree>
-				<project-item class="oct-chevron-down">
-					<project-name-icon class="oct-repo"></project-name-icon>
-					<project-name>vintage-shop</project-name>
-				</project-item>
-				<project-folder class="unfolded">
-					<project-item class="oct-chevron-right">
-						<project-label-icon class="oct-file-directory"></project-label-icon>
-						<project-label>git</project-label>
-					</project-item>
-					<project-folder>
-						<project-item class="oct-nodef">
-							<project-label-icon class="oct-file-text"></project-label-icon>
-							<project-label>.editconfig</project-label>
-						</project-item>
-					</project-folder>
-					<project-item class="oct-chevron-right">
-						<project-label-icon class="oct-file-directory"></project-label-icon>
-						<project-label>dist</project-label>
-					</project-item>
-					<project-folder>
-						<project-item class="oct-nodef">
-							<project-label-icon class="oct-file-text"></project-label-icon>
-							<project-label>.editconfig</project-label>
-						</project-item>
-					</project-folder>
-					<project-item class="oct-chevron-right">
-						<project-label-icon class="oct-file-directory"></project-label-icon>
-						<project-label>node_modules</project-label>
-					</project-item>
-					<project-folder>
-						<project-item class="oct-nodef">
-							<project-label-icon class="oct-file-text"></project-label-icon>
-							<project-label>.editconfig</project-label>
-						</project-item>
-					</project-folder>
-					<project-item class="oct-chevron-right">
-						<project-label-icon class="oct-file-directory"></project-label-icon>
-						<project-label>src</project-label>
-					</project-item>
-					<project-folder>
-						<project-item class="oct-nodef">
-							<project-label-icon class="oct-file-text"></project-label-icon>
-							<project-label>.editconfig</project-label>
-						</project-item>
-					</project-folder>
-					<project-item class="oct-nodef">
-						<project-label-icon class="oct-file-text"></project-label-icon>
-						<project-label>.editconfig</project-label>
-					</project-item>
-					<project-item class="oct-nodef">
-						<project-label-icon class="oct-file-text"></project-label-icon>
-						<project-label>build.js</project-label>
-					</project-item>
-					<project-item class="oct-nodef">
-						<project-label-icon class="oct-file-text"></project-label-icon>
-						<project-label>development.html</project-label>
-					</project-item>
-					<project-item class="oct-nodef">
-						<project-label-icon class="oct-file-text"></project-label-icon>
-						<project-label>LICENSE</project-label>
-					</project-item>
-					<project-item class="oct-nodef">
-						<project-label-icon class="oct-file-text"></project-label-icon>
-						<project-label>package-lockpan</project-label>
-					</project-item>
-					<project-item class="oct-nodef">
-						<project-label-icon class="oct-file-text"></project-label-icon>
-						<project-label>production.html</project-label>
-					</project-item>
-					<project-item class="oct-nodef">
-						<project-label-icon class="oct-book"></project-label-icon>
-						<project-label>README.md</project-label>
-					</project-item>
-					<project-item class="oct-nodef selected">
-						<project-label-icon class="oct-file-text"></project-label-icon>
-						<project-label>test.js</project-label>
-					</project-item>
-				</project-folder>
-			</project-tree>
-			-->
-		</sidebar>
-		<content>
-			<tabs class="oct-plus"></tabs>
-			<editors></editors>
-		</content>
-		<footer>
-			<footer-search>
-				<search contenteditable="true"></search>
-				<search-content>
-					Search for files by name.</br>
-					Append '>' to go to line, '$' to enter a command or '?' to search the docs
-				</search-content>
-			</footer-search>
-			<footer-controls>
-				<a href=""><span class="enigma-editor-row-number">2</span>:<span class="enigma-editor-column-number">5</span></a>
-				<a href="#">Tab size: <span class="enigma-editor-tab-size">4</span></a>
-				<a href="#"><span class="enigma-editor-encoding">UTF-8</span></a>
-				<a href="#"><span class="enigma-editor-end-of-line-convention">CRLF</span></a>
-				<a href="#"><span class="enigma-editor-lang"></span>Less</a>
-				<a class="openSettingsPage" href="#"><span class="oct-settings"></span></a>
-			</footer-controls>
-		</footer>
-		<script defer src="vendor/Enigma/editor.js"></script>
-		<script defer src="script.js"></script>
-	</body>
+    <link rel="stylesheet" href="vendor/Octicons/octicons-all.min.css" />
+    <link rel="stylesheet" href="vendor/Enigma/style.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <titlebars>
+      <titlebar for="win32">
+        <titlebar-icon>
+          <img src="assets/enigma-color-logo.svg">
+        </titlebar-icon>
+        <titlebar-menu></titlebar-menu>
+        <titlebar-drag></titlebar-drag>
+        <titlebar-buttons>
+          <minimise></minimise>
+          <maximise></maximise>
+          <close></close>
+        </titlebar-buttons>
+      </titlebar>
+      <titlebar for="darwin">
+        <app-buttons>
+          <minimise></minimise>
+          <restore></restore>
+          <maximise></maximise>
+          <close></close>
+        </app-buttons>
+        <titlebar-drag></titlebar-drag>
+      </titlebar>
+      <titlebar for="linux">
+        <app-buttons>
+          <minimise></minimise>
+          <restore></restore>
+          <maximise></maximise>
+          <close></close>
+        </app-buttons>
+        <titlebar-drag></titlebar-drag>
+      </titlebar>
+    </titlebars>
+    <sidebar></sidebar>
+    <content>
+      <tabs class="oct-plus"></tabs>
+      <editors></editors>
+    </content>
+    <footer>
+      <footer-search>
+        <search contenteditable="true"></search>
+        <search-content>
+          Search for files by name.
+
+          Append '>' to go to line, '$' to enter a command or '?' to search the docs
+        </search-content>
+      </footer-search>
+      <footer-controls>
+        <a href=""><span class="enigma-editor-row-number">2</span>:<span class="enigma-editor-column-number">5</span></a>
+        <a href="#">Tab size: <span class="enigma-editor-tab-size">4</span></a>
+        <a href="#"><span class="enigma-editor-encoding">UTF-8</span></a>
+        <a href="#"><span class="enigma-editor-end-of-line-convention">CRLF</span></a>
+        <a href="#"><span class="enigma-editor-lang"></span>Less</a>
+        <a class="openSettingsPage" href="#"><span class="oct-settings"></span></a>
+      </footer-controls>
+    </footer>
+    <script defer src="vendor/Enigma/editor.js"></script>
+    <script defer src="script.js"></script>
+  </body>
 </html>

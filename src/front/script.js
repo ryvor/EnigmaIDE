@@ -1,19 +1,18 @@
-/**
- * 
- */
+/*****************************************/
+/*               VARIABLES               */
+//#region ********************************/
+const { ipcRenderer } = require('electron');
+const os = require('os');
+const path = require('path');
 var editors = [],
 	lastEditor = [],
 	recentlyClosed = [],
 	lastClosed = {},
-	currEditor = null,
-	isMaximized=null;
-/**
- * ELECTRON IPC
- */
-const { ipcRenderer, remote } = require('electron');
-const os = require('os');
-const { report } = require('process');
+	currEditor = null;
 
+//#endregion *****************************/
+/*             ELECTRON IPC              */
+//#region ********************************/
 ipcRenderer.on('openFile', (event, fileInfo)=>createEditorTab(fileInfo));
 ipcRenderer.on('openDirectory', (event, message )=>handleOpenDirectory(message));
 ipcRenderer.on('processProject', (event, dir, json)=>openProject(dir, json));
@@ -25,6 +24,7 @@ ipcRenderer.on('fileEncoding', (event, fileEncoding)=>updateFileEncoding(fileEnc
 ipcRenderer.on('filePath', (event, filePath)=>updateFilePath(filePath));
 ipcRenderer.on('fileName', (event, fileName)=>updateFileName(fileName));
 ipcRenderer.on('changeTab', (event, modifier)=>changeEditorTab(modifier));
+ipcRenderer.on('console', (event, element)=>console.log(element));
 ipcRenderer.on('windowState', (event, state)=>{
 	if(state) {
 		document.querySelector('titlebar[for="win32"] maximise').innerHTML = '';
@@ -35,34 +35,82 @@ ipcRenderer.on('windowState', (event, state)=>{
 		document.querySelector('titlebar[for="darwin"] maximise').innerHTML = '';
 		document.querySelector('titlebar[for="linux"] maximise').innerHTML = '';
 	}
-})
-
-ipcRenderer.on('console', (event, element)=>console.log(element));
-
+});
+//#endregion *****************************/
+/*           SYSTEM-SPECIFIC             */
+//#region ********************************/
 if (os.platform() == 'win32') {
 	ipcRenderer.send('requestAppMenu');
 	ipcRenderer.on('appMenu', (event, menuJSON)=>{
-		parseApplicationMenu(JSON.parse(menuJSON));
+		var	cont, cnt=0;
+		JSON.parse(menuJSON).forEach((element)=>{
+			if(cont = document.querySelector(`titlebar[for="${os.platform()}"] titlebar-menu`)) {
+				titlebarMenuContainer = document.createElement("titlebar-menu-container");
+				titlebarMenuLabel = document.createElement("titlebar-menu-label");
+				titlebarMenuSubmenu = document.createElement("titlebar-menu-submenu");
+				titlebarMenuContainer.setAttribute('tabindex', 0)
+				titlebarMenuLabel.innerText = element.label;
+				cont.appendChild(titlebarMenuContainer);
+				titlebarMenuContainer.appendChild(titlebarMenuLabel);
+				titlebarMenuContainer.appendChild(titlebarMenuSubmenu);
+				cont.classList.add('show');
+				
+				if(element.submenu) {
+					element.submenu.forEach((element)=>{
+						if(element.label) {
+							titlebarMenuSubmenuItem = document.createElement("titlebar-menu-submenu-item");
+							titlebarMenuSubmenuItemLabel = document.createElement("titlebar-menu-submenu-item-label");
+							titlebarMenuSubmenuItemAccellerator = document.createElement("titlebar-menu-submenu-item-accellerator");
+							// append title
+							titlebarMenuSubmenuItemLabel.innerText = element.label;
+							//append accellerators
+							titlebarMenuSubmenuItemAccellerator.innerText = getAcceleratorString(element.accelerator);
+
+							titlebarMenuSubmenu.appendChild(titlebarMenuSubmenuItem);
+							titlebarMenuSubmenuItem.appendChild(titlebarMenuSubmenuItemLabel);
+							titlebarMenuSubmenuItem.appendChild(titlebarMenuSubmenuItemAccellerator);
+						} else if(element.type == 'separator') {
+							titlebarMenuSubmenuItem = document.createElement("hr");
+							titlebarMenuSubmenu.appendChild(titlebarMenuSubmenuItem);
+						} else {
+							console.log(element)
+						}
+					})
+				}
+			}
+			cnt++
+		});
 	});
 }
+//#endregion *****************************/
+/*            QUERY SELECTORS            */
+/*            EVENT LISTENERS            */
+//#region ********************************/
 document.querySelector(`titlebar[for="${os.platform()}"]`).style.display = 'flex';
+document.querySelector('.openSettingsPage').addEventListener('click', ()=>openSettingsPage());
 document.querySelectorAll('minimise').forEach((btn)=>{btn.addEventListener('click', ()=>ipcRenderer.send('minimiseWindow'))});
 document.querySelectorAll('maximise').forEach((btn)=>{btn.addEventListener('click', ()=>ipcRenderer.send('maximiseWindow'))});
 document.querySelectorAll('close').forEach((btn)=>{btn.addEventListener('click', ()=>ipcRenderer.send('closeWindow'))});
-//* Add event listeners for the tabs
 document.querySelector('tabs').addEventListener('click', function(event) {
-	target = event.target;
-	if (target.tagName.toLowerCase() === 'tabs') {
-		createEditorTab();
-	} else if (target.tagName.toLowerCase() === 'tab') {
-		if(!target.classList.contains('selected')) {
-			changeEditorTab(parseInt(target.id));
+	if(event.target.classList.contains('oct-plus')) {
+		createEditorTab()
+	} else if (event.target.tagName.toLowerCase() === 'tab') {
+		if(!event.target.classList.contains('selected')) {
+			changeEditorTab(parseInt(event.target.id));
 		}
-	} else if (target.tagName.toLowerCase() === 'tab-close') {
-		removeEditorTab(target.parentNode.id);
+	} else if (event.target.tagName.toLowerCase() === 'tab-close') {
+		removeEditorTab(event.target.parentNode.id);
 	}
 });
-//* add event listeners for any included pages
+document.querySelector('tabs').addEventListener('dblclick', (event)=>(event.target.tagName.toLowerCase() === 'tabs')? createEditorTab():null);
+document.querySelector('tabs').addEventListener('mousedown', event => {
+	if (event.button === 1) {
+		const tabElement = event.target.closest('tab');
+		if (tabElement) {
+			removeEditorTab(tabElement.id);
+		}
+	}
+});
 window.addEventListener('message', function(event) {
 	message = event.data;
 	// specify the allowed functions and variabled
@@ -72,7 +120,7 @@ window.addEventListener('message', function(event) {
 		removeEditorTab: removeEditorTab,
 		createProject: createProject,
 		openFile: openFile,
-		openDirectory: openDirectory,
+		openProject: openProject,
 	};
 	var allowedVariables = {};
 	// execute each function specified
@@ -80,31 +128,20 @@ window.addEventListener('message', function(event) {
 		message.functions.forEach((func)=>{
 			if(typeof (x = allowedFunctions[func.name])=== 'function') {
 				x();
-			} else {
-				console.log()
 			}
 		});
 	}
 	// clsoe tab is requested
 	if(message.closeTab) removeEditorTab(message.frameID);
 });
+//#endregion *****************************/
+/*               FUNCTIONS               */
+//#region ********************************/
 
-document.querySelectorAll('.openSettingsPage').forEach((btn)=>{
-	btn.addEventListener('click', ()=>openSettingsPage())
-})
-document.querySelectorAll('.openWelcomePage').forEach((btn)=>{
-	btn.addEventListener('click', ()=>openWelcomePage())
-})
-/**
- * 
- */
 function openProject(dir, json) {
 	handleOpenDirectory(dir);
 	document.querySelector('project-name').innerText = json.name
 }
-/**
- * 
- */
 function reloadProjectTree() {
 	document.querySelectorAll('project-item').forEach((item)=>{
 		item.addEventListener('click', ()=>{
@@ -113,60 +150,13 @@ function reloadProjectTree() {
 				item.classList.toggle('oct-chevron-down');
 				item.nextElementSibling.classList.toggle('unfolded');
 			} else {
-				ipcRenderer.send('processFile', item.getAttribute('filepath'))
+				ipcRenderer.send('processFile', item.getAttribute('filepath'));
+				if(document.querySelector('project-item.selected')) document.querySelector('project-item.selected').classList.remove('selected');
+				item.classList.add('selected');
 			}
 		})
 	})
 }
-/** parseApplicationMenu
- * 
- * @param {object} menu 
- */
-function parseApplicationMenu(menu) {
-	var	cont, cnt=0;
-	menu.forEach((element)=>{
-		if(cont = document.querySelector(`titlebar[for="${os.platform()}"] titlebar-menu`)) {
-			titlebarMenuContainer = document.createElement("titlebar-menu-container");
-			titlebarMenuLabel = document.createElement("titlebar-menu-label");
-			titlebarMenuSubmenu = document.createElement("titlebar-menu-submenu");
-			titlebarMenuContainer.setAttribute('tabindex', 0)
-			titlebarMenuLabel.innerText = element.label;
-			cont.appendChild(titlebarMenuContainer);
-			titlebarMenuContainer.appendChild(titlebarMenuLabel);
-			titlebarMenuContainer.appendChild(titlebarMenuSubmenu);
-			cont.classList.add('show');
-			
-			if(element.submenu) {
-				element.submenu.forEach((element)=>{
-					if(element.label) {
-						titlebarMenuSubmenuItem = document.createElement("titlebar-menu-submenu-item");
-						titlebarMenuSubmenuItemLabel = document.createElement("titlebar-menu-submenu-item-label");
-						titlebarMenuSubmenuItemAccellerator = document.createElement("titlebar-menu-submenu-item-accellerator");
-						// append title
-						titlebarMenuSubmenuItemLabel.innerText = element.label;
-						//append accellerators
-						titlebarMenuSubmenuItemAccellerator.innerText = getAcceleratorString(element.accelerator);
-
-						titlebarMenuSubmenu.appendChild(titlebarMenuSubmenuItem);
-						titlebarMenuSubmenuItem.appendChild(titlebarMenuSubmenuItemLabel);
-						titlebarMenuSubmenuItem.appendChild(titlebarMenuSubmenuItemAccellerator);
-					} else if(element.type == 'separator') {
-						titlebarMenuSubmenuItem = document.createElement("hr");
-						titlebarMenuSubmenu.appendChild(titlebarMenuSubmenuItem);
-					} else [
-						console.log(element)
-					]
-				})
-			}
-		}
-		cnt++
-	})
-	//* Add event listeners for application menu
-
-}
-/** createEditorTab
- * 
- */
 function createEditorTab(fileInfo) {
 	const newID = editors.length;
 	var newTab,
@@ -175,11 +165,9 @@ function createEditorTab(fileInfo) {
 		newEditor;
 	switch(typeof fileInfo) {
 		case 'object': // Open file
-			if(x = document.querySelector(`tabs > tab[filepath="${fileInfo.path}"]`) && fileInfo.path.length > 0) {
-				ipcRenderer.send('openModal', {"file": 'front/pages/alreadyOpen.html', "options":{height: 160}});
-				ipcRenderer.on('modal-response', (event, response) => {
-					if(response) changeEditorTab(parseInt(x.id));
-				});
+			var x = document.querySelector(`tabs > tab[filepath="${fileInfo.path}"]`);
+			if(x && fileInfo.path.length > 0) {
+				changeEditorTab(parseInt(x.id));
 				break;
 			}
 			createTab();
@@ -188,7 +176,9 @@ function createEditorTab(fileInfo) {
 			if(fileInfo.path.length > 0)
 				newTab.setAttribute('filename', fileInfo.path.split("/").pop());
 			newTab_title.innerHTML = (fileInfo.title)? fileInfo.title: fileInfo.path.split("/").pop();
-			newEditor.innerText = fileInfo.content;
+			const preElement = document.createElement('pre');
+			preElement.innerText = fileInfo.content;
+			newEditor.appendChild(preElement)
 			loadEditors();
 			changeEditorTab(parseInt(newID));
 			break;
@@ -234,7 +224,6 @@ function createEditorTab(fileInfo) {
 		document.querySelector("editors").appendChild(newEditor);
 	}
 }
-/** getAcceleratorString */
 function getAcceleratorString(string) {
 	if(string.includes('+')) {
 		var out = string.split('+').map((str)=>{
@@ -278,9 +267,6 @@ function getAcceleratorString(string) {
 		}
 	}
 }
-/** loadEditors
- * 
- */
 function loadEditors() {
 	document.querySelectorAll('editor').forEach((editor) => {
 		if(!editors[editor.id]) {
@@ -289,7 +275,6 @@ function loadEditors() {
 			editors[editor.id]['tab'] = document.querySelector(`tab[id="${editor.id}"]`);
 			editors[editor.id]['editor'] = document.querySelector(`editor[id="${editor.id}"]`);
 			editors[editor.id]['title'] = editors[editor.id]['tab'].innerText;
-			mode = 'javascript';
 
 			if(editor.classList.contains('preview')) {
 				editors[editor.id]['type'] = 'preview';
@@ -309,14 +294,15 @@ function loadEditors() {
 					}, '*');
 				};
 			} else {
-				content = (editor.innerHTML).replaceAll('<br>', '\n');
+				content = editor.innerText;
 				editor.innerHTML = '';
 				editors[editor.id]['type'] = 'code';
 				editors[editor.id]['path'] = editors[editor.id]['tab'].getAttribute('filepath');
 				editors[editor.id]['encoding'] = editors[editor.id]['tab'].getAttribute('fileencoding');
+				editors[editor.id]['mode'] = Enigma.findModeByFileName(editors[editor.id]['path'])
 				editors[editor.id]['IDE'] = Enigma(editors[editor.id]['editor'], {
 					value: content,
-					mode: mode,
+					mode: editors[editor.id]['mode'].mode,
 					lineNumbers: true,
 					matchBrackets: {
 						highlightNonMatching: true,
@@ -330,16 +316,13 @@ function loadEditors() {
 					},
 					gutters: ["Enigma-linenumbers", "Enigma-foldgutter"],
 				});
-				Enigma.autoLoadMode(editors[editor.id]['IDE'], 'javascript')
+				Enigma.autoLoadMode(editors[editor.id]['IDE'], editors[editor.id]['mode'].mode);
 				editors[editor.id]['IDE'].focus();
 			}
 		}
 	});
 	(Object.keys(editors).length == 0)? document.querySelector('tabs').classList.add('oct-plus') : document.querySelector('tabs').classList.remove('oct-plus');
 }
-/** changeEditorTab
- * 
- */
 function changeEditorTab(modifier) {
 	switch(typeof modifier) {
 		case 'number':
@@ -353,22 +336,23 @@ function changeEditorTab(modifier) {
 				element_id = currEditor - 1;
 				if(element_id == -1) element_id = editors.length-1;
 			}
-			console.log('before: ', currEditor, ', after: ', element_id);
 			break;
 		default:
 			console.log(typeof modifier);
 	}
 	if(x = document.querySelector(`editor.selected`)) x.classList.remove('selected');
-	if(x = document.querySelector(`tab.selected`)) x.classList.remove('selected');
 	if(x = document.querySelector(`editor[id="${element_id}"]`)) x.classList.add('selected');
+
+	if(x = document.querySelector(`tab.selected`)) x.classList.remove('selected');
 	if(x = document.querySelector(`tab[id="${element_id}"]`)) x.classList.add('selected');
-	if(editors[element_id]['IDE']) editors[element_id]['IDE'].focus();
+
+	if(x = document.querySelector(`project-item.selected`)) x.classList.remove('selected');
+	if(x = document.querySelector(`project-item[filepath="${document.querySelector(`tab[id="${element_id}"]`).getAttribute('filepath')}"]`)) x.classList.add('selected');
+
+	if(editors[element_id] && editors[element_id]['IDE']) editors[element_id]['IDE'].focus();
 	currEditor = element_id;
 	lastEditor.push(element_id);
 }
-/** removeEditorTab
- * 
- */
 function removeEditorTab(tabID) {
 	if(!tabID) tabID = document.querySelector(`tab.selected`).id;
 	var elem = document.querySelector(`tab[id="${tabID}"]`);
@@ -386,125 +370,25 @@ function removeEditorTab(tabID) {
 	changeEditorTab(parseInt(lastEditor[lastEditor.length - 1]));
 	loadEditors();
 }
-/** reopenLastClosed
- * 
- * @param {*} EditorInfo 
- */
-function reopenLastClosed() {
-	var fileInfo = {
-		path: (lastClosed.path)? lastClosed.path: '',
-		encoding: (lastClosed.encoding)? lastClosed.encoding: '',
-		content: lastClosed.IDE.getValue(),
-		title: lastClosed.title,
-	}
-	createEditorTab(fileInfo);
-	recentlyClosed.splice(recentlyClosed.length - 1, 1);;
-	lastClosed = recentlyClosed[recentlyClosed.length - 1];
-}
-/** getCurrentFile
- * 
- */
-function getCurrentFile() {
-	console.log('Getting file conent');
-	resp = {};
-	if(editors[currEditor].IDE) {
-		resp.savable = true;
-		resp.content = editors[currEditor].IDE.getValue();
-		resp.filePath = editors[currEditor]['path'];
-		resp.fileName = editors[currEditor]['title'];
-		resp.encoding = editors[currEditor]['encoding'];
-		
-		console.log(resp);
-		console.log(editors);
-	} else {
-		resp.savable = false;
-	}
-	return resp;
-}
-/** getCurrentFiles
- * 
- */
-function getCurrentFiles() {
-	resp = {};
-	editors.forEach((editor) => {
-
-	})
-	if(edt = editors[currEditor].IDE) {
-		resp.savable = true;
-		resp.content = edt.getValue();
-		resp.filePath = editors[currEditor]['path'];
-		resp.fileName = editors[currEditor]['title'];
-		resp.encoding = editors[currEditor]['encoding'];
-	} else {
-		resp.savable = false;
-	}
-	return resp;
-}
-/** updateFileEncoding
- * 
- */
 function updateFileEncoding(encoding) {
 	editors[currEditor]['encoding'] = encoding;
 }
-/** updateFilePath
- * 
- */
 function updateFilePath(location) {
 	editors[currEditor]['path'] = location;
 }
-/** updateFileName
- * 
- */
 function updateFileName(name) {
 	document.querySelector('tab.selected').setAttribute("FileName", name);
 	editors[document.querySelector('tab.selected').id]['title'] = name;
 	document.querySelector('tab.selected > tab-title').innerHTML = name;
 	editors[currEditor]['title'] = name;
 }
-/** openWelcomePage
- * 
- */
-function openWelcomePage() {
-	createEditorTab('./pages/welcome.html', true);
-}
-/** openSettingsPage
- * 
- */
-function openSettingsPage() {
-	createEditorTab('./pages/settings.html', true);
-}
-/** createProject
- * 
- */
-function createProject() {
-	ipcRenderer.send('createProject')
-}
-/** openFile
- * 
- */
-function openFile() {
-	ipcRenderer.send('openFile')
-}
-/** openDirectory
- * 
- */
-function openDirectory() {
-	ipcRenderer.send('openProject')
-}
-/** handleOpenDirectory
- * 
- */
 function handleOpenDirectory(project) {
-	console.log(project);
 	var sidebar = document.querySelector('sidebar'),
 		projectTitle = document.createElement('project-title'),
 		projectTree = document.createElement('project-tree'),
-		projectFolder = document.createElement('project-folder'),
 		projectItem = document.createElement('project-item'),
 		projectNameIcon = document.createElement('project-name-icon'),
-		projectName = document.createElement('project-name'),
-		projectLabelIcon = document.createElement('project-label-icon'),
-		projectLabel = document.createElement('project-label');
+		projectName = document.createElement('project-name');
 	//projectTitle.innerText=project.name;
 	projectName.innerText=project.name;
 	projectNameIcon.classList.add();
@@ -572,11 +456,69 @@ function handleOpenDirectory(project) {
 		};
 	}
 }
-/******************/
-/** CONTEXT MENU **/
-/******************/
 
-/******************/
-/**  INITIALIZE  **/
-/******************/
-if(editors.length == 0) openWelcomePage();
+// Open specific pages
+function openWelcomePage() {
+	createEditorTab('./pages/welcome.html', true);
+}
+function openSettingsPage() {
+	createEditorTab('./pages/settings.html', true);
+}
+
+// Requestors
+createProject = ()=>ipcRenderer.send('createProject');
+openProject = ()=>ipcRenderer.send('openProject');
+openFile = ()=>ipcRenderer.send('openFile');
+openDirectory = ()=>ipcRenderer.send('openProject');
+
+//#endregion *****************************/
+/*   MAIN-PROCESS SEPECIFIC FUNCTIONS    */
+//#region ********************************/
+function reopenLastClosed() {
+	var fileInfo = {
+		path: (lastClosed.path)? lastClosed.path: '',
+		encoding: (lastClosed.encoding)? lastClosed.encoding: '',
+		content: lastClosed.IDE.getValue(),
+		title: lastClosed.title,
+	}
+	createEditorTab(fileInfo);
+	recentlyClosed.splice(recentlyClosed.length - 1, 1);;
+	lastClosed = recentlyClosed[recentlyClosed.length - 1];
+}
+function getCurrentFile() {
+	resp = {};
+	if(editors[currEditor].IDE) {
+		resp.savable = true;
+		resp.content = editors[currEditor].IDE.getValue();
+		resp.filePath = editors[currEditor]['path'];
+		resp.fileName = editors[currEditor]['title'];
+		resp.encoding = editors[currEditor]['encoding'];
+	} else {
+		resp.savable = false;
+	}
+	return resp;
+}
+function getCurrentFiles() {
+	resp = {};
+	editors.forEach((editor) => {
+
+	})
+	if(edt = editors[currEditor].IDE) {
+		resp.savable = true;
+		resp.content = edt.getValue();
+		resp.filePath = editors[currEditor]['path'];
+		resp.fileName = editors[currEditor]['title'];
+		resp.encoding = editors[currEditor]['encoding'];
+	} else {
+		resp.savable = false;
+	}
+	return resp;
+}
+//#endregion *****************************/
+/*               INITIALIZE              */
+//#region ********************************/
+if(editors.length == 0)
+	openWelcomePage();
+//#endregion *****************************/
+/*                  EOF                  */
+//#***************************************/
