@@ -409,14 +409,6 @@ function detectEncoding(buffer) {
 		return 'utf-8'; // Default to UTF-8 if no BOM is detected
 	}
 }
-/** log
- * This function writes a string to the log file with the logging format.
- * @param String str
- * @returns Void
- */
-function log(str) {
-	console.log(str);
-}
 /** writeFileToDisk
  * @param String location
  * @param  String content
@@ -424,12 +416,10 @@ function log(str) {
  */
 function writeFileToDisk(location, content) {
 	try {
-		log('Attempting to save file', location, content);
 		fs.writeFileSync(location, content, 'utf-8');
-		log('File saved successfully ', location);
 		return true;
 	} catch(e) {
-		log('Failed to save the file!', location, e);
+		log('ERROR: Could not save the file!', location, e);
 		return false;
 	}
 }
@@ -490,7 +480,7 @@ async function reopenLastEditor() {
 	try {
 		return await currentWindow.executeJavaScript(`reopenLastClosed()`);
 	} catch (error) {
-		log('Error re-opening the last file');
+		log('ERROR: Could not re-open the last file');
 		return false;
 	}
 }
@@ -502,7 +492,7 @@ async function getCurrentFile() {
 	try {
 		return await currentWindow.webContents.executeJavaScript('getCurrentFile()');
 	} catch (error) {
-		log('Error getting info for the open file');
+		log('ERROR: Could not gett info for the open file');
 		return false;
 	}
 }
@@ -514,7 +504,7 @@ async function getCurrentFiles() {
 	try {
 		return await currentWindow.webContents.executeJavaScript('getCurrentFiles()');
 	} catch (error) {
-		log('Error getting info for the open files');
+		log('ERROR: Could not get info for the open files');
 		return false;
 	}
 }
@@ -523,9 +513,7 @@ async function getCurrentFiles() {
  * @returns Void
  */
 async function saveFile(response, obfuscate) {
-	if(response.canceled) { // Check if the save dialog was cancelled
-		log('cancelled save dialog');
-	} else {
+	if(!response.canceled) { // Check if the save dialog was cancelled
 		file = (obfuscate)? handleObfuscation(file.content): file;
 		if(writeFileToDisk(response.filePath, file.content)) {
 			if(obfuscate) writeFileToDisk(response.filePath, file.key);
@@ -649,7 +637,7 @@ async function processProjectFile(result) {
 			(i1==0)?currentWindow.send('processProject', dir, json): createWindow().send('processProject', dir, json);
 		};
 	} catch(e) {
-		log(e);
+		log('ERROR: Couldnt process project file. ', e);
 	}
 }
 /** openDialog
@@ -739,7 +727,6 @@ async function openSaveDialog(type, cb) {
 					defaultPath: defaultName, 
 					buttonLabel: 'Save',
 				}).then(res => {
-					log('here');
 					cb(res);
 				}).catch(err => {
 					new Error(err);
@@ -749,9 +736,18 @@ async function openSaveDialog(type, cb) {
 			}
 		}
 	} catch (error) {
-		log('Unable to process save dialog');
+		log('ERROR: Could not process the save dialog');
 		return false;
 	}
+}
+
+/** log
+ * This function writes a string to the log file with the logging format.
+ * @param { String } str
+ * @returns Void
+ */
+function log(str) {
+	console.log(str);
 }
 //#endregion *****************************/
 /*              Obfuscation              */

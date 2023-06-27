@@ -73,7 +73,7 @@ if (os.platform() == 'win32') {
 							titlebarMenuSubmenuItem = document.createElement("hr");
 							titlebarMenuSubmenu.appendChild(titlebarMenuSubmenuItem);
 						} else {
-							console.log(element)
+							console.info(element)
 						}
 					})
 				}
@@ -138,11 +138,142 @@ window.addEventListener('message', function(event) {
 /*               FUNCTIONS               */
 //#region ********************************/
 
-function openProject(dir, json) {
-	handleOpenDirectory(dir);
-	document.querySelector('project-name').innerText = json.name
+// Core functions
+function createEditorTab(options = {}) {
+	console.log(options);
+	var defaultOptions = new function() {
+		this.id =						editors.length;
+
+		this.tabContainer =				document.querySelector('tabs');
+		this.tabElements =				{};
+		this.tabElements.tab =			this.tabContainer.appendChild(document.createElement('tab'));
+		this.tabElements.tabTitle =		this.tabElements.tab.appendChild(document.createElement('tab-title'));
+		this.tabElements.tabClose =		this.tabElements.tab.appendChild(document.createElement('tab-close'));
+
+		this.editorContainer =			document.querySelector('editors');
+		this.editorElements =			{};
+		this.editorElements.editor =	this.editorContainer.appendChild(document.createElement('editor'));
+		this.editorConfig =				undefined;
+
+		this.title =					`undefined-`+editors.length;
+		this.path =						'';
+		this.ide =						undefined;
+		this.preview =					false;
+		this.encoding =					'utf-8';
+		this.content =					'';
+	};
+	const config = Object.assign({}, defaultOptions, options);
+	// Check if the file has already been opened, set the tab for it 
+	if((x = document.querySelector(`tabs > tab[filepath="${config.path}"]`)) !== null) {config.id = x.id;} else {
+		config.tabElements.tabTitle.innerText = config.title;
+		config.tabElements.tabClose.classList.add('oct-x');
+		config.tabElements.tab.id = config.id;
+		config.tabElements.tab.setAttribute('filepath', config.path);
+		config.tabElements.tab.setAttribute('preview', config.preview);
+		config.tabElements.tab.setAttribute('fileencoding', config.preview);
+
+		config.editorElements.editor.id = config.id;
+		config.editorElements.editor.setAttribute('filepath', config.path);
+		config.editorElements.editor.setAttribute('preview', config.preview);
+		config.editorElements.editor.setAttribute('fileencoding', config.preview);
+		if(config.preview){
+			//*				 | IMAGE FILES			  	  |	AUDIO FILES | VIDEO FILES  | DOCUMENTS						| ARCHIVES		 | XML/HTML		| TEXT BASED  | FONTS			   | DATA	 | DATABASE		 | 3D MODELS  |				 *//
+			if(/\.[ong|jpeg|jpg|gif|svg|eps|ai | mp3|wav|ogg | mp4|webm|ogg | pdf|doc|docx|xls|xlsx|ppt|pptx | zip|tar|gz|rar | html|htm|xml | css|js|json | ttf|woff|woff2|otf | csv|tsv | sqlite|db|sql | obj|stl|fbx]+/.exec(config.path)[0] !== '.html') {
+				exit(`Unable to preview file: The file requested (${fileInfo}) is not a previewable file. Cannot be previewed`);
+			}
+			config.title = config.path.match(/([a-z]+)\.[a-z]+/)[1].charAt(0).toUpperCase() + config.path.match(/([a-z]+)\.[a-z]+/)[1].slice(1);
+			config.tabElements.tabTitle.innerText = config.title;
+			var iframe = config.content = config.editorElements.editor.appendChild(document.createElement('iframe'));
+			iframe.setAttribute('src', config.path)
+			iframe.onload = function() {
+				iframe.contentWindow.postMessage({
+					type: 'initialize',
+					id: config.id,
+					templateRequest: {
+						frameID: config.id,
+						functions: [],
+						closeTab: false,
+					}
+				}, '*');
+			};
+		} else {
+			config.editorConfig = (config.path.length > 0)?Enigma.findModeByFileName(config.path): '';
+			config.editorIDE = Enigma(config.editorElements.editor, {
+				value: config.content,
+				mode: config.editorConfig.mode,
+				lineNumbers: true,
+				matchBrackets: {
+					highlightNonMatching: true,
+				},
+				matchTags: {
+					bothTags: true,
+				},
+				foldGutter: true,
+				foldOptions: {
+					widget: "  ",
+				},
+				gutters: [
+					"Enigma-linenumbers",
+					"Enigma-foldgutter"
+				],
+			});
+			if(config.editorConfig) Enigma.autoLoadMode(config.editorIDE, config.editorConfig.mode);
+			config.editorIDE.focus();
+		}
+		editors.push(config);
+		if(editors.length>0) config.tabContainer.classList.remove('oct-plus')
+	}
+	changeEditorTab(config.id);
 }
-function reloadProjectTree() {
+function changeEditorTab(modifier) {
+	switch(typeof modifier) {
+		case 'number':
+			element_id = modifier;
+			break;
+		case 'string':
+			if(modifier === '++') {
+				element_id = currEditor +1;
+				if(element_id == editors.length) element_id = 0;
+			} else if(modifier === '--') {
+				element_id = currEditor - 1;
+				if(element_id == -1) element_id = editors.length-1;
+			}
+			break;
+		default:
+			console.info(typeof modifier);
+	}
+	if(x = document.querySelector(`editor.selected`)) x.classList.remove('selected');
+	if(x = document.querySelector(`editor[id="${element_id}"]`)) x.classList.add('selected');
+
+	if(x = document.querySelector(`tab.selected`)) x.classList.remove('selected');
+	if(x = editors[element_id].tabElements.tab) x.classList.add('selected');
+	if(x = document.querySelector(`project-item.selected`)) x.classList.remove('selected');
+	if(x = document.querySelector(`project-item[filepath="${editors[element_id].path}"]`)) x.classList.add('selected');
+
+	if(editors[element_id] && editors[element_id]['IDE']) editors[element_id]['IDE'].focus();
+	currEditor = element_id;
+	lastEditor.push(element_id);
+}
+function removeEditorTab(tabID) {
+	if(!tabID) tabID = document.querySelector(`tab.selected`).id;
+	var elem = document.querySelector(`tab[id="${tabID}"]`);
+	elem.parentNode.removeChild(elem);
+	var elem = document.querySelector(`editor[id="${tabID}"]`);
+	elem.parentNode.removeChild(elem);
+	// Remove every occurrence of the closed tab from the active tabs array
+	lastEditor = lastEditor.filter(function(value){
+		return value != tabID;
+	});
+	// change the tabs and reload the editors array
+	recentlyClosed.push(editors[tabID]);
+	lastClosed = editors[tabID];
+	delete editors[tabID]
+	changeEditorTab(parseInt(lastEditor[lastEditor.length - 1]));
+	(Object.keys(editors).length == 0)? document.querySelector('tabs').classList.add('oct-plus') : document.querySelector('tabs').classList.remove('oct-plus');
+}
+
+// Project tree
+function loadProjectTree() {
 	document.querySelectorAll('project-item').forEach((item)=>{
 		item.addEventListener('click', ()=>{
 			if(item.nextElementSibling && item.nextElementSibling.tagName == 'PROJECT-FOLDER') {
@@ -157,73 +288,8 @@ function reloadProjectTree() {
 		})
 	})
 }
-function createEditorTab(fileInfo) {
-	const newID = editors.length;
-	var newTab,
-		newTab_close,
-		newTab_title,
-		newEditor;
-	switch(typeof fileInfo) {
-		case 'object': // Open file
-			var x = document.querySelector(`tabs > tab[filepath="${fileInfo.path}"]`);
-			if(x && fileInfo.path.length > 0) {
-				changeEditorTab(parseInt(x.id));
-				break;
-			}
-			createTab();
-			newTab.setAttribute('filepath', fileInfo.path);
-			newTab.setAttribute('fileencoding', fileInfo.encoding);
-			if(fileInfo.path.length > 0)
-				newTab.setAttribute('filename', fileInfo.path.split("/").pop());
-			newTab_title.innerHTML = (fileInfo.title)? fileInfo.title: fileInfo.path.split("/").pop();
-			const preElement = document.createElement('pre');
-			preElement.innerText = fileInfo.content;
-			newEditor.appendChild(preElement)
-			loadEditors();
-			changeEditorTab(parseInt(newID));
-			break;
-		case 'string': // Open preview
-			createTab();
-			// Check if the tab is supposed to be a preview tab and if it can be previewed
-			//*				 | IMAGE FILES			  	  |	AUDIO FILES | VIDEO FILES  | DOCUMENTS						| ARCHIVES		 | XML/HTML		| TEXT BASED  | FONTS			   | DATA	 | DATABASE		 | 3D MODELS  |				 *//
-			if(/\.[ong|jpeg|jpg|gif|svg|eps|ai | mp3|wav|ogg | mp4|webm|ogg | pdf|doc|docx|xls|xlsx|ppt|pptx | zip|tar|gz|rar | html|htm|xml | css|js|json | ttf|woff|woff2|otf | csv|tsv | sqlite|db|sql | obj|stl|fbx]+/.exec(fileInfo)[0] !== '.html') {
-				log(`Unable to preview file: The file requested (${fileInfo}) is not a previewable file. Cannot be previewed`);
-				break;
-			}
-			newTab_title.innerHTML = fileInfo.match(/([a-z]+)\.[a-z]+/)[1].charAt(0).toUpperCase() + fileInfo.match(/([a-z]+)\.[a-z]+/)[1].slice(1);
-			newEditor.classList.add('preview');
-			newEditor.setAttribute('preview-file', fileInfo)
-			loadEditors();
-			changeEditorTab(parseInt(newID));
-			break;
-		case 'undefined':
-			createTab();
-			newTab_title.innerHTML = `undefined-`+newID;
-			loadEditors();
-			changeEditorTab(parseInt(newID));
-			break;
-		default:
-			log(typeof fileInfo)
-	}
-	function createTab() {
-		// Create the tabs and editor
-		newTab = document.createElement("tab");
-		newTab_title = document.createElement("tab-title");
-		newTab_close = document.createElement("tab-close");
-		newTab.classList.add('selected');
-		newTab.id = newID;
-		newTab_close.classList.add('oct-x');
 
-		newEditor = document.createElement("editor");
-		newEditor.classList.add('selected');
-		newEditor.id = newID;
-		//Append the elements
-		document.querySelector("tabs").appendChild(newTab);
-		newTab.appendChild(newTab_title);
-		newTab.appendChild(newTab_close);
-		document.querySelector("editors").appendChild(newEditor);
-	}
-}
+// Other functions
 function getAcceleratorString(string) {
 	if(string.includes('+')) {
 		var out = string.split('+').map((str)=>{
@@ -267,108 +333,9 @@ function getAcceleratorString(string) {
 		}
 	}
 }
-function loadEditors() {
-	document.querySelectorAll('editor').forEach((editor) => {
-		if(!editors[editor.id]) {
-			editors[editor.id] = Array();
-			editors[editor.id]['id'] = editor.id;
-			editors[editor.id]['tab'] = document.querySelector(`tab[id="${editor.id}"]`);
-			editors[editor.id]['editor'] = document.querySelector(`editor[id="${editor.id}"]`);
-			editors[editor.id]['title'] = editors[editor.id]['tab'].innerText;
-
-			if(editor.classList.contains('preview')) {
-				editors[editor.id]['type'] = 'preview';
-				editors[editor.id]['IDE'] = null;
-				const newIframe = document.createElement("iframe");
-				newIframe.setAttribute('src', editors[editor.id]['editor'].getAttribute('preview-file'));
-				IFrame = editors[editor.id]['editor'].appendChild(newIframe);
-				IFrame.onload = function() {
-					IFrame.contentWindow.postMessage({
-						type: 'initialize',
-						id: editor.id,
-						templateRequest: {
-							frameID: editor.id,
-							functions: [],
-							closeTab: false,
-						}
-					}, '*');
-				};
-			} else {
-				content = editor.innerText;
-				editor.innerHTML = '';
-				editors[editor.id]['type'] = 'code';
-				editors[editor.id]['path'] = editors[editor.id]['tab'].getAttribute('filepath');
-				editors[editor.id]['encoding'] = editors[editor.id]['tab'].getAttribute('fileencoding');
-				editors[editor.id]['mode'] = Enigma.findModeByFileName(editors[editor.id]['path'])
-				editors[editor.id]['IDE'] = Enigma(editors[editor.id]['editor'], {
-					value: content,
-					mode: editors[editor.id]['mode'].mode,
-					lineNumbers: true,
-					matchBrackets: {
-						highlightNonMatching: true,
-					},
-					matchTags: {
-						bothTags: true,
-					},
-					foldGutter: true,
-					foldOptions: {
-						widget: "  ",
-					},
-					gutters: ["Enigma-linenumbers", "Enigma-foldgutter"],
-				});
-				Enigma.autoLoadMode(editors[editor.id]['IDE'], editors[editor.id]['mode'].mode);
-				editors[editor.id]['IDE'].focus();
-			}
-		}
-	});
-	(Object.keys(editors).length == 0)? document.querySelector('tabs').classList.add('oct-plus') : document.querySelector('tabs').classList.remove('oct-plus');
-}
-function changeEditorTab(modifier) {
-	switch(typeof modifier) {
-		case 'number':
-			element_id = modifier;
-			break;
-		case 'string':
-			if(modifier === '++') {
-				element_id = currEditor +1;
-				if(element_id == editors.length) element_id = 0;
-			} else if(modifier === '--') {
-				element_id = currEditor - 1;
-				if(element_id == -1) element_id = editors.length-1;
-			}
-			break;
-		default:
-			console.log(typeof modifier);
-	}
-	if(x = document.querySelector(`editor.selected`)) x.classList.remove('selected');
-	if(x = document.querySelector(`editor[id="${element_id}"]`)) x.classList.add('selected');
-
-	if(x = document.querySelector(`tab.selected`)) x.classList.remove('selected');
-	if(x = document.querySelector(`tab[id="${element_id}"]`)) x.classList.add('selected');
-
-	if(x = document.querySelector(`project-item.selected`)) x.classList.remove('selected');
-	if(x = document.querySelector(`project-item[filepath="${document.querySelector(`tab[id="${element_id}"]`).getAttribute('filepath')}"]`)) x.classList.add('selected');
-
-	if(editors[element_id] && editors[element_id]['IDE']) editors[element_id]['IDE'].focus();
-	currEditor = element_id;
-	lastEditor.push(element_id);
-}
-function removeEditorTab(tabID) {
-	if(!tabID) tabID = document.querySelector(`tab.selected`).id;
-	var elem = document.querySelector(`tab[id="${tabID}"]`);
-	elem.parentNode.removeChild(elem);
-	var elem = document.querySelector(`editor[id="${tabID}"]`);
-	elem.parentNode.removeChild(elem);
-	// Remove every occurrence of the closed tab from the active tabs array
-	lastEditor = lastEditor.filter(function(value){
-		return value != tabID;
-	});
-	// change the tabs and reload the editors array
-	recentlyClosed.push(editors[tabID]);
-	lastClosed = editors[tabID];
-	delete editors[tabID]
-	changeEditorTab(parseInt(lastEditor[lastEditor.length - 1]));
-	loadEditors();
+function openProject(dir, json) {
+	handleOpenDirectory(dir);
+	document.querySelector('project-name').innerText = json.name
 }
 function updateFileEncoding(encoding) {
 	editors[currEditor]['encoding'] = encoding;
@@ -409,7 +376,7 @@ function handleOpenDirectory(project) {
 		processFolder(folder, currFolder)
 	});
 
-	reloadProjectTree();
+	loadProjectTree();
 
 	function processFolder(folder, container) {
 		var baseFolder = folder.path;
@@ -459,10 +426,16 @@ function handleOpenDirectory(project) {
 
 // Open specific pages
 function openWelcomePage() {
-	createEditorTab('./pages/welcome.html', true);
+	createEditorTab({
+		path: './pages/welcome.html',
+		preview: true
+	});
 }
 function openSettingsPage() {
-	createEditorTab('./pages/settings.html', true);
+	createEditorTab({
+		path: './pages/settings.html',
+		preview: true
+	});
 }
 
 // Requestors
@@ -515,7 +488,7 @@ function getCurrentFiles() {
 	return resp;
 }
 //#endregion *****************************/
-/*               INITIALIZE              */
+/*             INITIALIZATION            */
 //#region ********************************/
 if(editors.length == 0)
 	openWelcomePage();
