@@ -411,7 +411,7 @@ function handleOpenDirectory(project) {
 			  label = document.createElement('project-label');
   
 			  cont.classList.add('oct-nodef');
-			  cont.setAttribute('filepath', project.base + item.path);
+			  cont.setAttribute('filepath', item.path);
 			  cont.setAttribute('filename', item.name);
 			  icon.classList.add('oct-file-text');
 			  label.innerText = item.name;
