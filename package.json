@@ -6,7 +6,12 @@
 	"main": "src/index.js",
 	"fileAssociations": [
 		{
-			"ext": ["enws", "enproj", "ewp", "enigma"],
+			"ext": [
+				"enws",
+				"enproj",
+				"ewp",
+				"enigma"
+			],
 			"name": "Enigma project file",
 			"role": "Project",
 			"description": "The enigma project file specifies a project area",
@@ -27,16 +32,18 @@
 	},
 	"license": "MIT",
 	"dependencies": {
+		"appdmg": "^0.6.6",
 		"electron-context-menu": "^3.6.1",
-		"electron-squirrel-startup": "^1.0.0",
-		"junk": "^4.0.1"
+		"electron-squirrel-startup": "^1.0.0"
 	},
 	"devDependencies": {
 		"@electron-forge/cli": "^6.1.1",
 		"@electron-forge/maker-deb": "^6.1.1",
+		"@electron-forge/maker-dmg": "^6.1.1",
 		"@electron-forge/maker-rpm": "^6.1.1",
 		"@electron-forge/maker-squirrel": "^6.1.1",
+		"@electron-forge/maker-wix": "^6.1.1",
 		"@electron-forge/maker-zip": "^6.1.1",
-		"electron": "25.1.0"
+		"electron": "^25.1.0"
 	}
 }

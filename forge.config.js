@@ -1,37 +1,42 @@
 module.exports = {
 	packagerConfig: {
 		appBundleId: "com.ryvor.EnigmaIDE",
-		icon: '	/src/front/assets/icons/enigma',
+		icon: "./src/front/assets/icons/enigma",
+		osxSign: {},
+		osxNotarize: {
+			tool: 'notarytool',
+			appleId: process.env.APPLE_ID,
+			appleIdPassword: process.env.APPLE_PASSWORD,
+			teamId: process.env.APPLE_TEAM_ID
+		}
 	},
 	makers: [
-		{
-			name: '@electron-forge/maker-squirrel',
+		{	name: "@electron-forge/maker-dmg",
 			config: {
-				// An URL to an ICO file to use as the application icon (displayed in Control Panel > Programs and Features).
-				iconUrl: '/src/front/assets/icons/enigma.ico',
-				// The ICO file to use as the icon for the generated Setup.exe
-				setupIcon: '/src/front/assets/icons/enigma.ico',
+				name: 'Enigma',
+				title: 'Enigma IDE',
+				authors: 'Ryvor',
+				icon: "./src/front/assets/icons/enigma.icns",
+
 			},
-		}, {
-			// Path to a single image that will act as icon for the application
-			name: '@electron-forge/maker-deb',
+		},{	name: "@electron-forge/maker-squirrel",
 			config: {
-				options: {
-				icon: '/src/front/assets/icons/enigma.png',
-				},
+				name: 'Enigma IDE',
+				authors: 'Ryvor',
+				exe: 'Enigma IDE installer Windows x64.exe',
+				iconUrl: "./src/front/assets/icons/enigma.ico",
+				setupIcon: "./src/front/assets/icons/enigma.ico",
+				//remoteReleases: 'https://path/to/remote/releases',
+				//loadingGif: 'path/to/loading.gif',
+				certificateFile: './cert.pfx',
+				certificatePassword: process.env.CERTIFICATE_PASSWORD
+
 			},
-		}, {
-			// Path to the icon to use for the app in the DMG window
-			name: '@electron-forge/maker-dmg',
+		},{	name: "@electron-forge/maker-deb",
 			config: {
-				icon: '/src/front/assets/icons/enigma.icns',
+				icon: "./src/front/assets/icons/enigma.png",
 			},
-		}, {
-			name: '@electron-forge/maker-wix',
-			config: {
-				icon: '/src/front/assets/icons/enigma.ico',
-			},
-		},
+		}
 	],
 	plugins: [],
 	hooks: {},

@@ -17,14 +17,6 @@
 			"name": "Make Enigma IDE",
 			"request": "launch",
 			"type": "node-terminal"
-		},{	"name": "Preview Enigma IDE",
-			"type": "f5anything",
-			"request": "launch",
-			"command": "'./out/Enigma IDE-darwin-x64/Enigma IDE.app/Contents/MacOS/Enigma IDE'",
-			"terminalName": "F5 Anything",
-			"terminalIndex": -1,
-			"showTerminal": true,
-			"vscCommand": ""
 		},{	"command": "npm run package",
 			"name": "Package Enigma IDE",
 			"request": "launch",
