@@ -9,18 +9,14 @@
 			"name": "Start",
 			"request": "launch",
 			"type": "node-terminal"
-		},{	"command": "npm run make",
+		},{	"command": "npm run publish",
 			"name": "Make",
 			"request": "launch",
 			"type": "node-terminal"
-		},{	"command": "npm run package",
-			"name": "Package",
+		},{	"name": "Publish for Windows",
+			"type": "f5anything",
 			"request": "launch",
-			"type": "node-terminal"
-		},{	"command": "npm run publish",
-			"name": "Publish",
-			"request": "launch",
-			"type": "node-terminal"
-		}
+			"command": "npm run make && iscc installer-win.iss /O'./out/installers/'"
+		},
 	]
 }

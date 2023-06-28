@@ -9,7 +9,6 @@
 			"ext": [
 				"enws",
 				"enproj",
-				"ewp",
 				"enigma"
 			],
 			"name": "Enigma project file",
@@ -20,6 +19,7 @@
 	],
 	"scripts": {
 		"start": "electron-forge start",
+		"trace": "electron --trace-warnings .",
 		"make": "electron-forge make",
 		"package": "electron-forge package",
 		"publish": "electron-forge publish"
@@ -46,24 +46,31 @@
 	},
 	"build": {
 		"appId": "com.ryvor.enigma.ide",
-		"directories": {
-			"output": "dist"
+		"win": {
+			"icon": "./src/front/assets/icons/enigma.ico"
 		}
 	},
 	"config": {
 		"forge": {
 			"packagerConfig": {
-				"icon": "/src/front/assets/icons/enigma"
+				"icon": "./src/front/assets/icons/enigma"
 			},
 			"makers": [
+				{
+					"name": "@electron-forge/maker-zip",
+					"config": {
+						"name": "Enigma",
+						"description": "Enigma IDE is an easy to use IDE that keeps your project security at the heart of what i does"
+					}
+				},
 				{
 					"name": "@electron-forge/maker-squirrel",
 					"config": {
 						"name": "Enigma",
 						"description": "Enigma IDE is an easy to use IDE that keeps your project security at the heart of what i does",
 						"options": {
-							"iconUrl": "/src/front/assets/icons/enigma.ico",
-							"setupIcon": "/src/front/assets/icons/enigma.ico"
+							"iconUrl": "./src/front/assets/icons/enigma.ico",
+							"setupIcon": "./src/front/assets/icons/enigma.ico"
 						}
 					}
 				},
@@ -73,7 +80,7 @@
 						"name": "Enigma",
 						"description": "Enigma IDE is an easy to use IDE that keeps your project security at the heart of what i does",
 						"options": {
-							"icon": "/src/front/assets/icons/enigma.icns"
+							"icon": "./src/front/assets/icons/enigma.icns"
 						}
 					}
 				},
@@ -83,7 +90,7 @@
 						"name": "Enigma",
 						"description": "Enigma IDE is an easy to use IDE that keeps your project security at the heart of what i does",
 						"options": {
-							"icon": "/src/front/assets/icons/enigma.png"
+							"icon": "./src/front/assets/icons/enigma.png"
 						}
 					}
 				}

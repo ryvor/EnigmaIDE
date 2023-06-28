@@ -251,7 +251,6 @@ titlebar {
     grid-column-end: 3;
 	background-color: var(--titlebar-background);
 	color: var(--titlebar-color);
-	overflow: hidden;
 }
 titlebar {
 	display: none;

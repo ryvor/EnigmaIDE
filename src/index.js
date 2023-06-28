@@ -73,6 +73,7 @@ function initializeContextMenu(event, contents) {
 		showSearchWithGoogle: false,
 		showCopyImage: false,
 		showCopyLink: false,
+		showInspectElement: true,
 		prepend: (defaultActions, parameters, browserWindow) => [
 			{	label: '',
 			},{	type: 'separator'
@@ -370,7 +371,7 @@ function activate() {
  * @return Void
  */
 function blur() {
-	currentWindow=null;
+	//currentWindow=null;
 }
 /** focus
  * This this function is executed when the main browser window has gained focus
@@ -541,10 +542,8 @@ function filterSystemFiles(files, root) {
 
 		// Exclude system files based on criteria specific to your platform
 		if (os.platform() === 'win32') {
-			// Exclude files with system and hidden attributes
-			if ((fileStats.isFile() && (fileStats.win32.system || fileStats.win32.hidden))) return false;
 			// Exclude files with specific extensions commonly used for system files
-			const systemFileExtensions = ['.sys', '.dll', '.ini', '.lnk'];
+			const systemFileExtensions = ['.sys'];
 			const fileExtension = path.extname(dirent.name).toLowerCase();
 			if (fileStats.isFile() && systemFileExtensions.includes(fileExtension)) return false;
 		} else if (os.platform() === 'darwin') {
@@ -566,7 +565,7 @@ function filterSystemFiles(files, root) {
  * @param Object result
  */
 async function processFile(result) {
-	if(result.canceled) {currentWindow.send('loading', false); exit();}
+	if(result.canceled) {currentWindow.send('loading', false); return;}
 	var fileInfo={};
 	if(typeof result === 'string') {
 		process(result);
@@ -587,7 +586,7 @@ async function processFile(result) {
  * @param Object result
  */
 function createProjectFile(result) {
-	if(result.canceled) {currentWindow.send('loading', false); exit();}
+	if(result.canceled) {currentWindow.send('loading', false); return;}
 	const project = {}
 	project.name = path.basename(result.filePath, path.extname(result.filePath));
 	project.folders = [
@@ -602,7 +601,7 @@ function createProjectFile(result) {
  * 
  */
 async function processProjectFile(result) {
-	if(result.canceled) {currentWindow.send('loading', false); exit();}
+	if(result.canceled) {currentWindow.send('loading', false); return;}
 	var files=[],
 	fileCount=0;
 	(typeof result !== 'object')? files.push(result): files=result.filePaths;
@@ -613,7 +612,7 @@ async function processProjectFile(result) {
 			for (const folder of json.folders) {
 				json.folderContents = {
 					name: path.basename(path.dirname(file)),
-					base: path.dirname(file)+'/',
+					base: path.dirname(file),
 					type: 'directory',
 					contents: await processDirectory(folder),
 				}
@@ -630,13 +629,16 @@ async function processProjectFile(result) {
  * @param Object result
  */
 async function processDirectory(result) {
-	if(result.canceled) {currentWindow.send('loading', false); exit();}
+	if(typeof result == 'object') {
+		if(result.canceled) {currentWindow.send('loading', false); return;}
+		folderDir = result.folders[0];
+	} else { folderDir=result; }
 	return await new Promise((resolve, reject) => {
-	  fs.readdir(result, { withFileTypes: true }, async (err, unfilteredFiles) => {
+	  fs.readdir(folderDir, { withFileTypes: true }, async (err, unfilteredFiles) => {
 		// Check for errors
 		if (err) reject(err);
 		// Filter system files
-		const files = filterSystemFiles(unfilteredFiles, result);
+		const files = filterSystemFiles(unfilteredFiles, folderDir);
 		// Set variables
 		const folderPromises = [];
 		const filePromises = [];
@@ -648,10 +650,10 @@ async function processDirectory(result) {
 			};
 			// If the path is a directory, scan the directory otherwise get the name and type
 			if (dirent.isDirectory()) {
-				itemPromise.contents = await processDirectory(path.join(result, dirent.name));
+				itemPromise.contents = await processDirectory(path.join(folderDir, dirent.name));
 				folderPromises.push(itemPromise);
 			} else {
-				itemPromise.path = path.join(result, dirent.name);
+				itemPromise.path = path.join(folderDir, dirent.name);
 				filePromises.push(itemPromise);
 			}
 		}
@@ -668,7 +670,7 @@ async function processDirectory(result) {
  * @returns Void
  */
 async function openDialog(type, cb) {
-	let type_text, filters, properties;
+	let filters, properties;
 	var windowID = currentWindow.id;
 	switch(type) {
 		case 1:
@@ -684,21 +686,26 @@ async function openDialog(type, cb) {
 		case 3:
 			type_text = 'Enigma Project';
 			filters = [
-				{ name: 'Enigma Project File', extensions: ['enws'] }
+				{ name: 'Enigma Project File', extensions: ['enws', 'enproj', 'enigma'] }
 			];
 			properties = ['openFile', 'multiSelections'];
 			break;
 	}
 	try {
-		allWindows[windowID].setEnabled(false);
+		allWindows[windowID].setIgnoreMouseEvents(true, { forward: false }); // Disable window interaction
+		allWindows[windowID].focus()
 		dialog.showOpenDialog({
 			filters: filters,
 			properties: properties
 		}).then((result)=>{
-			allWindows[windowID].setEnabled(true);
+			allWindows[windowID].setIgnoreMouseEvents(false);
+			allWindows[windowID].focus()
 			return result;
 		}).then((result)=>{
 			cb(result);
+		}).catch(()=>{
+			allWindows[windowID].setIgnoreMouseEvents(false);
+			allWindows[windowID].focus()
 		});
 	} catch (error) {
 		return false;
@@ -739,7 +746,7 @@ async function openSaveDialog(type, cb) {
 			type_text = 'Save Enigma Project';
 			defaultName = 'untitled.enws';
 			filters = [
-				{ name: 'Enigma Project File', extensions: ['enws'] }
+				{ name: 'Enigma Project File', extensions: ['enws', 'enproj', 'enigma'] }
 			];
 			force = true;
 			break;
