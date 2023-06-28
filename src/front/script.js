@@ -13,9 +13,9 @@ var editors = [],
 //#endregion *****************************/
 /*             ELECTRON IPC              */
 //#region ********************************/
-ipcRenderer.on('openFile', (event, fileInfo)=>createEditorTab(fileInfo));
-ipcRenderer.on('openDirectory', (event, message )=>handleOpenDirectory(message));
-ipcRenderer.on('processProject', (event, dir, json)=>openProject(dir, json));
+ipcRenderer.on('openFile', (event, fileInfo)=>{createEditorTab(fileInfo); loading(false);});
+ipcRenderer.on('openDirectory', (event, message )=>{handleOpenDirectory(message); loading(false);});
+ipcRenderer.on('processProject', (event, json)=>{handleOpenProject(json); loading(false);});
 ipcRenderer.on('newFile', (event)=>createEditorTab());
 ipcRenderer.on('closeTab', (event)=>removeEditorTab());
 ipcRenderer.on('openWelcomePage', (event)=>createEditorTab('./pages/welcome.html', true));
@@ -24,6 +24,7 @@ ipcRenderer.on('fileEncoding', (event, fileEncoding)=>updateFileEncoding(fileEnc
 ipcRenderer.on('filePath', (event, filePath)=>updateFilePath(filePath));
 ipcRenderer.on('fileName', (event, fileName)=>updateFileName(fileName));
 ipcRenderer.on('changeTab', (event, modifier)=>changeEditorTab(modifier));
+ipcRenderer.on('loading', (event, bool)=>loading(bool));
 ipcRenderer.on('console', (event, element)=>console.log(element));
 ipcRenderer.on('windowState', (event, state)=>{
 	if(state) {
@@ -140,7 +141,6 @@ window.addEventListener('message', function(event) {
 
 // Core functions
 function createEditorTab(options = {}) {
-	console.log(options);
 	var defaultOptions = new function() {
 		this.id =						editors.length;
 
@@ -150,38 +150,33 @@ function createEditorTab(options = {}) {
 		this.tabElements.tabTitle =		this.tabElements.tab.appendChild(document.createElement('tab-title'));
 		this.tabElements.tabClose =		this.tabElements.tab.appendChild(document.createElement('tab-close'));
 
+		this.editorConfig =				undefined;
 		this.editorContainer =			document.querySelector('editors');
 		this.editorElements =			{};
 		this.editorElements.editor =	this.editorContainer.appendChild(document.createElement('editor'));
-		this.editorConfig =				undefined;
 
-		this.title =					`undefined-`+editors.length;
+		this.title =					undefined;
 		this.path =						'';
 		this.ide =						undefined;
 		this.preview =					false;
-		this.encoding =					'utf-8';
+		this.encoding =					'UTF-8';
 		this.content =					'';
 	};
 	const config = Object.assign({}, defaultOptions, options);
+	config.title = (config.preview)? config.path.match(/([a-z]+)\.[a-z]+/)[1].charAt(0).toUpperCase()+config.path.match(/([a-z]+)\.[a-z]+/)[1].slice(1): (config.path !== '')? config.path.split("/").pop(): `undefined-`+editors.length;;
 	// Check if the file has already been opened, set the tab for it 
 	if((x = document.querySelector(`tabs > tab[filepath="${config.path}"]`)) !== null) {config.id = x.id;} else {
 		config.tabElements.tabTitle.innerText = config.title;
 		config.tabElements.tabClose.classList.add('oct-x');
-		config.tabElements.tab.id = config.id;
-		config.tabElements.tab.setAttribute('filepath', config.path);
-		config.tabElements.tab.setAttribute('preview', config.preview);
-		config.tabElements.tab.setAttribute('fileencoding', config.preview);
 
+		config.tabElements.tab.id = config.id;
 		config.editorElements.editor.id = config.id;
-		config.editorElements.editor.setAttribute('filepath', config.path);
-		config.editorElements.editor.setAttribute('preview', config.preview);
-		config.editorElements.editor.setAttribute('fileencoding', config.preview);
+
 		if(config.preview){
 			//*				 | IMAGE FILES			  	  |	AUDIO FILES | VIDEO FILES  | DOCUMENTS						| ARCHIVES		 | XML/HTML		| TEXT BASED  | FONTS			   | DATA	 | DATABASE		 | 3D MODELS  |				 *//
 			if(/\.[ong|jpeg|jpg|gif|svg|eps|ai | mp3|wav|ogg | mp4|webm|ogg | pdf|doc|docx|xls|xlsx|ppt|pptx | zip|tar|gz|rar | html|htm|xml | css|js|json | ttf|woff|woff2|otf | csv|tsv | sqlite|db|sql | obj|stl|fbx]+/.exec(config.path)[0] !== '.html') {
 				exit(`Unable to preview file: The file requested (${fileInfo}) is not a previewable file. Cannot be previewed`);
 			}
-			config.title = config.path.match(/([a-z]+)\.[a-z]+/)[1].charAt(0).toUpperCase() + config.path.match(/([a-z]+)\.[a-z]+/)[1].slice(1);
 			config.tabElements.tabTitle.innerText = config.title;
 			var iframe = config.content = config.editorElements.editor.appendChild(document.createElement('iframe'));
 			iframe.setAttribute('src', config.path)
@@ -197,7 +192,7 @@ function createEditorTab(options = {}) {
 				}, '*');
 			};
 		} else {
-			config.editorConfig = (config.path.length > 0)?Enigma.findModeByFileName(config.path): '';
+			if((config.editorConfig = Enigma.findModeByFileName(config.path)) === undefined) config.editorConfig = Enigma.findModeByMIME('text/plain');
 			config.editorIDE = Enigma(config.editorElements.editor, {
 				value: config.content,
 				mode: config.editorConfig.mode,
@@ -217,6 +212,11 @@ function createEditorTab(options = {}) {
 					"Enigma-foldgutter"
 				],
 			});
+			config.editorIDE.on("cursorActivity", () => {
+				const cursorPosition = config.editorIDE.getCursor();
+				document.querySelector('footer-controls .enigma-editor-row-number').innerText = cursorPosition.line;
+				document.querySelector('footer-controls .enigma-editor-column-number').innerText = cursorPosition.ch;
+			});
 			if(config.editorConfig) Enigma.autoLoadMode(config.editorIDE, config.editorConfig.mode);
 			config.editorIDE.focus();
 		}
@@ -226,6 +226,7 @@ function createEditorTab(options = {}) {
 	changeEditorTab(config.id);
 }
 function changeEditorTab(modifier) {
+	// Get the tab to change to based on number or string for dynamic changing
 	switch(typeof modifier) {
 		case 'number':
 			element_id = modifier;
@@ -242,17 +243,44 @@ function changeEditorTab(modifier) {
 		default:
 			console.info(typeof modifier);
 	}
+	// Change the editor
 	if(x = document.querySelector(`editor.selected`)) x.classList.remove('selected');
 	if(x = document.querySelector(`editor[id="${element_id}"]`)) x.classList.add('selected');
-
+	// Change the tab
 	if(x = document.querySelector(`tab.selected`)) x.classList.remove('selected');
 	if(x = editors[element_id].tabElements.tab) x.classList.add('selected');
+	// Change the selected tree item if exists
 	if(x = document.querySelector(`project-item.selected`)) x.classList.remove('selected');
 	if(x = document.querySelector(`project-item[filepath="${editors[element_id].path}"]`)) x.classList.add('selected');
-
+	// Focus on the correct IDE, if exists
 	if(editors[element_id] && editors[element_id]['IDE']) editors[element_id]['IDE'].focus();
+	// Set the current editor
 	currEditor = element_id;
+	// add the previous editor to the list of last editors.
 	lastEditor.push(element_id);
+	// Change the Row/Column on the footer bar
+	console.log(editors[element_id]);
+	if(editors[element_id].preview){
+		document.querySelectorAll('footer-controls > a.editorConfig').forEach((elem)=>{
+			elem.style.display = 'none';
+		})
+	} else {
+		document.querySelectorAll('footer-controls > a.editorConfig').forEach((elem)=>{
+			elem.style.display = 'flex';
+		})
+		// Change the Line/Column on the footer bar
+		var cursorPosition = editors[element_id].editorIDE.getCursor();
+		document.querySelector('footer-controls .enigma-editor-row-number').innerText = cursorPosition.ch;
+		document.querySelector('footer-controls .enigma-editor-column-number').innerText = cursorPosition.line;
+		// Change the Tab size on the footer bar
+		document.querySelector('footer-controls .enigma-editor-tab-size').innerText = editors[element_id].editorIDE.options.tabSize;
+		// Change the Encoding on the footer bar
+		document.querySelector('footer-controls .enigma-editor-encoding').innerText = editors[element_id].encoding;
+		// Change the End-of-line Convention on the footer bar
+		document.querySelector('footer-controls .enigma-editor-end-of-line-convention').innerText = editors[element_id].editorIDE.options.lineSeperator;
+		// Change the Language on the footer bar	
+		document.querySelector('footer-controls .enigma-editor-lang').innerText = editors[element_id].editorConfig.name;
+	}
 }
 function removeEditorTab(tabID) {
 	if(!tabID) tabID = document.querySelector(`tab.selected`).id;
@@ -333,8 +361,8 @@ function getAcceleratorString(string) {
 		}
 	}
 }
-function openProject(dir, json) {
-	handleOpenDirectory(dir);
+function handleOpenProject(json) {
+	handleOpenDirectory(json.folderContents);
 	document.querySelector('project-name').innerText = json.name
 }
 function updateFileEncoding(encoding) {
@@ -351,78 +379,79 @@ function updateFileName(name) {
 }
 function handleOpenDirectory(project) {
 	var sidebar = document.querySelector('sidebar'),
-		projectTitle = document.createElement('project-title'),
-		projectTree = document.createElement('project-tree'),
-		projectItem = document.createElement('project-item'),
-		projectNameIcon = document.createElement('project-name-icon'),
-		projectName = document.createElement('project-name');
-	//projectTitle.innerText=project.name;
-	projectName.innerText=project.name;
-	projectNameIcon.classList.add();
+	  projectTitle = document.createElement('project-title'),
+	  projectTree = document.createElement('project-tree'),
+	  projectItem = document.createElement('project-item'),
+	  projectNameIcon = document.createElement('project-name-icon'),
+	  projectName = document.createElement('project-name');
 
-	sidebar.innerHTML = '';
-
+	  sidebar.innerHTML = '';
+  
 	currTitle = sidebar.appendChild(projectTitle);
+	currTitle.innerText = 'EXPLORER';
 	currTree = sidebar.appendChild(projectTree);
-	currItem = currTree	.appendChild(projectItem)
+	currItem = currTree.appendChild(projectItem);
 	currItem.classList.add('oct-chevron-down');
-	CurrNameIcon = currItem.appendChild(projectNameIcon)
-	CurrNameIcon.classList.add('oct-repo');
+	currNameIcon = currItem.appendChild(projectNameIcon);
+	currNameIcon.classList.add('oct-repo');
 	currName = currItem.appendChild(projectName);
-	currName.innerText = ''
-	currFolder = currTree.appendChild(document.createElement('project-folder'))
+	currName.innerText = project.name;
+	currFolder = currTree.appendChild(document.createElement('project-folder'));
 	currFolder.classList.add('unfolded');
-	project.folders.forEach((folder)=>{
-		processFolder(folder, currFolder)
-	});
-
+	processFolder(project, currFolder);
 	loadProjectTree();
-
+  
 	function processFolder(folder, container) {
-		var baseFolder = folder.path;
-		try {
-			folder.contents.forEach((item)=>{
-				switch(item.type) {
-					case "file":
-						cont = document.createElement('project-item');
-						icon = document.createElement('project-label-icon');
-						label = document.createElement('project-label');
-
-						cont.classList.add('oct-nodef');
-						cont.setAttribute('filepath', baseFolder+'/'+item.name);
-						cont.setAttribute('filename', item.name);
-						icon.classList.add('oct-file-text');
-						label.innerText = item.name;
-
-						container.appendChild(cont)
-						cont.appendChild(icon)
-						cont.appendChild(label)
-						break;
-					case "directory":
-						cont = document.createElement('project-item');
-						icon = document.createElement('project-label-icon');
-						label = document.createElement('project-label');
-						folder = document.createElement('project-folder');
-
-						cont.classList.add('oct-chevron-right');
-						icon.classList.add('oct-file-directory');
-						label.innerText = item.name;
-
-						container.appendChild(cont);
-						cont.appendChild(icon);
-						cont.appendChild(label);
-						var x = container.appendChild(folder);
-						processFolder(item.contents, x);
-						break;
-					default:
-						break;
-				}
-			});
-		} catch {
-
-		};
+	  try {
+		folder.contents.forEach((item) => {
+		  switch (item.type) {
+			case 'file':
+			  cont = document.createElement('project-item');
+			  icon = document.createElement('project-label-icon');
+			  label = document.createElement('project-label');
+  
+			  cont.classList.add('oct-nodef');
+			  cont.setAttribute('filepath', project.base + item.path);
+			  cont.setAttribute('filename', item.name);
+			  icon.classList.add('oct-file-text');
+			  label.innerText = item.name;
+  
+			  container.appendChild(cont);
+			  cont.appendChild(icon);
+			  cont.appendChild(label);
+			  break;
+			case 'directory':
+			  cont = document.createElement('project-item');
+			  icon = document.createElement('project-label-icon');
+			  label = document.createElement('project-label');
+			  folderElem = document.createElement('project-folder');
+  
+			  cont.classList.add('oct-chevron-right');
+			  icon.classList.add('oct-file-directory');
+			  label.innerText = item.name;
+  
+			  container.appendChild(cont);
+			  cont.appendChild(icon);
+			  cont.appendChild(label);
+			  processFolder(item, container.appendChild(folderElem));
+			  break;
+			default:
+			  break;
+		  }
+		});
+	  } catch (error) {
+		// Handle error
+	  }
 	}
 }
+function loading(bool) {
+	if(bool) {
+		document.querySelector('titlebars').classList.add('loading')
+	} else {
+		document.querySelector('titlebars').classList.remove('loading')
+	}
+}
+  
 
 // Open specific pages
 function openWelcomePage() {
@@ -439,10 +468,9 @@ function openSettingsPage() {
 }
 
 // Requestors
-createProject = ()=>ipcRenderer.send('createProject');
-openProject = ()=>ipcRenderer.send('openProject');
-openFile = ()=>ipcRenderer.send('openFile');
-openDirectory = ()=>ipcRenderer.send('openProject');
+createProject = ()=>{loading(true); ipcRenderer.send('createProject')};
+openProject = ()=>{loading(true); ipcRenderer.send('openProject')};
+openFile = ()=>{loading(true); ipcRenderer.send('openFile')};
 
 //#endregion *****************************/
 /*   MAIN-PROCESS SEPECIFIC FUNCTIONS    */

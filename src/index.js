@@ -2,7 +2,7 @@
 /*               VARIABLES               */
 //#region ********************************/
 
-const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain, shell, screen } = require('electron');
+const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain, shell, screen, ipcRenderer } = require('electron');
 const contextMenu = require('electron-context-menu');
 const path = require('path');
 const fs = require('fs');
@@ -14,6 +14,7 @@ var	applicationMenuDefaults=[],
 	currentWindow,
 	windowStyles=[],
 	modalActive=false,
+	initialized=false,
 	screenWidth,
 	screenHeight,
 	halfScreenWidth;
@@ -23,7 +24,80 @@ if(require('electron-squirrel-startup')) terminate(true);
 /*             SYSTEM EVENTS             */
 //#region ********************************/
 
-app.on('ready', ()=>{
+app.on('ready', ()=>initialize);
+app.on('window-all-closed', terminate);
+app.on('activate', activate);
+app.on('window-all-closed', allWindowsClosed);
+app.on('web-contents-created', (event, contents)=>initializeContextMenu(event, contents))
+app.on('open-file', (event, filePath) => {
+	initialize();
+	processProjectFile(filePath);
+});
+ipcMain.on('minimiseWindow', (event)=>currentWindow.minimize())
+ipcMain.on('maximiseWindow', (event)=>(currentWindow.isMaximized())? currentWindow.restore(): currentWindow.maximize())
+ipcMain.on('closeWindow', (event)=>currentWindow.close())
+ipcMain.on('requestAppMenu', (event)=>event.sender.send('appMenu', JSON.stringify(applicationMenu[process.platform])))
+ipcMain.on('createProject', (event)=>openSaveDialog(2, createProjectFile));
+ipcMain.on('openFile', (event)=>openDialog(1, processFile));
+ipcMain.on('processFile', (event, file )=>processFile(file));
+ipcMain.on('openProject', (event)=>openDialog(3, processProjectFile));
+ipcMain.on('getFileContent', (event)=>event.reply('getFileContent-reply', resp));
+ipcMain.on('openModal', async (event, message) => {
+	switch(typeof message) {
+		case "object":
+			file = message.file;
+			options = message.options;
+			break;
+		case "string":
+			file = message.file;
+			options = {};
+			break;
+	}
+	await openModal(file, options, (resp)=>{
+		event.reply('modal-response', resp);
+	});
+});
+
+//#endregion *****************************/
+/*               FUNCTIONS               */
+//#region ********************************/
+
+/** initializeContextMenu
+ * 
+ */
+function initializeContextMenu(event, contents) {
+	contextMenu({
+		window: contents,
+		showLearnSpelling: false,
+		showLookUpSelection: false,
+		showSearchWithGoogle: false,
+		showCopyImage: false,
+		showCopyLink: false,
+		prepend: (defaultActions, parameters, browserWindow) => [
+			{	label: '',
+			},{	type: 'separator'
+			},
+		],
+		append: () => [
+			{	label: 'Command Pelette...',
+			},
+		],
+	});  
+}
+/** tileWindowToLeft
+ * 
+ */
+function tileWindowToLeft() {
+	currentWindow.setBounds({ x: 0, y: 0, width: halfScreedWidth, screenHeight });
+}
+/** tileWindowToRight
+ * 
+ */
+function tileWindowToRight() {
+	currentWindow.setBounds({ x: halfScreenWidth, y: 0, width: halfScreenWidth, screenHeight });
+}
+function initialize() {
+	if(initialized) exit();
 	screenWidth = screen.getPrimaryDisplay().workAreaSize.width;
 	screenHeight = screen.getPrimaryDisplay().workAreaSize.height;
 	halfScreenWidth = Math.floor(screenWidth / 2);
@@ -224,80 +298,14 @@ app.on('ready', ()=>{
 
 	registerApplicationMenu();
 	createWindow();
-});
-app.on('window-all-closed', terminate);
-app.on('activate', activate);
-app.on('window-all-closed', allWindowsClosed);
-app.on('web-contents-created', (event, contents)=>initialiseContextMenu(event, contents))
-ipcMain.on('minimiseWindow', (event)=>currentWindow.minimize())
-ipcMain.on('maximiseWindow', (event)=>(currentWindow.isMaximized())? currentWindow.restore(): currentWindow.maximize())
-ipcMain.on('closeWindow', (event)=>currentWindow.close())
-ipcMain.on('requestAppMenu', (event)=>event.sender.send('appMenu', JSON.stringify(applicationMenu[process.platform])))
-ipcMain.on('createProject', (event)=>openSaveDialog(2, createProjectFile));
-ipcMain.on('openFile', (event)=>openDialog(1, processFile));
-ipcMain.on('processFile', (event, file )=>processFile(file));
-ipcMain.on('openProject', (event)=>openDialog(3, processProjectFile));
-ipcMain.on('getFileContent', (event)=>event.reply('getFileContent-reply', resp));
-ipcMain.on('openModal', async (event, message) => {
-	switch(typeof message) {
-		case "object":
-			file = message.file;
-			options = message.options;
-			break;
-		case "string":
-			file = message.file;
-			options = {};
-			break;
-	}
-	await openModal(file, options, (resp)=>{
-		event.reply('modal-response', resp);
-	});
-});
-
-//#endregion *****************************/
-/*               FUNCTIONS               */
-//#region ********************************/
-
-/** initialiseContextMenu
- * 
- */
-function initialiseContextMenu(event, contents) {
-	contextMenu({
-		window: contents,
-		showLearnSpelling: false,
-		showLookUpSelection: false,
-		showSearchWithGoogle: false,
-		showCopyImage: false,
-		showCopyLink: false,
-		prepend: (defaultActions, parameters, browserWindow) => [
-			{	label: '',
-			},{	type: 'separator'
-			},
-		],
-		append: () => [
-			{	label: 'Command Pelette...',
-			},
-		],
-	});  
-}
-/** tileWindowToLeft
- * 
- */
-function tileWindowToLeft() {
-	currentWindow.setBounds({ x: 0, y: 0, width: halfScreedWidth, screenHeight });
-}
-/** tileWindowToRight
- * 
- */
-function tileWindowToRight() {
-	currentWindow.setBounds({ x: halfScreenWidth, y: 0, width: halfScreenWidth, screenHeight });
+	initialized=true;
 }
 /** createWindow
  * Creates a new window and loads the configuration
  * @return Void
  */
 function createWindow() {
-	allWindows[allWindows.length] = x = new BrowserWindow(windowStyles.default);
+	allWindows[allWindows.length+1] = x = new BrowserWindow(windowStyles.default);
 	x.loadFile(__dirname+'/front/index.html');
 
 	x.on('focus', focus);
@@ -419,6 +427,7 @@ function writeFileToDisk(location, content) {
 		fs.writeFileSync(location, content, 'utf-8');
 		return true;
 	} catch(e) {
+
 		log('ERROR: Could not save the file!', location, e);
 		return false;
 	}
@@ -513,50 +522,18 @@ async function getCurrentFiles() {
  * @returns Void
  */
 async function saveFile(response, obfuscate) {
-	if(!response.canceled) { // Check if the save dialog was cancelled
-		file = (obfuscate)? handleObfuscation(file.content): file;
-		if(writeFileToDisk(response.filePath, file.content)) {
-			if(obfuscate) writeFileToDisk(response.filePath, file.key);
-			if(fs.statSync(response.filePath).isFile()) {
-				const buffer = fs.readFileSync(response.filePath);
-				currentWindow.send('fileEncoding', detectEncoding(buffer));
-				currentWindow.send('filePath', response.filePath);
-				currentWindow.send('fileName', path.basename(response.filePath));
-			}
+	if(response.canceled) { currentWindow.send('loading', false); exit()}
+
+	file = (obfuscate)? handleObfuscation(file.content): file;
+	if(writeFileToDisk(response.filePath, file.content)) {
+		if(obfuscate) writeFileToDisk(response.filePath, file.key);
+		if(fs.statSync(response.filePath).isFile()) {
+			const buffer = fs.readFileSync(response.filePath);
+			currentWindow.send('fileEncoding', detectEncoding(buffer));
+			currentWindow.send('filePath', response.filePath);
+			currentWindow.send('fileName', path.basename(response.filePath));
 		}
 	}
-}
-/** processDirectory
- * @param Object result
- */
-async function processDirectory(folderPath) {
-	return await new Promise((resolve, reject) => {
-		fs.readdir(folderPath, { withFileTypes: true }, async (err, unfilteredFiles) => {
-			if (err) {
-				reject(err);
-				return;
-			}
-
-			const files = filterSystemFiles(unfilteredFiles, folderPath)
-
-			const directoryJSON = {
-				path: folderPath,
-				contents: []
-			};
-			const promises = files.map(async (dirent) => {
-				const filePath = path.join(folderPath, dirent.name);
-				const item = {
-				name: dirent.name,
-				type: dirent.isDirectory() ? 'directory' : 'file'
-				};
-				if (dirent.isDirectory()) item.contents = await processDirectory(filePath);
-				return item;
-			});
-			// Wait for all the promises to resolve
-			directoryJSON.contents = await Promise.all(promises);
-			resolve(directoryJSON);
-		});
-	});
 }
 function filterSystemFiles(files, root) {
 	return files.filter((dirent) => {
@@ -590,6 +567,7 @@ function filterSystemFiles(files, root) {
  * @param Object result
  */
 async function processFile(result) {
+	if(result.canceled) {currentWindow.send('loading', false); exit();}
 	var fileInfo={};
 	if(typeof result === 'string') {
 		process(result);
@@ -610,6 +588,7 @@ async function processFile(result) {
  * @param Object result
  */
 function createProjectFile(result) {
+	if(result.canceled) {currentWindow.send('loading', false); exit();}
 	const project = {}
 	project.name = path.basename(result.filePath, path.extname(result.filePath));
 	project.folders = [
@@ -624,22 +603,66 @@ function createProjectFile(result) {
  * 
  */
 async function processProjectFile(result) {
-	var files=[];
+	if(result.canceled) {currentWindow.send('loading', false); exit();}
+	var files=[],
+	fileCount=0;
 	(typeof result !== 'object')? files.push(result): files=result.filePaths;
 	try {
-		for(i1=0; i1<files.length; i1++) {
-			var file=files[i1],
-				dir={},
-				json =  JSON.parse(fs.readFileSync(file));
-			dir.file = json.base;
-			dir.folders=[];
-			for(i2=0; i2<json.folders.length; i2++) dir.folders.push(await processDirectory(json.folders[i2]));
-			(i1==0)?currentWindow.send('processProject', dir, json): createWindow().send('processProject', dir, json);
+		for (const file of files) {
+			var json = JSON.parse(fs.readFileSync(file));
+
+			for (const folder of json.folders) {
+				json.folderContents = {
+					name: path.basename(path.dirname(file)),
+					base: path.dirname(file)+'/',
+					type: 'directory',
+					contents: await processDirectory(folder),
+				}
+			};
+			(fileCount==0)? currentWindow.send('processProject', json): createWindow().send('processProject', json);
+			fileCount++;
 		};
 	} catch(e) {
-		log('ERROR: Couldnt process project file. ', e);
+		log('ERROR: Couldnt process project file. ');
+		log(e);
 	}
 }
+/** processDirectory
+ * @param Object result
+ */
+async function processDirectory(result) {
+	if(result.canceled) {currentWindow.send('loading', false); exit();}
+	return await new Promise((resolve, reject) => {
+	  fs.readdir(result, { withFileTypes: true }, async (err, unfilteredFiles) => {
+		// Check for errors
+		if (err) reject(err);
+		// Filter system files
+		const files = filterSystemFiles(unfilteredFiles, result);
+		// Set variables
+		const folderPromises = [];
+		const filePromises = [];
+		// Scan through directory to get files recursively
+		for (const dirent of files) {
+			const itemPromise = {
+				name: dirent.name,
+				type: dirent.isDirectory() ? 'directory' : 'file',
+			};
+			// If the path is a directory, scan the directory otherwise get the name and type
+			if (dirent.isDirectory()) {
+				itemPromise.contents = await processDirectory(path.join(result, dirent.name));
+				folderPromises.push(itemPromise);
+			} else {
+				itemPromise.path = path.join(result, dirent.name);
+				filePromises.push(itemPromise);
+			}
+		}
+		const folderItems = await Promise.all(folderPromises);
+		const fileItems = await Promise.all(filePromises);
+		resolve(folderItems.concat(fileItems));
+	  });
+	});
+}
+  
 /** openDialog
  * This function will open a window to enable the ability to open a file or folder
  * @param Integer type
@@ -647,6 +670,7 @@ async function processProjectFile(result) {
  */
 async function openDialog(type, cb) {
 	let type_text, filters, properties;
+	var windowID = currentWindow.id;
 	switch(type) {
 		case 1:
 			type_text = 'File';
@@ -667,9 +691,13 @@ async function openDialog(type, cb) {
 			break;
 	}
 	try {
+		allWindows[windowID].setEnabled(false);
 		dialog.showOpenDialog({
 			filters: filters,
 			properties: properties
+		}).then((result)=>{
+			allWindows[windowID].setEnabled(true);
+			return result;
 		}).then((result)=>{
 			cb(result);
 		});

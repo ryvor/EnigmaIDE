@@ -230,6 +230,20 @@ body {
 	color: var(--color-primary);
 	overflow: hidden;
 }
+titlebars.loading::after {
+	--height: 1px;
+	content: "";
+	position: absolute;
+	width: 100px;
+	height: var(--height);
+	top: calc(2rem - var(--height));
+	background-color: #f95959;
+	animation: loading 1.5s linear 0s infinite;
+}
+@keyframes loading {
+	from {left: calc(0% - 100px);}
+	to {left: calc(100% + 100px);}
+  }
 titlebars,
 titlebar {
     height: 2rem;
@@ -237,6 +251,7 @@ titlebar {
     grid-column-end: 3;
 	background-color: var(--titlebar-background);
 	color: var(--titlebar-color);
+	overflow: hidden;
 }
 titlebar {
 	display: none;
@@ -370,6 +385,7 @@ sidebar project-title {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	letter-spacing: 5px;
 }
 sidebar project-tree {
 	overflow: auto;
@@ -416,16 +432,14 @@ sidebar project-tree project-item project-label:before {
 	margin-right: 10px;
 }
 sidebar project-tree project-folder {
-	transition: max-height 0.25s ease;
 	padding-left: 1rem;
 	width: calc(100% - 1rem);
-	display: block;
+	display: none;
 	overflow: hidden;
 	height: auto;
-	max-height: 0px;
 }
 sidebar project-tree project-folder.unfolded {
-	max-height: 100%;
+	display: block;
 }
 sidebar project-tree project-folder > * {
 	width: calc(100% - 1rem);

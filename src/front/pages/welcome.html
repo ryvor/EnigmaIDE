@@ -101,7 +101,7 @@
 			<hyperlink onClick="newTab()"><i class="oct-file-add"></i>New File</hyperlink>
 			<hyperlink onClick="newProject()"><i class="oct-file-directory-create"></i>New Project</hyperlink>
 			<hyperlink onClick="openFile()"><i class="oct-symlink-file"></i>Open File</hyperlink>
-			<hyperlink onClick="openDirectory()"><i class="oct-symlink-directory"></i>Open Project</hyperlink>
+			<hyperlink onClick="openProject()"><i class="oct-symlink-directory"></i>Open Project</hyperlink>
 		</same-width>
 	</start>
 	<recent>
@@ -141,10 +141,10 @@
 				}];
 			sendRequest(request);
 		}
-		function openDirectory() {
+		function openProject() {
 			var request = messageRequest;
 			request.functions = [{
-					name: 'openDirectory',
+					name: 'openProject',
 					args: [],
 				}];
 			sendRequest(request);

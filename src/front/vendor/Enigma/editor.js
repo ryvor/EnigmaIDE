@@ -9852,7 +9852,7 @@
 				}, options);
 		};
 	//#endregion****************************#//
-	//#             LOAD MODES              #//
+	//#             FIND MODES              #//
 	//#region ******************************#//
 		Enigma.modeInfo = [
 			{name: "APL", mime: "text/apl", mode: "apl", ext: ["dyalog", "apl"]},
@@ -9889,6 +9889,7 @@
 			{name: "Elm", mime: "text/x-elm", mode: "elm", ext: ["elm"]},
 			{name: "Embedded JavaScript", mime: "application/x-ejs", mode: "htmlembedded", ext: ["ejs"]},
 			{name: "Embedded Ruby", mime: "application/x-erb", mode: "htmlembedded", ext: ["erb"]},
+			{name: "Enigma Project", mimes: ["application/json", "application/x-json"], mode: "javascript", ext: ["enws", "enigma-workspace", "enp", "enigma-project"]},
 			{name: "Erlang", mime: "text/x-erlang", mode: "erlang", ext: ["erl"]},
 			{name: "Esper", mime: "text/x-esper", mode: "sql"},
 			{name: "Factor", mime: "text/x-factor", mode: "factor", ext: ["factor"]},
