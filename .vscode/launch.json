@@ -2,29 +2,25 @@
 	"version": "0.2.0",
 	"configurations": [
 		{	"command": "npm install",
-			"name": "Initialize Enigma IDE",
+			"name": "Initialize",
 			"request": "launch",
 			"type": "node-terminal"
 		},{	"command": "npm run start",
-			"name": "Debug Enigma ide",
-			"request": "launch",
-			"type": "node-terminal"
-		},{	"command": "npm run lint",
-			"name": "Lint Enigma ide",
+			"name": "Start",
 			"request": "launch",
 			"type": "node-terminal"
 		},{	"command": "npm run make",
-			"name": "Make Enigma IDE",
+			"name": "Make",
 			"request": "launch",
 			"type": "node-terminal"
 		},{	"command": "npm run package",
-			"name": "Package Enigma IDE",
+			"name": "Package",
 			"request": "launch",
 			"type": "node-terminal"
 		},{	"command": "npm run publish",
-			"name": "Publish Enigma IDE",
+			"name": "Publish",
 			"request": "launch",
 			"type": "node-terminal"
-		},
+		}
 	]
 }

@@ -24,7 +24,7 @@ if(require('electron-squirrel-startup')) terminate(true);
 /*             SYSTEM EVENTS             */
 //#region ********************************/
 
-app.on('ready', ()=>initialize);
+app.on('ready', initialize);
 app.on('window-all-closed', terminate);
 app.on('activate', activate);
 app.on('window-all-closed', allWindowsClosed);

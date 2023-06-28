@@ -19,9 +19,8 @@
 		}
 	],
 	"scripts": {
-		"lint": "echo \"No linting configured\"",
-		"make": "electron-forge make",
 		"start": "electron-forge start",
+		"make": "electron-forge make",
 		"package": "electron-forge package",
 		"publish": "electron-forge publish"
 	},
@@ -36,13 +35,13 @@
 		"electron-squirrel-startup": "^1.0.0"
 	},
 	"devDependencies": {
-		"@electron-forge/cli": "^6.1.1",
-		"@electron-forge/maker-deb": "^6.1.1",
-		"@electron-forge/maker-dmg": "^6.1.1",
-		"@electron-forge/maker-rpm": "^6.1.1",
-		"@electron-forge/maker-squirrel": "^6.1.1",
-		"@electron-forge/maker-wix": "^6.1.1",
-		"@electron-forge/maker-zip": "^6.1.1",
-		"electron": "^25.1.0"
+		"@electron-forge/cli": "^6.2.1",
+		"@electron-forge/maker-deb": "^6.2.1",
+		"@electron-forge/maker-dmg": "^6.2.1",
+		"@electron-forge/maker-rpm": "^6.2.1",
+		"@electron-forge/maker-squirrel": "^6.2.1",
+		"@electron-forge/maker-wix": "^6.2.1",
+		"@electron-forge/maker-zip": "^6.2.1",
+		"electron": "^14.2.9"
 	}
 }
