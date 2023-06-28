@@ -10,7 +10,7 @@
 			"request": "launch",
 			"type": "node-terminal"
 		},{	"command": "npm run publish",
-			"name": "Make",
+			"name": "Publish",
 			"request": "launch",
 			"type": "node-terminal"
 		},{	"name": "Publish for Windows",

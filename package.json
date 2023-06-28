@@ -19,7 +19,6 @@
 	],
 	"scripts": {
 		"start": "electron-forge start",
-		"trace": "electron --trace-warnings .",
 		"make": "electron-forge make",
 		"package": "electron-forge package",
 		"publish": "electron-forge publish"
@@ -56,46 +55,57 @@
 				"icon": "./src/front/assets/icons/enigma"
 			},
 			"makers": [
-				{
-					"name": "@electron-forge/maker-zip",
+				{	"name": "@electron-forge/maker-zip",
+					"config": {
+						"platforms": [
+							"darwin",
+							"linux",
+							"win32"
+						  ],
+						  "overwrite": true
+					}
+				},{	"name": "@electron-forge/maker-squirrel",
 					"config": {
 						"name": "Enigma",
-						"description": "Enigma IDE is an easy to use IDE that keeps your project security at the heart of what i does"
+						"description": "Enigma IDE is an easy to use IDE that keeps your project security at the heart of what i does",
+						"iconUrl": "./src/front/assets/icons/enigma.ico",
+						"setupIcon": "./src/front/assets/icons/enigma.ico",
+						"authors": "Robert Smith",
+						"exe": "Enigma Installer.exe",
+						"loadingGif": "./src/front/assets/installer/loading.gif"
 					}
-				},
-				{
-					"name": "@electron-forge/maker-squirrel",
+				},{	"name": "@electron-forge/maker-deb",
+					"config": {
+						"name": "Enigma",
+						"description": "Enigma IDE is an easy to use IDE that keeps your project security at the heart of what i does",
+						"icon": "./src/front/assets/icons/enigma.icns",
+						"productName": "Enigma IDE",
+						"homepage": "https://ryvor.github.io/EnigmaIDE/",
+						"maintainer": "Robert Smith <RSmith_20@outlook.com>",
+						"categories": [
+							"Development",
+							"Programming",
+							"Tools",
+							"Editors",
+							"Education"
+						],
+						"lintianOverrides": [
+						  "changelog-file-missing-in-native-package"
+						]
+					}
+				},{	"name": "@electron-forge/maker-rpm",
 					"config": {
 						"name": "Enigma",
 						"description": "Enigma IDE is an easy to use IDE that keeps your project security at the heart of what i does",
 						"options": {
-							"iconUrl": "./src/front/assets/icons/enigma.ico",
-							"setupIcon": "./src/front/assets/icons/enigma.ico"
-						}
-					}
-				},
-				{
-					"name": "@electron-forge/maker-deb",
-					"config": {
-						"name": "Enigma",
-						"description": "Enigma IDE is an easy to use IDE that keeps your project security at the heart of what i does",
-						"options": {
-							"icon": "./src/front/assets/icons/enigma.icns"
-						}
-					}
-				},
-				{
-					"name": "@electron-forge/maker-rpm",
-					"config": {
-						"name": "Enigma",
-						"description": "Enigma IDE is an easy to use IDE that keeps your project security at the heart of what i does",
-						"options": {
-							"icon": "./src/front/assets/icons/enigma.png"
+							"icon": "./src/front/assets/icons/enigma.icns",
+							"maintainer": "Robert Smith <RSmith_20@outlook.com>",
+							"homepage": "https://ryvor.github.io/EnigmaIDE/",
+							"license": "MIT"
 						}
 					}
 				}
 			]
 		}
-
 	}
 }

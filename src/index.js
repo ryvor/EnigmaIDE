@@ -112,6 +112,7 @@ function initialize() {
 		autoHideMenuBar: true,
 		title: app.getName(),
 		titleBarStyle: 'hidden',
+		frame: false,
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,
