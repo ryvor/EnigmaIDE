@@ -2,6 +2,7 @@ module.exports = {
 	packagerConfig: {
 		appBundleId: "com.ryvor.EnigmaIDE",
 		icon: "./src/front/assets/icons/enigma",
+		/*
 		osxSign: {},
 		osxNotarize: {
 			tool: 'notarytool',
@@ -9,6 +10,7 @@ module.exports = {
 			appleIdPassword: process.env.APPLE_PASSWORD,
 			teamId: process.env.APPLE_TEAM_ID
 		}
+		*/
 	},
 	makers: [
 		{	name: "@electron-forge/maker-dmg",
