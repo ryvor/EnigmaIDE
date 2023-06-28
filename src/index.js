@@ -2,7 +2,7 @@
 /*               VARIABLES               */
 //#region ********************************/
 
-const { app, Menu, BrowserWindow, globalShortcut, dialog, Notification, ipcMain, shell, screen, ipcRenderer } = require('electron');
+const { app, Menu, BrowserWindow, dialog, ipcMain, shell, screen } = require('electron');
 const contextMenu = require('electron-context-menu');
 const path = require('path');
 const fs = require('fs');
@@ -355,7 +355,6 @@ function merge(var1, var2) {
  */
 function terminate(force=false) {
 	if (process.platform!=='darwin'|| force) {
-		globalShortcut.unregisterAll();
 		app.quit();
 	}
 }
