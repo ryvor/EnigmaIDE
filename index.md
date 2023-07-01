@@ -8,7 +8,7 @@ permalink: /
 
 ## Overview
 
-Welcome to Engigma, a user-friendly Integrated Development Environment (IDE) that you can install on your desktop. It works smoothly on Windows, macOS, and Linux operating systems. Engigma is designed to support JavaScript, TypeScript, and Node.js, making it a versatile tool for your coding needs. This documentation is here to guide you through your Engigma journey effortlessly.
+Welcome to Engigma, a user-friendly Integrated Development Environment (IDE) that you can install on your desktop. It works smoothly on Windows, macOS, and Linux operating systems. Engigma is designed to support Many languages like Javascript, lua, python and more. Making it a versatile tool for your coding needs. This documentation is here to guide you through your Engigma journey effortlessly.
 
 [Get started now](#first-steps){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
 
