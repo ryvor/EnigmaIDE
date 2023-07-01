@@ -92,9 +92,9 @@ mermaid:
   # See also docs-old/ui-components/code
   # To load mermaid from a local library, also use the `path` key to specify the location of the library; e.g.
   # for (v10+):
-  # path: "/assets/js/mermaid.esm.min.mjs"
+  #path: "/assets/js/mermaid.esm.min.mjs"
   # for (<v10):
-  # path: "/assets/js/mermaid.min.js"
+  #path: "/assets/js/mermaid.min.js"
   # Note: copy both `mermaid.esm.min.mjs` (v10+) or `mermaid.min.js` (<v10) and the associated `.map` file from the specified version of `mermaid/dist` to `/assets/js/`.
 
 # Enable or disable heading anchors
@@ -103,7 +103,7 @@ heading_anchors: true
 # Aux links for the upper right navigation
 aux_links:
   "Download":
-    - "//github.com/ryvor/EnigmaIDE/releases"
+    - "https://github.com/ryvor/EnigmaIDE/releases"
 
 # Makes Aux links open in a new tab. Default is false
 aux_links_new_tab: false
@@ -159,9 +159,9 @@ callouts:
 
 # Google Analytics Tracking (optional)
 # Supports a CSV of tracking ID strings (eg. "UA-1234567-89,G-1AB234CDE5")
-# Note: the main Just the Docs site does *not* use Google Analytics.
-# ga_tracking: UA-2709176-10,G-5FG1HLH3XQ
-# ga_tracking_anonymize_ip: true # Use GDPR compliant Google Analytics settings (true/nil by default)
+#ga_tracking: UA-2709176-10,G-5FG1HLH3XQ
+# Use GDPR compliant Google Analytics settings (true/nil by default)
+#ga_tracking_anonymize_ip: true
 
 plugins:
   - jekyll-seo-tag
