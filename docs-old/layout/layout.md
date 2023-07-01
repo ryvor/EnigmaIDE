@@ -34,7 +34,7 @@ A child and grandchild page of this page use the minimal layout. This differs fr
 
 Just the Docs has further layouts: `about`, `home`, `page`, and `post`. Currently, they are all based on the `default` layout. See the [Jekyll docs about inheritance] for how to customize them.
 
-[front matter]: https://jekyllrb.com/docs/front-matter/ "Jekyll docs about front matter"
-[Jekyll docs page about layouts]: https://jekyllrb.com/docs/layouts/ "Jekyll docs about layouts"
-[Jekyll's front matter defaults]: https://jekyllrb.com/docs/configuration/front-matter-defaults/ "Jekyll docs about front matter defaults"
-[Jekyll docs about inheritance]: https://jekyllrb.com/docs/layouts/#inheritance "Jekyll docs about inheritance"
+[front matter]: https://jekyllrb.com/docs-old/front-matter/ "Jekyll docs about front matter"
+[Jekyll docs page about layouts]: https://jekyllrb.com/docs-old/layouts/ "Jekyll docs about layouts"
+[Jekyll's front matter defaults]: https://jekyllrb.com/docs-old/configuration/front-matter-defaults/ "Jekyll docs about front matter defaults"
+[Jekyll docs about inheritance]: https://jekyllrb.com/docs-old/layouts/#inheritance "Jekyll docs about inheritance"

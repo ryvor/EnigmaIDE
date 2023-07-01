@@ -148,7 +148,7 @@ By default, the search feature indexes a page's `.content`, `.title`, and *some*
 
 This example adds front matter `usage` and `examples` fields to the search index.
 
-`_includes/lunr/custom-data.json` custom code reads the page `usage` and `examples` fields, normalizes the text, and writes the text to custom Javascript `myusage` and `myexamples` fields. Javascript fields are similar yet [not the same as JSON](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON#javascript_and_json_differences). `jsonify` will probably work for most scenarios.
+`_includes/lunr/custom-data.json` custom code reads the page `usage` and `examples` fields, normalizes the text, and writes the text to custom Javascript `myusage` and `myexamples` fields. Javascript fields are similar yet [not the same as JSON](https://developer.mozilla.org/en-US/docs-old/Web/JavaScript/Reference/Global_Objects/JSON#javascript_and_json_differences). `jsonify` will probably work for most scenarios.
 
 {% raw %}
 ```liquid

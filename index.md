@@ -85,8 +85,8 @@ Just the Docs is committed to fostering a welcoming community.
 [Jekyll]: https://jekyllrb.com
 [Markdown]: https://daringfireball.net/projects/markdown/
 [Liquid]: https://github.com/Shopify/liquid/wiki
-[Front matter]: https://jekyllrb.com/docs/front-matter/
-[Jekyll configuration]: https://jekyllrb.com/docs/configuration/
+[Front matter]: https://jekyllrb.com/docs-old/front-matter/
+[Jekyll configuration]: https://jekyllrb.com/docs-old/configuration/
 [source file for this page]: https://github.com/just-the-docs/just-the-docs/blob/main/index.md
 [Just the Docs Template]: https://just-the-docs.github.io/just-the-docs-template/
 [Just the Docs]: https://just-the-docs.com
@@ -95,5 +95,5 @@ Just the Docs is committed to fostering a welcoming community.
 [GitHub Pages]: https://pages.github.com/
 [Template README]: https://github.com/just-the-docs/just-the-docs-template/blob/main/README.md
 [GitHub Pages / Actions workflow]: https://github.blog/changelog/2022-07-27-github-pages-custom-github-actions-workflows-beta/
-[customize]: {% link docs/customization.md %}
+[customize]: {% link docs-old/customization.md %}
 [use the template]: https://github.com/just-the-docs/just-the-docs-template/generate

@@ -85,7 +85,7 @@ mermaid:
 
 Provide a `path` instead of a `version` key to load the mermaid library from a local file.
 
-See [the Code documentation]({% link docs/ui-components/code.md %}#mermaid-diagram-code-blocks) for more configuration options and information.
+See [the Code documentation]({% link docs-old/ui-components/code.md %}#mermaid-diagram-code-blocks) for more configuration options and information.
 
 ## Aux links
 
@@ -116,7 +116,7 @@ New (v0.4.0)
 {: .label .label-green }
 
 External links can be added to the navigation through the `nav_external_links` option.
-See [Navigation Structure]({% link docs/navigation-structure.md %}#external-navigation-links) for more details.
+See [Navigation Structure]({% link docs-old/navigation-structure.md %}#external-navigation-links) for more details.
 
 ## Footer content
 
@@ -146,7 +146,7 @@ _note: `footer_content` is deprecated, but still supported. For a better experie
 - `last_edit_time_format` uses Ruby's DateTime formatter; see examples and more information [at this link.](https://apidock.com/ruby/DateTime/strftime)
 - `gh_edit_repository` is the URL of the project's GitHub repository
 - `gh_edit_branch` is the branch that the docs site is served from; defaults to `main`
-- `gh_edit_source` is the source directory that your project files are stored in (should be the same as [site.source](https://jekyllrb.com/docs/configuration/options/))
+- `gh_edit_source` is the source directory that your project files are stored in (should be the same as [site.source](https://jekyllrb.com/docs-old/configuration/options/))
 - `gh_edit_view_mode` is `"tree"` by default, which brings the user to the github page; switch to `"edit"` to bring the user directly into editing mode
 
 ## Color scheme
@@ -172,7 +172,7 @@ jtd.addEvent(toggleDarkMode, 'click', function(){
 });
 </script>
 
-See [Customization]({% link docs/customization.md %}) for more information.
+See [Customization]({% link docs-old/customization.md %}) for more information.
 
 ## Callouts
 {: .d-inline-block }
@@ -229,7 +229,7 @@ The value of `callouts_level` is either `quiet` or `loud`;
 The default level is `quiet` when using the `light` or custom color schemes,
 and `loud` when using the `dark color scheme.`
 
-See [Callouts]({% link docs/ui-components/callouts.md %}) for more information.
+See [Callouts]({% link docs-old/ui-components/callouts.md %}) for more information.
 
 ## Google Analytics
 
@@ -259,8 +259,8 @@ ga_tracking: "UA-1234567-89,G-1AB234CDE5"
 
 ## Document collections
 
-By default, the navigation and search include normal [pages](https://jekyllrb.com/docs/pages/).
-You can also use [Jekyll collections](https://jekyllrb.com/docs/collections/) which group documents semantically together.
+By default, the navigation and search include normal [pages](https://jekyllrb.com/docs-old/pages/).
+You can also use [Jekyll collections](https://jekyllrb.com/docs-old/collections/) which group documents semantically together.
 
 {: .warning }
 > Collection folders always start with an underscore (`_`), e.g. `_tests`. You won't see your collections if you omit the prefix.
