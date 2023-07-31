@@ -16,7 +16,7 @@
 
 title: 'Enigma IDE : Docs'
 description: 'Documentation for the Enigma IDE code editor'
-baseurl: "/EnigmaIDE" # the subpath of your site, e.g. /blog
+baseurl: "/Projects/EnigmaIDE/Wiki" # the subpath of your site, e.g. /blog
 url: "https://ryvor.github.io/" # the base hostname & protocol for your site, e.g. http://example.com
 repository: ryvor/EnigmaIDE # for github-metadata
 
