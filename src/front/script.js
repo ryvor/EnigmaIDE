@@ -379,13 +379,12 @@ function updateFileName(name) {
 }
 function handleOpenDirectory(project) {
 	var sidebar = document.querySelector('sidebar'),
-	  projectTitle = document.createElement('project-title'),
-	  projectTree = document.createElement('project-tree'),
-	  projectItem = document.createElement('project-item'),
-	  projectNameIcon = document.createElement('project-name-icon'),
-	  projectName = document.createElement('project-name');
-
-	  sidebar.innerHTML = '';
+		projectTitle = document.createElement('project-title'),
+		projectTree = document.createElement('project-tree'),
+		projectItem = document.createElement('project-item'),
+		projectNameIcon = document.createElement('project-name-icon'),
+		projectName = document.createElement('project-name');
+	sidebar.innerHTML = '';
   
 	currTitle = sidebar.appendChild(projectTitle);
 	currTitle.innerText = 'EXPLORER';

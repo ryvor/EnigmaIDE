@@ -591,7 +591,7 @@ function createProjectFile(result) {
 	const project = {}
 	project.name = path.basename(result.filePath, path.extname(result.filePath));
 	project.folders = [
-		path.dirname(result.filePath)
+		"."
 	];
 	project.settings = {};
 	if(writeFileToDisk(result.filePath, JSON.stringify(project, null, "\t"))) {
@@ -639,6 +639,7 @@ async function processDirectory(result) {
 		// Check for errors
 		if (err) reject(err);
 		// Filter system files
+		console.log(folderDir);
 		const files = filterSystemFiles(unfilteredFiles, folderDir);
 		// Set variables
 		const folderPromises = [];
@@ -693,7 +694,7 @@ async function openDialog(type, cb) {
 			break;
 	}
 	try {
-		allWindows[windowID].setIgnoreMouseEvents(true, { forward: false }); // Disable window interaction
+		allWindows[windowID].setIgnoreMouseEvents(true); // Disable window interaction
 		allWindows[windowID].focus()
 		dialog.showOpenDialog({
 			filters: filters,

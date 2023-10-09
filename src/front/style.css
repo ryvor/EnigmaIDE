@@ -386,6 +386,18 @@ sidebar project-title {
 	justify-content: center;
 	letter-spacing: 5px;
 }
+sidebar project-button {
+	grid-column: 1;
+    grid-row: 2;
+    height: fit-content;
+    padding: 10px;
+    position: relative;
+    top: 10px;
+    width: fit-content;
+    left: 50%;
+    transform: translatex(-50%);
+	background-color: #f95959;
+}
 sidebar project-tree {
 	overflow: auto;
 	height: 100%;
